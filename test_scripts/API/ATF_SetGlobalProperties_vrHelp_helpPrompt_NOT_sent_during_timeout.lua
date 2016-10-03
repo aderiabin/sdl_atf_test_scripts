@@ -3,10 +3,22 @@
 -- Specified by: 
 --		APPLINK-23759 [SetGlobalProperties] Mobile app does NOT send request and has registered Add/DeleteCommands
 --		APPLINK-23760 [SetGlobalProperties] Mobile app does NOT send request and has NO registered Add/DeleteCommands
---			APPLINK-19475 [SetGlobalProperties]: Default values of <vrHelp> and <helpPrompt> 
 --		APPLINK-23761 [SetGlobalProperties] Conditions for SDL to send updated values of "vrHelp" and/or "helpPrompt" to HMI
 --		APPLINK-23762 [SetGlobalProperties] SDL sends request by itself and HMI respond with any errorCode
 --		APPLINK-23763 [SetGlobalProperties] SDL sends request by itself and HMI does NOT respond during <DefaultTimeout>
+
+
+-- Related reqs and questions:
+--	APPLINK-19475 [SetGlobalProperties]: Default values of <vrHelp> and <helpPrompt>
+-- 	APPLINK-25897 Period of silence for "helpPrompt"
+--	APPLINK-26640 What internal list with "vrHelp" and "helpPrompt" means?
+--	APPLINK-28443 Is internal list with "vrHelp" and "helpPrompt" created only at Add/DeleteCommand succeeded by resumption?
+--	APPLINK-26640 As mentioned in by TMelnyk: https://adc.luxoft.com/jira/browse/APPLINK-25897 It’s added to CRQ and specified with requirement- https://adc.luxoft.com/jira/browse/APPLINK-19476 from this CRQ. Note: If it’s single default value it shouldn’t be added.
+--	APPLINK-28160 Should SDL separate  "helpPrompt" from .ini file for using as default.
+--	APPLINK-6953 Optional Separation For Default Generated Prompts
+--	APPLINK-13235 ResetGlobalProperties: send TTS.SetGlobalProperties with a redundant comma at the end of text value in timeoutPrompt parameter
+
+
 ---------------------------------------------------
 os.execute("ps aux | grep -e smartDeviceLinkCore | awk '{print$2}'")
 os.execute("kill -9 $(ps aux | grep -e smartDeviceLinkCore | awk '{print$2}')")
@@ -63,140 +75,6 @@ UpdatePolicy()
 ---------------------------------------Common functions--------------------------------------
 --------------------------------------------------------------------------------------------- 
 
---APPLINK-28296 SDL cannot resume persisted data (AddCommand)
-function Precondition_RegisterApp_Resumtion(self, nameTC)
-	
-	--APPLINK-15683 [Data Resumption]: SDL data resumption SUCCESS sequence
-	Test[nameTC] = function(self)
-	
-		commonTestCases:DelayedExp(2000)
-		
-		config.application1.registerAppInterfaceParams.hashID = self.currentHashID
-				
-		self.mobileSession:StartService(7)
-		:Do(function() 
-			-- mobile side: sends RegisterAppInterface with hashID parameter
-			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-			
-			--hmi side: expect BasicCommunication.OnAppRegistered
-			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
-			{ application = { appName = config.application1.registerAppInterfaceParams.appName }})
-			:Do(function(_,data)
-				self.applications[data.params.application.appName] = data.params.application.appID
-			end)
-			
-			
-			--hmi side: expect BasicCommunication.ActivateApp
-			EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
-			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-				TimeActivateAppSuccess = timestamp()
-				print("***[INFO] Time when app is registered: " .. tostring(TimeActivateAppSuccess))
-			end)
-			:Timeout(40000)
-			
-			
-			--hmi side: expect UI.AddCommand according to resumption requirement 
-			EXPECT_HMICALL("UI.AddCommand", 
-			{
-				cmdID = 1,
-				menuParams = {
-					menuName = "Command1",
-					parentID = 0
-				}
-			},
-			{
-				cmdID = 2,
-				menuParams = {
-					menuName = "Command2",
-					parentID = 0
-				}
-			})
-			:Times(2)
-			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
-			
-			--hmi side: expect VR.AddCommand is not sent to VR. VR.AddCommands should be resumed on HMI side (SDL just remember VR portion and resume without sending to HMI) 
-			EXPECT_HMICALL("VR.AddCommand", {})
-			:Times(0)
-			
-			-- EXPECT_HMICALL("VR.AddCommand", 
-			-- {
-				-- cmdID = 1,
-				-- type = "Command",
-				-- vrCommands = {"VRCommand1"}
-			-- },
-			-- {
-				-- cmdID = 2,
-				-- type = "Command",
-				-- vrCommands = {"VRCommand2"}
-			-- }
-			-- )
-			-- :Times(2)
-			-- :Do(function(_,data)
-				-- self.hmiConnection:SendResponse(data.id,"VR.AddCommand", "SUCCESS", {})
-			-- end)			
-
-			--hmi side: expect UI.SetGlobalProperties according to resumption requirement so timeout is about 3s instead of 10s
-			EXPECT_HMICALL("UI.SetGlobalProperties", 
-			{
-				vrHelp = {
-					{
-						position = 1,
-						text = "VRCommand2"
-					}
-				}
-			})
-			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
-			:Timeout(3000)
-
-			--hmi side: expect TTS.SetGlobalProperties according to resumption requirement so timeout is about 3s instead of 10s
-			EXPECT_HMICALL("TTS.SetGlobalProperties", 
-			{
-				helpPrompt = {
-					{
-						text = "VRCommand1",
-						type = "TEXT"
-					},
-					{
-						text = "300",
-						type = "SILENCE"
-					},
-					{
-						text = "VRCommand2",
-						type = "TEXT"
-					},
-					{
-						text = "300",
-						type = "SILENCE"
-					}					
-				}
-			})
-			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
-			:Timeout(3000)			
- 
-			
-			--mobile side: expect RegisterAppInterface response
-			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS", info = "Resume succeeded."})
-			
-			--mobile side: expect notification
-			self.mobileSession:ExpectNotification("OnHMIStatus", 
-			{systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"},
-			{systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "AUDIBLE"}
-			)
-			:Times(2)
-			:Timeout(40000)
-		
-		end)
-		
-		
-	end 
-end
 
 local function GetTimeActivateApp(TestCaseName)
 	Test[TestCaseName] = function(self)
@@ -391,16 +269,16 @@ function GetValueInIniFile(FindExpression)
 	
 end
 
+-- ToDo: Using "HelpPrompt" parameter when APPLINK-28270 (Help promt parameter name is not correct in smartDeviceLink.ini) is fixed.
+--local default_HelpPromt = GetValueInIniFile("HelpPrompt*%s*=[%s*%a*%p*]*")
 local default_HelpPromt = GetValueInIniFile("HelpProm%a*%s*=[%s*%a*%p*]*")
 print("*** [INFO]: Value of HelpPrompt in ini file is '" .. default_HelpPromt .. "'")
 
 local default_HelpPromt1 = default_HelpPromt:match("([^ ][^,]+)")
---default_HelpPromt1 = default_HelpPromt1 .. "," -- use this line to avoid defect APPLINK-13235
-default_HelpPromt1 = default_HelpPromt1
+default_HelpPromt1 = default_HelpPromt1 .. "," 
 
 local default_HelpPromt2 = default_HelpPromt:match("[^,]*$")
---default_HelpPromt2 = default_HelpPromt2 .. "," -- use this line to avoid defect APPLINK-13235
-default_HelpPromt2 = default_HelpPromt2
+default_HelpPromt2 = default_HelpPromt2 .. ","
 print("*** [INFO]: The default HelpPrompt is '" .. default_HelpPromt1 .. "'")
 print("*** [INFO]: The default default_HelpPromt2 is '" .. default_HelpPromt2 .. "'")
 
@@ -426,9 +304,9 @@ print("*** [INFO]: The default default_HelpPromt2 is '" .. default_HelpPromt2 ..
 local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties(TestName)
 	
 	
-	commonSteps:UnregisterApplication("APPLINK_23759_Resumption_Precondition_UnregisterApp")
-	commonSteps:RegisterAppInterface("APPLINK_23759_Resumption_RegisterApp")
-	commonSteps:ActivationApp(_, "APPLINK_23759_Resumption_ActivationApp")	
+	commonSteps:UnregisterApplication(TestName .. "_Precondition_UnregisterApp")
+	commonSteps:RegisterAppInterface(TestName .. "_RegisterApp")
+	commonSteps:ActivationApp(_, TestName .. "_ActivationApp")	
 
 
 	Test[TestName .. "_Precondition_AddCommandInitial_1"] = function(self)
@@ -441,7 +319,7 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 			{
 				menuName ="Command_1"
 			}, 
-			vrCommands = {"vrCommand_1"}
+			vrCommands = {"VRCommand_1"}
 		})
 		
 		--hmi side: expect UI.AddCommand request 
@@ -463,7 +341,7 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 		{ 
 			cmdID = 1,
 			type = "Command",
-			vrCommands = {"vrCommand_1"}
+			vrCommands = {"VRCommand_1"}
 		})
 		:Do(function(_,data)
 			--hmi side: sending VR.AddCommand response
@@ -471,7 +349,13 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 		end) 
 
 		--mobile side: expect AddCommand response
-		EXPECT_RESPONSE(cid, { success = true, resultCode = Mobile_ResultCode })
+		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+		
+		--mobile side: expect OnHashChange notification
+		EXPECT_NOTIFICATION("OnHashChange")
+		:Do(function(_, data)
+			self.currentHashID = data.payload.hashID
+		end)
 		
 		commonTestCases:DelayedExp(2000)
 		
@@ -551,7 +435,7 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 			:Do(function(_,data)
 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 				TimeActivateAppSuccess = timestamp()
-				print("***[INFO] Time when app is registered: " .. tostring(TimeActivateAppSuccess))
+				print("***[INFO] Time when app is activated: " .. tostring(TimeActivateAppSuccess))
 			end)
 			:Timeout(40000)
 			
@@ -561,7 +445,7 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 			{
 				cmdID = 1,
 				menuParams = {
-					menuName = "Command1",
+					menuName = "Command_1",
 					parentID = 0
 				}
 			})
@@ -580,7 +464,7 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 				vrHelp = {
 					{
 						position = 1,
-						text = "VRCommand1"
+						text = "VRCommand_1"
 					}
 				}
 			})
@@ -596,20 +480,17 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 					print("******[INFO]: Timeout for SDL sends UI.SetGlobalProperties to HMI is " .. tostring(currentTime - TimeActivateAppSuccess))
 					return true
 				end
-			end)			
+			end)	
+			:Timeout(15000)			
 
 			--hmi side: expect TTS.SetGlobalProperties according to resumption requirement so timeout is about 3s instead of 10s
 			EXPECT_HMICALL("TTS.SetGlobalProperties", 
 			{
 				helpPrompt = {
 					{
-						text = "VRCommand1",
+						text = "VRCommand_1",
 						type = "TEXT"
-					},
-					{
-						text = "300",
-						type = "SILENCE"
-					}			
+					}		
 				}
 			})
 			:Do(function(_,data)
@@ -625,6 +506,7 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 					return true
 				end
 			end)
+			:Timeout(15000)
 			
 
 			
@@ -637,7 +519,6 @@ local function Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties
 			{systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "AUDIBLE"}
 			)
 			:Times(2)
-			:Timeout(40000)
 		
 		end)
 		
@@ -647,8 +528,8 @@ end
 
 
  --Print new line to separate Preconditions
- commonFunctions:newTestCasesGroup("Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties")		
- Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties("Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties")
+ commonFunctions:newTestCasesGroup("Req1_APPLINK_23759_case_1_ResumeAddCommand_NOT_ResumeSetGlobalProperties")		
+ Req1_APPLINK_23759_ResumeAddCommand_NOT_ResumeSetGlobalProperties("Req1_case_1")
  
  
 
@@ -657,9 +538,12 @@ end
 local function Req1_APPLINK_23759_ResumeAddCommand_And_SetGlobalProperties(TestName)
 	
 	
-	commonSteps:UnregisterApplication("APPLINK_23759_Resumption_Precondition_UnregisterApp")
-	commonSteps:RegisterAppInterface("APPLINK_23759_Resumption_RegisterApp")
-	commonSteps:ActivationApp(_, "APPLINK_23759_Resumption_ActivationApp")	
+	commonSteps:UnregisterApplication(TestName .. "_Precondition_UnregisterApp")
+	commonSteps:RegisterAppInterface(TestName .. "_RegisterApp")
+	GetTimeActivateApp(TestName .. "_GetTimeWhenAppIsActivated")
+	commonSteps:ActivationApp(_, TestName .. "_ActivationApp")	
+	
+	Verify_UI_TTS_SetGlobalProperties_InCase_NoSGP_from_App_SDL_Sends_SGP_After_10secTimer(TestName .. "_NoSGP_from_App_SDL_Sends_SGP_After_10secTimer")
 	
 	-- App has registered, add 2 commands
 	for cmdCount = 1, 2 do
@@ -704,12 +588,128 @@ local function Req1_APPLINK_23759_ResumeAddCommand_And_SetGlobalProperties(TestN
 	end
 	
 	-- Register App and app is resumed to FULL hmi level, 
-	Precondition_RegisterApp_Resumtion(self, TestName .. "_Precondition_RegisterApp")
+	-- APPLINK-15683 [Data Resumption]: SDL data resumption SUCCESS sequence
+	-- Defect: APPLINK-28296 SDL cannot resume persisted data (AddCommand)
+	Test[TestName .. "_RegisterApp_SDL_Resumes_AddCommand_SGP"] = function(self)
 	
+		commonTestCases:DelayedExp(2000)
+		
+		config.application1.registerAppInterfaceParams.hashID = self.currentHashID
+				
+		self.mobileSession:StartService(7)
+		:Do(function() 
+			-- mobile side: sends RegisterAppInterface with hashID parameter
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+			
+			--hmi side: expect BasicCommunication.OnAppRegistered
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+			{ application = { appName = config.application1.registerAppInterfaceParams.appName }})
+			:Do(function(_,data)
+				self.applications[data.params.application.appName] = data.params.application.appID
+			end)
+			
+			
+			--hmi side: expect BasicCommunication.ActivateApp
+			EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
+			:Do(function(_,data)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+				TimeActivateAppSuccess = timestamp()
+				print("***[INFO] Time when app is registered: " .. tostring(TimeActivateAppSuccess))
+			end)
+			:Timeout(40000)
+			
+			
+			--hmi side: expect UI.AddCommand according to resumption requirement 
+			EXPECT_HMICALL("UI.AddCommand", 
+			{
+				cmdID = 1,
+				menuParams = {
+					menuName = "Command1",
+					parentID = 0
+				}
+			},
+			{
+				cmdID = 2,
+				menuParams = {
+					menuName = "Command2",
+					parentID = 0
+				}
+			})
+			:Times(2)
+			:Do(function(_,data)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+			
+			--hmi side: expect VR.AddCommand is not sent to VR. VR.AddCommands should be resumed on HMI side (SDL just remember VR portion and resume without sending to HMI) 
+			EXPECT_HMICALL("VR.AddCommand", {})
+			:Times(0)
+
+			--hmi side: expect UI.SetGlobalProperties according to resumption requirement so timeout is about 3s instead of 10s
+			EXPECT_HMICALL("UI.SetGlobalProperties", 
+			{
+				vrHelp = {
+					{
+						position = 1,
+						text = "VRCommand1"
+					},
+					{
+						position = 2,
+						text = "VRCommand2"
+					}					
+				}
+			})
+			:Do(function(_,data)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+			:Timeout(3000)
+
+			--hmi side: expect TTS.SetGlobalProperties according to resumption requirement so timeout is about 3s instead of 10s
+			EXPECT_HMICALL("TTS.SetGlobalProperties", 
+			{
+				helpPrompt = {
+					{
+						text = "VRCommand1",
+						type = "TEXT"
+					},
+					{
+						text = "300",
+						type = "SILENCE"
+					},
+					{
+						text = "VRCommand2",
+						type = "TEXT"
+					},
+					{
+						text = "300",
+						type = "SILENCE"
+					}					
+				}
+			})
+			:Do(function(_,data)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+			:Timeout(3000)			
+ 
+			
+			--mobile side: expect RegisterAppInterface response
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS", info = "Resume succeeded."})
+			
+			--mobile side: expect notification
+			self.mobileSession:ExpectNotification("OnHMIStatus", 
+			{systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"},
+			{systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "AUDIBLE"}
+			)
+			:Times(2)
+		
+		end)
+		
+		
+	end 
+
 	-- Question APPLINK-28334
 	Test[TestName .. "_SDL_DoesNotSend_SGP_again_if_ItWasSentByResumption"] = function(self)
 		
-		commonTestCases:DelayedExp(10000)
+		commonTestCases:DelayedExp(15000)
 		
 		--hmi side: expect TTS.SetGlobalProperties request
 		EXPECT_HMICALL("TTS.SetGlobalProperties", {})
@@ -725,8 +725,8 @@ local function Req1_APPLINK_23759_ResumeAddCommand_And_SetGlobalProperties(TestN
 end
 
  --Print new line to separate Preconditions
- commonFunctions:newTestCasesGroup("Req1_APPLINK_23759_ResumeAddCommand_And_SetGlobalProperties")		
- Req1_APPLINK_23759_ResumeAddCommand_And_SetGlobalProperties("Req1_APPLINK_23759_ResumeAddCommand_And_SetGlobalProperties")
+ commonFunctions:newTestCasesGroup("Req1_APPLINK_23759_case_2_ResumeAddCommand_And_SetGlobalProperties")		
+ Req1_APPLINK_23759_ResumeAddCommand_And_SetGlobalProperties("Req1_case_2")
 
 
  
@@ -747,31 +747,29 @@ end
 
 local function Req2_APPLINK_23760(TestCaseName)
 	
-	--Print new line to separate Preconditions
-	commonFunctions:newTestCasesGroup(TestCaseName)		
-	
 	commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_UnregisterApp")
 
 	commonSteps:RegisterAppInterface(TestCaseName .. "_RegisterApp")
-	GetTimeActivateApp(TestCaseName)
+	GetTimeActivateApp(TestCaseName .. "_GetTimeWhenAppIsActivated")
 	commonSteps:ActivationApp(_, TestCaseName .. "_ActivationApp")	
 
 	Verify_UI_TTS_SetGlobalProperties_InCase_NoSGP_from_App_SDL_Sends_SGP_After_10secTimer(TestCaseName .. "_NoSGP_from_App_SDL_Sends_SGP_After_10secTimer")
 
 end
 
-Req2_APPLINK_23760("Req2_APPLINK_23760")
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req2_APPLINK_23760_case_1_Mobile app does NOT send request and has NO registered Add/DeleteCommands")		
+Req2_APPLINK_23760("Req2_case_1")
 
 
 local function Req2_APPLINK_23760_unclearPoint(TestName)
-	
-	
+		
 	commonSteps:UnregisterApplication(TestName .. "_Precondition_UnregisterApp")
 	commonSteps:RegisterAppInterface(TestName .. "_RegisterApp")
-	GetTimeActivateApp(TestName)
+	GetTimeActivateApp(TestName .. "_GetTimeWhenAppIsActivated")
 	commonSteps:ActivationApp(_, TestName .. "_ActivationApp")	
 	
-	Test[TestName .. "_NoSGP_AddCommand_Success_WaitForTimeoutForSDLSendsSetGlobalProperties"] = function(self)
+	Test[TestName .. "_AddCommand_Success_WaitForTimeoutForSDLSendsSetGlobalProperties"] = function(self)
 		
 		
 		local cid = self.mobileSession:SendRPC("AddCommand",
@@ -846,7 +844,7 @@ local function Req2_APPLINK_23760_unclearPoint(TestName)
 			vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
 			vrHelp = { 
 				{
-					text = config.application1.registerAppInterfaceParams.appName,
+					text = "vrCommand_1",
 					position = 1
 				} 
 			}, 
@@ -872,10 +870,13 @@ local function Req2_APPLINK_23760_unclearPoint(TestName)
 end
 
  --Print new line to separate Preconditions
- commonFunctions:newTestCasesGroup("Req2_APPLINK_23760_unclearPoint_AddCommandIsSentBeforeTimeout")		
+ commonFunctions:newTestCasesGroup("Req2_APPLINK_23760_case_2_AddCommandIsSentBeforeTimeout")		
  -- Defect APPLINK-28301: [PASA_Ubuntu]SDL sends UI/TTS.SetGlobalProperties without waiting 10 sec timeout at AddCommand(SUCCESS) if SetGlobalProperties isn't sent be mobile.
- Req2_APPLINK_23760_unclearPoint("Req2_APPLINK_23760_unclearPoint_AddCommandIsSentBeforeTimeout")
+ Req2_APPLINK_23760_unclearPoint("Req2_case_2")
 
+
+ 
+ 
 ---------------------------------------------------------------------------------------------
 -- req #3: update list condition
 -- APPLINK-23761 [SetGlobalProperties] Conditions for SDL to send updated values of "vrHelp" and/or "helpPrompt" to HMI
@@ -893,11 +894,8 @@ end
 
 local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 	
-	--Print new line to separate Preconditions
-	commonFunctions:newTestCasesGroup(TestCaseName)		
 	
 	commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_UnregisterApp")
-	
 	
 	
 	commonSteps:RegisterAppInterface(TestCaseName .. "_RegisterApp")
@@ -914,9 +912,10 @@ local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 		{HMI_resultCode = "UNSUPPORTED_RESOURCE", 	Mobile_resultCode = "UNSUPPORTED_RESOURCE"} --defect APPLINK-28416
 	}	
 
-	local CommandIDs = {}
+	--local CommandIDs = {}
 	local icmdNumber = 0
 	local Expected_helpPrompt = {}
+	local Expected_vrHelp = {}
 	for j =1, #ResultCodes do
 
 		local ResultCode = ResultCodes[j].HMI_resultCode
@@ -926,17 +925,18 @@ local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 		
 			local Interface = Interfaces[i]
 			
-			Test[TestCaseName .. "_AddCommand_success_true_SDL_Sends_SetGlobalProperties_" .. Interface .. "_" .. ResultCode] = function(self)
+			Test[TestCaseName .. "_" .. Interface .. "_" .. ResultCode .. "_SDL_Sends_SetGlobalProperties"] = function(self)
 				
 				icmdNumber = icmdNumber + 1
 				local icmdID = 2000 + icmdNumber
 				vrCommand = "VRCommand" .. tostring(icmdNumber)
 				-- APPLINK-26640 As mentioned in by TMelnyk: https://adc.luxoft.com/jira/browse/APPLINK-25897 It’s added to CRQ and specified with requirement- https://adc.luxoft.com/jira/browse/APPLINK-19476 from this CRQ. Note: If it’s single default value it shouldn’t be added.
+				
 				if icmdNumber == 1 then
 					Expected_helpPrompt[1] = {
 						text = vrCommand,
 						type = "TEXT"
-					}				
+					}
 				elseif icmdNumber == 2 then
 					Expected_helpPrompt[2] = {
 						text = "300",
@@ -949,7 +949,7 @@ local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 					Expected_helpPrompt[4] = {
 						text = "300",
 						type = "SILENCE"
-					}	
+					}
 				else
 					Expected_helpPrompt[2*icmdNumber -1 ] = {
 						text = vrCommand,
@@ -960,7 +960,11 @@ local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 						type = "SILENCE"
 					}				
 				end
-					
+
+				Expected_vrHelp[icmdNumber]	= {
+						position = icmdNumber,
+						text = vrCommand
+				} 				
 				
 				local cid = self.mobileSession:SendRPC("AddCommand",
 				{
@@ -1017,12 +1021,7 @@ local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 				--hmi side: expect UI.SetGlobalProperties request
 				EXPECT_HMICALL("UI.SetGlobalProperties", 
 				{
-					vrHelp = {
-						{
-							position = 1,
-							text = vrCommand
-						}
-					} 
+					vrHelp = Expected_vrHelp
 				})
 				:Do(function(_,data)
 					--hmi side: sending UI.SetGlobalProperties response
@@ -1122,7 +1121,7 @@ local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 	end
 
 
-	Test[TestCaseName .. "_AddCommand_SUCCESS_SDL_DOES_NOT_Send_SetGlobalProperties"] = function(self)
+	Test[TestCaseName .. "_SDL_DOES_NOT_Send_SetGlobalProperties_When_AddCommand_Is_SUCCESS"] = function(self)
 		
 
 		local cid = self.mobileSession:SendRPC("AddCommand",
@@ -1190,110 +1189,6 @@ local function Req3_APPLINK_23761_AddCommand_SUCCESS(TestCaseName)
 						
 end
 
-Req3_APPLINK_23761_AddCommand_SUCCESS("Req3_APPLINK_23761")
-
-local function UI_or_TTS_AddCommand_responds_error(TestCaseName, Interface, ErrorCode)
-	
-	--Print new line to separate Preconditions
-	commonFunctions:newTestCasesGroup(TestCaseName)		
-	
-	commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_UnregisterApp")
-	commonSteps:RegisterAppInterface(TestCaseName .. "_RegisterApp")
-	GetTimeActivateApp(TestCaseName )
-	commonSteps:ActivationApp(_, TestCaseName .. "_ActivationApp")	
-	
-	Verify_UI_TTS_SetGlobalProperties_InCase_NoSGP_from_App_SDL_Sends_SGP_After_10secTimer(TestCaseName .. "_NoSGP_from_App_SDL_Sends_SGP_After_10secTimer")
-	
-	Test[TestCaseName .. "_AddCommand_FAILED_SDL_DOES_NOT_Send_SetGlobalProperties_" .. Interface .. "_" .. ErrorCode] = function(self)
-		
-		if icmdID == nil then
-			icmdID = 1000
-		end
-		icmdID = icmdID + 1
-		
-		local cid = self.mobileSession:SendRPC("AddCommand",
-		{
-			cmdID = icmdID,
-			menuParams = 
-			{
-				menuName ="Command" .. tostring(icmdID)
-			}, 
-			vrCommands = {"VRCommand" .. tostring(icmdID)}
-		})
-		
-		--hmi side: expect UI.AddCommand request 
-		EXPECT_HMICALL("UI.AddCommand", 
-		{ 
-			cmdID = icmdID,
-			menuParams = 
-			{
-				menuName ="Command" .. tostring(icmdID)
-			}
-		})
-		:Do(function(_,data)
-			--hmi side: sending UI.AddCommand response
-			if Interface == "UI" then 
-				if ErrorCode == nil then
-					--UI does not respond
-				else
-					self.hmiConnection:SendError(data.id, data.method, ErrorCode, "Error message")
-				end
-			else
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end	
-			
-		end)
-		
-		--hmi side: expect VR.AddCommand request 
-		EXPECT_HMICALL("VR.AddCommand", 
-		{ 
-			cmdID = icmdID,
-			type = "Command",
-			vrCommands = {
-				"VRCommand" .. tostring(icmdID)
-			}
-		})
-		:Do(function(_,data)
-			--hmi side: sending VR.AddCommand response
-			if Interface == "VR" then 
-				if ErrorCode == nil then
-					--VR does not respond
-				else
-					self.hmiConnection:SendError(data.id, data.method, ErrorCode, "Error message")
-				end
-			else
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end	
-		end) 
-		
-		
-		--Verify SDL does not send SetGlobalProperties to UI/TTS when AddCommand returns not SUCCESS
-		commonTestCases:DelayedExp(5000)
-		
-		--hmi side: expect UI.SetGlobalProperties request
-		EXPECT_HMICALL("UI.SetGlobalProperties", {})
-		:Times(0)
-		
-		--hmi side: expect TTS.SetGlobalProperties request
-		EXPECT_HMICALL("TTS.SetGlobalProperties", {})
-		:Times(0)
-		
-		--mobile side: expect AddCommand response
-		EXPECT_RESPONSE(cid, { success = false, resultCode = ErrorCode })
-	
-		
-		commonTestCases:DelayedExp(2000)
-		
-		--mobile side: expect OnHashChange notification
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Times(0)
-		
-	end
-
-	
-	
-end
-
 
 local function Req3_APPLINK_23761_AddCommand_FAILED(TestCaseName)
 	
@@ -1328,7 +1223,7 @@ local function Req3_APPLINK_23761_AddCommand_FAILED(TestCaseName)
 		
 			local Interface = Interfaces[i]
 			
-			Test[TestCaseName .. "_AddCommand_FAILED_SDL_DOES_NOT_Send_SetGlobalProperties_" .. Interface .. "_" .. ErrorCode] = function(self)
+			Test[TestCaseName .. "_" .. Interface .. "_" .. ErrorCode .. "_SDL_DOES_NOT_Send_SetGlobalProperties"] = function(self)
 				
 				if icmdID == nil then
 					icmdID = 1000
@@ -1392,7 +1287,7 @@ local function Req3_APPLINK_23761_AddCommand_FAILED(TestCaseName)
 				
 				
 				--Verify SDL does not send SetGlobalProperties to UI/TTS when AddCommand returns not SUCCESS
-				commonTestCases:DelayedExp(5000)
+				commonTestCases:DelayedExp(4000)
 				
 				--hmi side: expect UI.SetGlobalProperties request
 				EXPECT_HMICALL("UI.SetGlobalProperties", {})
@@ -1417,7 +1312,13 @@ local function Req3_APPLINK_23761_AddCommand_FAILED(TestCaseName)
 	
 end
 
-Req3_APPLINK_23761_AddCommand_FAILED("Req3_APPLINK_23761")
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup([[Req3_APPLINK_23761 [SetGlobalProperties] Conditions for SDL to send updated values of 'vrHelp' and/or 'helpPrompt' to HMI.
+--Case 1: AddCommand_responds_success_true
+--Case 2: AddCommand_responds_success_false]])
+
+Req3_APPLINK_23761_AddCommand_SUCCESS("Req3_case_1_AddCommand_responds_success_true")
+Req3_APPLINK_23761_AddCommand_FAILED("Req3_case_2_AddCommand_responds_success_false")
 
 
 
@@ -1582,10 +1483,18 @@ local function UI_or_TTS_responds_SetGlobalProperties_error(TestCaseName, Interf
 		})
 		:Do(function(_,data)
 			--hmi side: sending UI.SetGlobalProperties response
-			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			if Interface == "UI" or Interface == "UI_TTS" then 
+				if ErrorCode == nil then
+					--UI does not respond
+				else
+					self.hmiConnection:SendError(data.id, data.method, ErrorCode, "Error message")
+				end
+			else
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end		
 		end) 
-	
-
+		
+		
 		--hmi side: expect TTS.SetGlobalProperties request
 		-- APPLINK-26640 As mentioned in by TMelnyk: https://adc.luxoft.com/jira/browse/APPLINK-25897 It’s added to CRQ and specified with requirement- https://adc.luxoft.com/jira/browse/APPLINK-19476 from this CRQ. Note: If it’s single default value it shouldn’t be added.
 		EXPECT_HMICALL("TTS.SetGlobalProperties", 
@@ -1600,7 +1509,15 @@ local function UI_or_TTS_responds_SetGlobalProperties_error(TestCaseName, Interf
 		})
 		:Do(function(_,data)
 			--hmi side: sending TTS.SetGlobalProperties response
-			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			if Interface == "TTS" or Interface == "UI_TTS" then 
+				if ErrorCode == nil then
+					--TTS does not respond
+				else
+					self.hmiConnection:SendError(data.id, data.method, ErrorCode, "Error message")
+				end
+			else
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end		
 		end) 
 
 		
@@ -1617,9 +1534,13 @@ local function UI_or_TTS_responds_SetGlobalProperties_error(TestCaseName, Interf
 
 end
 
-local function Req4_APPLINK_23762()
+local function Req4_APPLINK_23762(TestCaseName)
 	
-	local Interfaces = {"UI", "TTS", "UI_TTS"}
+	local Interfaces = {
+		"UI",  -- UI interface
+		"TTS", -- TTS interface
+		"UI_TTS" -- Both UI and TTS interfaces
+	}
 	local ErrorCodes = {
 		"INVALID_DATA",
 		"REJECTED",
@@ -1636,7 +1557,7 @@ local function Req4_APPLINK_23762()
 	
 	for i = 1, #Interfaces do
 		for j =1, #ErrorCodes do
-			local TestName = "APPLINK_23762_" .. Interfaces[i] .. "_" .. ErrorCodes[j]
+			local TestName = TestCaseName .. "_" .. Interfaces[i] .. "_" .. ErrorCodes[j]
 			UI_or_TTS_responds_SetGlobalProperties_error(TestName, Interfaces[i], ErrorCodes[j])
 		end
 		
@@ -1644,7 +1565,12 @@ local function Req4_APPLINK_23762()
 	
 end
 
-Req4_APPLINK_23762()
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("req4_APPLINK_23762 [SetGlobalProperties] SDL sends request by itself and HMI respond with any errorCode")
+
+Req4_APPLINK_23762("Req4")
+
+
 
 ---------------------------------------------------------------------------------------------
 -- req #5: UI/TTS does not respond
@@ -1659,18 +1585,21 @@ Req4_APPLINK_23762()
 -- 		continue work as assigned (due to existing requirements)
 ---------------------------------------------------------------------------------------------
 
-local function Req5_APPLINK_23763()
+local function Req5_APPLINK_23763(TestCaseName)
 	
 	local Interfaces = {"UI", "TTS", "UI_TTS"}
 	
 	for i = 1, #Interfaces do
-		local TestName = "APPLINK_23763_" .. Interfaces[i]
+		local TestName = TestCaseName .. "_" .. Interfaces[i]
 		local ErrorCode = nil -- ErrorCode = nil means UI/TTS does not respond.
 		UI_or_TTS_responds_SetGlobalProperties_error(TestName, Interfaces[i], ErrorCode) 
 	end
 end
 
-Req5_APPLINK_23763()
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("req5_APPLINK_23763 [SetGlobalProperties] SDL sends request by itself and HMI does NOT respond during <DefaultTimeout>")
+
+Req5_APPLINK_23763("Req5")
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Postconditions------------------------------------
