@@ -354,6 +354,8 @@
 	local function Update_AppInfoDat(self, nameTC)
 		
 		Test[nameTC .. "_Update_AppInfoDat"] = function(self)
+ 			--os.execute(" cp " .. config.pathToSDL .. "/app_info.dat " .. config.pathToSDL .. "/app_info.dat_before_"..nameTC )
+			
 			local DefaultContent_helpPrompt
 			local DefaultContent_vrHelp
 			local DefaultContent_vrHelpTitle
@@ -387,14 +389,13 @@
 			    if (not DefaultContent_vrHelpTitle)   then
 			      print ( " \27[31m vrHelpTitle is not found in app_info.dat \27[0m " )
 			    else
-			       fileContent  =  string.gsub(fileContent, '"vrHelpTitle".?:.?.?%".-%".?','')
+			       fileContent  =  string.gsub(fileContent, '"vrHelpTitle".?:.?.?%".-%".?','"vrHelpTitle": null')
 			    end		
 	
     		f = assert(io.open(config.pathToSDL.. "/app_info.dat", "w+"))
 			f:write(fileContent)
 			f:close()
- 			
- 			os.execute(" cp " .. config.pathToSDL .. "/app_info.dat " .. config.pathToSDL .. "/app_info.dat_"..nameTC)
+ 			--os.execute(" cp " .. config.pathToSDL .. "/app_info.dat " .. config.pathToSDL .. "/app_info.dat_after_"..nameTC )
 		end
 	end
 
@@ -1101,7 +1102,6 @@
 						
 						self.currentHashID = data.payload.hashID
 					end)
-
 				end
 		--End Test case CommonRequestCheck.2
 
@@ -1266,7 +1266,6 @@
 						
 						self.currentHashID = data.payload.hashID
 					end)
-					
 				end
 		--End Test case CommonRequestCheck.3
 
@@ -1519,9 +1518,7 @@
 					:Do(function(_, data)
 						
 						self.currentHashID = data.payload.hashID
-					end)
-
-					
+					end)				
 				end
 		--End Test case CommonRequestCheck.6
 	--End Test suit PositiveRequestCheck
@@ -1627,43 +1624,18 @@
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
 
+							-- Updated because of APPLINK-15683
 							--hmi side: expect VR.AddCommand request 
-							EXPECT_HMICALL("VR.AddCommand", 
-							{ 
-								cmdID = cmdCount,							
-								type = "Command",
-								vrCommands = 
-								{
-									"VRCommand" .. tostring(cmdCount)
-								}
-							})
-							:Do(function(_,data)
-								--hmi side: sending VR.AddCommand response 
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
+							EXPECT_HMICALL("VR.AddCommand", {})
+							:Times(0)
 							
 							--hmi side: expect UI.SetGlobalProperties request
-							EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
+							EXPECT_HMICALL("UI.SetGlobalProperties",{})
+							:Times(0)
 
 							--hmi side: expect TTS.SetGlobalProperties request
-							EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
+							EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+							:Times(0)
 						end
 
 						Test["TC7_CheckInternalList_AddCommand" .. cmdCount] = function(self)
@@ -1757,27 +1729,12 @@
 							:Times(0)
 
 							--hmi side: expect UI.SetGlobalProperties request
-							EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
+							EXPECT_HMICALL("UI.SetGlobalProperties",{})
+							:Times(0)
 
 							--hmi side: expect TTS.SetGlobalProperties request
-							EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
+							EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+							:Times(0)
 						end
 
 						Test["TC8_CheckInternalList_DeleteCommand" .. cmdCount] = function(self)
@@ -1805,7 +1762,6 @@
 						end
 
 					end
-		
 					--End Test case PositiveResponseCheck.2		
 				--End PositivaResponseCheck.1 and PositivaResponseCheck.2
 
@@ -2048,60 +2004,27 @@
 
 						RegisterApp_HMILevelResumption(self, "FULL", _, _, true)
 
-						for i= 1, cmdCount do
-							--hmi side: expect UI.AddCommand request 
-							EXPECT_HMICALL("UI.AddCommand", 
-							{ 
-								-- cmdID = i,		
-								-- menuParams = 
-								-- {
-								-- 	position = i -1,
-								-- 	menuName ="Command" .. tostring(i)
-								-- }
-							})
-							:Do(function(_,data)
-								--hmi side: sending UI.AddCommand response 
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
-
-							--hmi side: expect VR.AddCommand request 
-							EXPECT_HMICALL("VR.AddCommand", 
-							{ 
-								-- cmdID = i,							
-								-- type = "Command",
-								-- vrCommands = 
-								-- {
-								-- 	"VRCommand" .. tostring(i)
-								-- }
-							})
-							:Do(function(_,data)
-								--hmi side: sending VR.AddCommand response 
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
-						end
-
-						--hmi side: expect UI.SetGlobalProperties request
-						EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
+						
+						--hmi side: expect UI.AddCommand request 
+						EXPECT_HMICALL("UI.AddCommand", {})
 						:Do(function(_,data)
-							--hmi side: sending UI.SetGlobalProperties response
+							--hmi side: sending UI.AddCommand response 
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
+						:Times(cmdCount)
+
+						-- Updated because of APPLINK-15683
+						--hmi side: expect VR.AddCommand request 
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)
+
+						--hmi side: expect UI.SetGlobalProperties request
+						EXPECT_HMICALL("UI.SetGlobalProperties",{})
+						:Times(0)
 
 						--hmi side: expect TTS.SetGlobalProperties request
-						EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-						:Do(function(_,data)
-							--hmi side: sending UI.SetGlobalProperties response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)	
+						EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+						:Times(0)
 					end
 
 					Test["TC9_CheckInternalList10commands"] = function(self)
@@ -2168,100 +2091,68 @@
 						Precondition_ResumeAppRegister(self, "TC10")
 
 						Test["TC10_Resumption_data"] = function(self)	
-							local cnt_cmd = 1
-							local Remain_SGP_helpPrompt = {}
-	
-							for i = 1,#SGP_helpPrompt do
-								--print("SGP_helpPrompt.text = " ..SGP_helpPrompt[i].text)
-								if(SGP_helpPrompt[i].text ~= ("VRCommand" .. tostring(i)) )then
-									Remain_SGP_helpPrompt[i] = SGP_helpPrompt[i]
-								elseif(DeleteCmdSuccess[cnt_cmd] == false) then
-									Remain_SGP_helpPrompt[i] = SGP_helpPrompt[i]
-								end
-
-								cnt_cmd = math.floor(i/2)
-								if(cnt_cmd == 0) then cnt_cmd = 1 end
-
-							end
 
 							config.application1.registerAppInterfaceParams.hashID = self.currentHashID
 
 							RegisterApp_HMILevelResumption(self, "FULL", _, _, true)
 
-							for i= 1, cmdCount do
-								--hmi side: expect UI.AddCommand request 
-								EXPECT_HMICALL("UI.AddCommand", 
-								{ 
-									cmdID = i,		
-									menuParams = 
-									{
-										position = i -1,
-										menuName ="Command" .. tostring(i)
-									}
-								})
-								:Do(function(_,data)
-									--hmi side: sending UI.AddCommand response 
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-								end)
-
-								--hmi side: expect VR.AddCommand request 
-								EXPECT_HMICALL("VR.AddCommand", 
-								{ 
-									cmdID = i,							
-									type = "Command",
-									vrCommands = 
-									{
-										"VRCommand" .. tostring(i)
-									}
-								})
-								:Do(function(_,data)
-									--hmi side: sending VR.AddCommand response 
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-								end)	
-							end
-
-							--hmi side: expect UI.SetGlobalProperties request
-							EXPECT_HMICALL("UI.SetGlobalProperties",
-																{
-																	vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																	vrHelp =  SGP_vrHelp ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
+							--hmi side: expect UI.AddCommand request 
+							EXPECT_HMICALL("UI.AddCommand", {})
 							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
+								--hmi side: sending UI.AddCommand response 
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
+							:Times(10 - cmdCount)
+
+							-- Updated because of APPLINK-15683
+							--hmi side: expect VR.AddCommand request 
+							EXPECT_HMICALL("VR.AddCommand", {})
+							:Times(0)
+
+
+							--hmi side: expect UI.SetGlobalProperties request
+							EXPECT_HMICALL("UI.SetGlobalProperties",{})
+							:Times(0)
 
 							--hmi side: expect TTS.SetGlobalProperties request
-							EXPECT_HMICALL("TTS.SetGlobalProperties",
-																	{
-																		helpPrompt =  Remain_SGP_helpPrompt ,
-																		appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																	})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
+							EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+							:Times(0)
 						end
 						
 						Test["TC10_CheckInternalListDelete10commands"] = function(self)
 							local cnt_cmd = 1
+							local j = 1
+
 							local Remain_SGP_helpPrompt = {}
-	
-							for i = 1,#SGP_helpPrompt do
-								--print("SGP_helpPrompt.text = " ..SGP_helpPrompt[i].text)
-								if(SGP_helpPrompt[i].text ~= ("VRCommand" .. tostring(i)) )then
-									Remain_SGP_helpPrompt[i] = SGP_helpPrompt[i]
-								elseif(DeleteCmdSuccess[cnt_cmd] == false) then
-									Remain_SGP_helpPrompt[i] = SGP_helpPrompt[i]
+							
+							if(cmdCount < 10) then
+								for i = cmdCount+1 ,10 do
+								--	for i = 1, cmdCount*2, 2 do
+									SGP_helpPrompt[j] = {
+																					text = "VRCommand" .. tostring(cnt_cmd), --menuName}
+																					type = "TEXT" 
+																				}
+									SGP_helpPrompt[j + 1] =
+																						{
+																							text = "300",
+																							type = "SILENCE" 
+																						}
+
+									cnt_cmd = cnt_cmd + 1
+									j = j + 2
 								end
-
-								cnt_cmd = math.floor(i/2)
-								if(cnt_cmd == 0) then cnt_cmd = 1 end
-
 							end
 
-							CheckUpdateFile(self, Remain_SGP_helpPrompt, SGP_vrHelp)
+							j = 1
+							--for i = 1, cmdCount do
+							for i = cmdCount+1 ,10 do
+								if(AddCmdSuccess[i] == true) then
+									SGP_vrHelp[j] = {	text = "VRCommand" .. tostring(i) }
+									j = j + 1
+								end
+							end
+
+							CheckUpdateFile(self, SGP_helpPrompt, SGP_vrHelp)
 						end
 					end
 				--End Test case PositiveResponseCheck.3
@@ -2513,46 +2404,21 @@
 							:Do(function(_,data)
 								--hmi side: sending UI.AddCommand response 
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
-
-							--hmi side: expect VR.AddCommand request 
-							EXPECT_HMICALL("VR.AddCommand", 
-							{ 
-								-- cmdID = i,							
-								-- type = "Command",
-								-- vrCommands = 
-								-- {
-								-- 	"VRCommand" .. tostring(cmds[i])
-								-- }
-							})
-							:Do(function(_,data)
-								--hmi side: sending VR.AddCommand response 
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
+							end)								
 						end
+						
+						-- Updated because of APPLINK-15683
+						--hmi side: expect VR.AddCommand request 
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)
 
 						--hmi side: expect UI.SetGlobalProperties request
-						EXPECT_HMICALL("UI.SetGlobalProperties",
-														{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-						:Do(function(_,data)
-							--hmi side: sending UI.SetGlobalProperties response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)
+						EXPECT_HMICALL("UI.SetGlobalProperties",{})
+						:Times(0)
 
 						--hmi side: expect TTS.SetGlobalProperties request
-						EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-						:Do(function(_,data)
-							--hmi side: sending UI.SetGlobalProperties response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)	
+						EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+						:Times(0)
 					end
 				--Begin Test case PositiveResponseCheck.4
 					--Internal list is updated
@@ -2743,44 +2609,10 @@
 						end)
 						:Times(5)
 
-						local VRAddCommandValues = {}
-						for m=1,5 do
-							VRAddCommandValues[m] = {cmdID = m, vrCommands = {"VRCommand" .. tostring(m)}}
-						end
-
-						EXPECT_HMICALL("VR.AddCommand")
-						:ValidIf(function(_,data)
-							if data.params.type == "Command" then
-								for i=1, #VRAddCommandValues do
-									if 
-										data.params.cmdID == VRAddCommandValues[i].cmdID and
-										data.params.appID == HMIAppID and
-										data.params.vrCommands[1] == VRAddCommandValues[i].vrCommands[1] then
-										return true
-									elseif 
-										i == #VRAddCommandValues then
-											userPrint(31, "Any matches")
-											userPrint(31, "Actual values cmdID ='" .. tostring(data.params.cmdID) .. "', vrCommands[1]  = '" .. tostring(data.params.vrCommands[1] ) .. "'"  )
-											return false
-									end
-
-								end
-							else
-								userPrint(31, "VR.AddCommand request came with wrong type " .. tostring(data.params.type))
-								return false
-							end
-						end)
-						:Do(function(_,data)
-							--hmi side: sending UI.AddCommand response 
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)
-						:Times(5)
-
-
-						if(TimeHMILevel == nil) then
-							TimeHMILevel = 0
-							userPrint(31,"TimeHMILevel is nil. Will be assigned to 0")
-						end
+						-- Updated because of APPLINK-15683
+						--hmi side: expect VR.AddCommand request 
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)
 					end
 
 				--Begin Test case PositiveResponseCheck.5
@@ -3117,6 +2949,7 @@
 							--hmi side: sending UI.SetGlobalProperties response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
+						:Timeout(12000)
 
 						--hmi side: expect TTS.SetGlobalProperties request
 						EXPECT_HMICALL("TTS.SetGlobalProperties",
@@ -3128,6 +2961,7 @@
 							--hmi side: sending UI.SetGlobalProperties response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)	
+						:Timeout(12000)
 				end
 
 				--Begin Test case PositiveResponseCheck.6
@@ -3236,20 +3070,10 @@
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
 
+						-- Updated because of APPLINK-15683
 						--hmi side: expect VR.AddCommand request 
-						EXPECT_HMICALL("VR.AddCommand", 
-						{ 
-							-- cmdID = i,							
-							-- type = "Command",
-							-- vrCommands = 
-							-- {
-							-- 	"VRCommand" .. tostring(i)
-							-- }
-						})
-						:Do(function(_,data)
-							--hmi side: sending VR.AddCommand response 
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)						
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)					
 					end
 
 					EXPECT_HMICALL("UI.SetGlobalProperties",
@@ -3263,21 +3087,23 @@
 																}	},
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
-						:Do(function(_,data)
-							--hmi side: sending UI.SetGlobalProperties response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)
+					:Do(function(_,data)
+						--hmi side: sending UI.SetGlobalProperties response
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+					end)
+					:Times(0)
 
-						--hmi side: expect TTS.SetGlobalProperties request
-						EXPECT_HMICALL("TTS.SetGlobalProperties",
+					--hmi side: expect TTS.SetGlobalProperties request
+					EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
 														helpPrompt = default_HelpPromt,
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
-						:Do(function(_,data)
-			 				--hmi side: sending UI.SetGlobalProperties response
-			 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)
+					:Do(function(_,data)
+			 			--hmi side: sending UI.SetGlobalProperties response
+			 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+					end)
+					:Times(0)
 				end
 
 				--Precondition Test case PositiveResponseCheck.7
@@ -3335,60 +3161,26 @@
 
 						RegisterApp_HMILevelResumption(self, "FULL", _, _, true)
 
-						for i= 1, cmdCount do
-							--hmi side: expect UI.AddCommand request 
-							EXPECT_HMICALL("UI.AddCommand", 
-									{ 
-										-- cmdID = i,		
-										-- menuParams = 
-										-- {
-										-- 	position = 0,
-										-- 	menuName ="Command" .. tostring(i)
-										-- }
-							})
-							:Do(function(_,data)
-								--hmi side: sending UI.AddCommand response 
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
-
-							--hmi side: expect VR.AddCommand request 
-							EXPECT_HMICALL("VR.AddCommand", 
-							{ 
-								-- cmdID = i,							
-								-- type = "Command",
-								-- vrCommands = 
-								-- {
-								-- 	"VRCommand" .. tostring(i)
-								-- }
-							})
-							:Do(function(_,data)
-								--hmi side: sending VR.AddCommand response 
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)						
-						end
-
-						--hmi side: expect UI.SetGlobalProperties request
-						EXPECT_HMICALL("UI.SetGlobalProperties",
-																{
-																	vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																	vrHelp =  SGP_vrHelp ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
+						--hmi side: expect UI.AddCommand request 
+						EXPECT_HMICALL("UI.AddCommand", {})
 						:Do(function(_,data)
-							--hmi side: sending UI.SetGlobalProperties response
+							--hmi side: sending UI.AddCommand response 
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
+						:Times(cmdCount)
+						
+						-- Updated because of APPLINK-15683
+						--hmi side: expect VR.AddCommand request 
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)	
+
+						--hmi side: expect UI.SetGlobalProperties request
+						EXPECT_HMICALL("UI.SetGlobalProperties",{})
+						:Times(0)
 
 						--hmi side: expect TTS.SetGlobalProperties request
-						EXPECT_HMICALL("TTS.SetGlobalProperties",
-																	{
-																		helpPrompt =  SGP_helpPrompt ,
-																		appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																	})
-						:Do(function(_,data)
-							--hmi side: sending UI.SetGlobalProperties response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)	
+						EXPECT_HMICALL("TTS.SetGlobalProperties",{}})
+						:Times(0)
 					end
 
 				--Begin Test case PositiveResponseCheck.7
@@ -3933,22 +3725,12 @@
 								--hmi side: sending UI.AddCommand response 
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-
-							--hmi side: expect VR.AddCommand request 
-							EXPECT_HMICALL("VR.AddCommand", 
-							{ 
-								-- cmdID = i,							
-								-- type = "Command",
-								-- vrCommands = 
-								-- {
-								-- 	"VRCommand" .. tostring(i)
-								-- }
-							})
-							:Do(function(_,data)
-								--hmi side: sending VR.AddCommand response 
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)						
 						end
+
+						-- Updated because of APPLINK-15683
+						--hmi side: expect VR.AddCommand request 
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)
 
 						EXPECT_HMICALL("UI.SetGlobalProperties",
 														{
@@ -3961,21 +3743,23 @@
 																	}	},
 															appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 														})
-							:Do(function(_,data)
+						:Do(function(_,data)
 								--hmi side: sending UI.SetGlobalProperties response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
+						end)
+						:Timeout(12000)
 
-							--hmi side: expect TTS.SetGlobalProperties request
-							EXPECT_HMICALL("TTS.SetGlobalProperties",
+						--hmi side: expect TTS.SetGlobalProperties request
+						EXPECT_HMICALL("TTS.SetGlobalProperties",
 														{
 															helpPrompt = default_HelpPromt,																		
 															appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 														})
-							:Do(function(_,data)
-				 				--hmi side: sending UI.SetGlobalProperties response
-				 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
+						:Do(function(_,data)
+				 			--hmi side: sending UI.SetGlobalProperties response
+				 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+						end)
+						:Timeout(12000)
 					end
 
 					--Begin Test case PositiveResponseCheck.10
@@ -4634,49 +4418,21 @@
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
 
-								--hmi side: expect VR.AddCommand request 
-								EXPECT_HMICALL("VR.AddCommand", 
-								{ 
-									cmdID = 202,							
-									type = "Command",
-									vrCommands = 
-									{
-										"VRCommand" .. tostring(202)
-									}
-								})
-								:Do(function(_,data)
-									--hmi side: sending VR.AddCommand response 
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-								end)	
-							
-						
+						-- Updated because of APPLINK-15683
+						--hmi side: expect VR.AddCommand request 
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)
 									
 						
-							--hmi side: expect UI.SetGlobalProperties request
-							EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
+						--hmi side: expect UI.SetGlobalProperties request
+						EXPECT_HMICALL("UI.SetGlobalProperties",{})
+						:Times(0)
 
-							--hmi side: expect TTS.SetGlobalProperties request
-							EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
-
+						--hmi side: expect TTS.SetGlobalProperties request
+						EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+						:Times(0)
 						
-						end
+					end
 
 					Test["TC21_CheckInternalList_OneCommand"] = function(self)
 							
@@ -4738,7 +4494,6 @@
 						config.application1.registerAppInterfaceParams.hashID = self.currentHashID
 
 						RegisterApp_HMILevelResumption(self, "FULL", _, _, true)
-
 					
 						--hmi side: expect UI.AddCommand request 
 						EXPECT_HMICALL("UI.AddCommand", 
@@ -4773,28 +4528,14 @@
 						
 									
 						
-							--hmi side: expect UI.SetGlobalProperties request
-							EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
+						--hmi side: expect UI.SetGlobalProperties request
+						EXPECT_HMICALL("UI.SetGlobalProperties",{})
+						:Times(0)
 
-							--hmi side: expect TTS.SetGlobalProperties request
-							EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)								
+						--hmi side: expect TTS.SetGlobalProperties request
+						EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+						:Times(0)
+						
 						end
 
 					Test["TC21_NoUpdateFile_HMI_REJECTEDDeletCommand"] = function(self)
@@ -5034,48 +4775,20 @@
 								:Do(function(_,data)
 									--hmi side: sending UI.AddCommand response 
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-								end)
-
-								--hmi side: expect VR.AddCommand request 
-								EXPECT_HMICALL("VR.AddCommand", 
-								{ 
-									cmdID = 202,							
-									type = "Command",
-									vrCommands = 
-									{
-										"VRCommand" .. tostring(202)
-									}
-								})
-								:Do(function(_,data)
-									--hmi side: sending VR.AddCommand response 
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-								end)	
+								end)				
 							
+						-- Updated because of APPLINK-15683
+						--hmi side: expect VR.AddCommand request 
+						EXPECT_HMICALL("VR.AddCommand", {})
+						:Times(0)
 						
-									
-						
-							--hmi side: expect UI.SetGlobalProperties request
-							EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)
+						--hmi side: expect UI.SetGlobalProperties request
+						EXPECT_HMICALL("UI.SetGlobalProperties",{})
+						:Times(0)
 
-							--hmi side: expect TTS.SetGlobalProperties request
-							EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-							:Do(function(_,data)
-								--hmi side: sending UI.SetGlobalProperties response
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							end)	
+						--hmi side: expect TTS.SetGlobalProperties request
+						EXPECT_HMICALL("TTS.SetGlobalProperties",{})							
+						:Times(0)
 			end
 
 			Test["TC22_CheckInternalList_OneCommand"] = function(self)
@@ -5164,46 +4877,18 @@
 											self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 										end)
 
-										--hmi side: expect VR.AddCommand request 
-										EXPECT_HMICALL("VR.AddCommand", 
-										{ 
-											cmdID = 202,							
-											type = "Command",
-											vrCommands = 
-											{
-												"VRCommand" .. tostring(202)
-											}
-										})
-										:Do(function(_,data)
-											--hmi side: sending VR.AddCommand response 
-											self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-										end)	
-									
+								-- Updated because of APPLINK-15683
+								--hmi side: expect VR.AddCommand request 
+								EXPECT_HMICALL("VR.AddCommand", {})
+								:Times(0)							
 								
-											
-								
-									--hmi side: expect UI.SetGlobalProperties request
-									EXPECT_HMICALL("UI.SetGlobalProperties",
-																	{
-																		vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																		vrHelp =  SGP_vrHelp ,
-																		appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																	})
-									:Do(function(_,data)
-										--hmi side: sending UI.SetGlobalProperties response
-										self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-									end)
+								--hmi side: expect UI.SetGlobalProperties request
+								EXPECT_HMICALL("UI.SetGlobalProperties",{})
+								:Times(0)
 
-									--hmi side: expect TTS.SetGlobalProperties request
-									EXPECT_HMICALL("TTS.SetGlobalProperties",
-																		{
-																			helpPrompt =  SGP_helpPrompt ,
-																			appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																		})
-									:Do(function(_,data)
-										--hmi side: sending UI.SetGlobalProperties response
-										self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-									end)	
+								--hmi side: expect TTS.SetGlobalProperties request
+								EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+								:Times(0)
 					end
 
 					Test["TC22_NoUpdateFile_HMI_UnsupportedDeletCommand"] = function(self)
@@ -5500,49 +5185,20 @@
 							--hmi side: sending UI.AddCommand response 
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
-
-						--hmi side: expect VR.AddCommand request 
-						EXPECT_HMICALL("VR.AddCommand", 
-						{ 
-									-- cmdID = i,							
-									-- type = "Command",
-									-- vrCommands = 
-									-- {
-									-- 	"VRCommand" .. tostring(i)
-									-- }
-						})
-						:Do(function(_,data)
-							--hmi side: sending VR.AddCommand response 
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)	
-							
-						
-									
 					end
+					-- Updated because of APPLINK-15683
+					--hmi side: expect VR.AddCommand request 
+					EXPECT_HMICALL("VR.AddCommand", {})
+					:Times(0)
 									
 						
 					--hmi side: expect UI.SetGlobalProperties request
-					EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-					:Do(function(_,data)
-						--hmi side: sending UI.SetGlobalProperties response
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)
+					EXPECT_HMICALL("UI.SetGlobalProperties",{})
+					:Times(0)
 
 					--hmi side: expect TTS.SetGlobalProperties request
-					EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-					:Do(function(_,data)
-						--hmi side: sending UI.SetGlobalProperties response
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)	
+					EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+					:Times(0)
 				end
 
 				Test["TC23_Precondition_CheckInternalList_AddCommand" .. cmdCount] = function(self)
@@ -5629,50 +5285,21 @@
 						:Do(function(_,data)
 							--hmi side: sending UI.AddCommand response 
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)
-
-						--hmi side: expect VR.AddCommand request 
-						EXPECT_HMICALL("VR.AddCommand", 
-						{ 
-									-- cmdID = i,							
-									-- type = "Command",
-									-- vrCommands = 
-									-- {
-									-- 	"VRCommand" .. tostring(i)
-									-- }
-						})
-						:Do(function(_,data)
-							--hmi side: sending VR.AddCommand response 
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)	
-							
-						
-									
 					end
-									
+					
+					-- Updated because of APPLINK-15683
+					--hmi side: expect VR.AddCommand request 
+					EXPECT_HMICALL("VR.AddCommand", {})
+					:Times(0)			
 						
 					--hmi side: expect UI.SetGlobalProperties request
-					EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-					:Do(function(_,data)
-						--hmi side: sending UI.SetGlobalProperties response
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)
+					EXPECT_HMICALL("UI.SetGlobalProperties",{})
+					:Times(0)
 
 					--hmi side: expect TTS.SetGlobalProperties request
-					EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-					:Do(function(_,data)
-						--hmi side: sending UI.SetGlobalProperties response
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)	
+					EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+					:Times(0)
 				end
 
 						
@@ -5750,48 +5377,16 @@
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
 
-						--hmi side: expect VR.AddCommand request 
-						EXPECT_HMICALL("VR.AddCommand", 
-						{ 
-									-- cmdID = i,							
-									-- type = "Command",
-									-- vrCommands = 
-									-- {
-									-- 	"VRCommand" .. tostring(i)
-									-- }
-						})
-						:Do(function(_,data)
-							--hmi side: sending VR.AddCommand response 
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)	
-							
-						
-									
 					end
 									
 						
 					--hmi side: expect UI.SetGlobalProperties request
-					EXPECT_HMICALL("UI.SetGlobalProperties",
-															{
-																vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
-																vrHelp =  SGP_vrHelp ,
-																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-															})
-					:Do(function(_,data)
-						--hmi side: sending UI.SetGlobalProperties response
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)
+					EXPECT_HMICALL("UI.SetGlobalProperties",{})
+					:Times(0)
 
 					--hmi side: expect TTS.SetGlobalProperties request
-					EXPECT_HMICALL("TTS.SetGlobalProperties",
-																{
-																	helpPrompt =  SGP_helpPrompt ,
-																	appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-																})
-					:Do(function(_,data)
-						--hmi side: sending UI.SetGlobalProperties response
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)	
+					EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+					:Times(0)
 				end
 
 			--Description:Sequence that verifies that SGP starts with 5 helpPrompt params;
@@ -5910,7 +5505,6 @@
 		--End Test case EmulatingUserAction.2
   --End Test suit EmulatingUserAction 
 ----------------------------------------------------------------------------------------------
-
 ----------------------------------------------------------------------------------------------
 ----------------------------------------VII TEST BLOCK----------------------------------------
 -------------------------------------Different HMIStatus--------------------------------------
