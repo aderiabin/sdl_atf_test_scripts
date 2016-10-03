@@ -351,14 +351,8 @@
 		Putfile(self, "action.png")
 	end
 
-	function Precondition_ResumeAppRegister(self, nameTC)
+	local function Update_AppInfoDat(self, nameTC)
 		
-		Test[nameTC .."_CloseConnection"] = function(self)
-			
-			self.mobileConnection:Close() 		
-			DelayedExp(12000)	
-		end
-
 		Test[nameTC .. "_Update_AppInfoDat"] = function(self)
 			local DefaultContent_helpPrompt
 			local DefaultContent_vrHelp
@@ -399,8 +393,20 @@
     		f = assert(io.open(config.pathToSDL.. "/app_info.dat", "w+"))
 			f:write(fileContent)
 			f:close()
- 
+ 			
+ 			os.execute(" cp " .. config.pathToSDL .. "/app_info.dat " .. config.pathToSDL .. "/app_info.dat_"..nameTC)
 		end
+	end
+
+	function Precondition_ResumeAppRegister(self, nameTC)
+		
+		Test[nameTC .."_CloseConnection"] = function(self)
+			
+			self.mobileConnection:Close() 		
+			DelayedExp(12000)	
+		end
+
+		Update_AppInfoDat(self, nameTC)
 
 		Test[nameTC .."_ConnectMobile"] = function(self)
 			
@@ -1259,7 +1265,6 @@
 					:Do(function(_, data)
 						
 						self.currentHashID = data.payload.hashID
-						print("7: self.currentHashID = "..self.currentHashID)
 					end)
 					
 				end
@@ -1319,9 +1324,7 @@
 						
 						self.currentHashID = data.payload.hashID
 						
-					end)					
-					userPrint(31, "APPLINK-28160: Should SDL separate \"helpPrompt\" from .ini file for using as default.")
-					
+					end)										
 				end
 		--End Test case CommonRequestCheck.4
 
@@ -1393,8 +1396,6 @@
 						
 						self.currentHashID = data.payload.hashID
 					end)
-					userPrint(31, "APPLINK-28160: Should SDL separate \"helpPrompt\" from .ini file for using as default.")
-					
 				end
 		--End Test case CommonRequestCheck.5
 
@@ -2648,6 +2649,8 @@
 						-- hmi side: expect OnAppUnregistered notification
 						EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
 					end
+
+					Update_AppInfoDat(self, "TC12")
 					
 					Test["TC12_Precondition_StartSDL"] = function(self)
 					
