@@ -1,293 +1,47 @@
 -- --------------------------------------------------------------------------------
--- -- Preconditions
+-- Kill SDL if PID is exist.
+os.execute("ps aux | grep -e smartDeviceLinkCore | awk '{print$2}'")
+os.execute("kill -9 $(ps aux | grep -e smartDeviceLinkCore | awk '{print$2}')")
 -- --------------------------------------------------------------------------------
--- local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
--- --------------------------------------------------------------------------------
--- --Precondition: preparation connecttest_RAI.lua
--- commonPreconditions:Connecttest_without_ExitBySDLDisconnect("connecttest_malformed.lua")
+
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-
---------------------------------------------------------------------------------
---Precondition: preparation connecttest_OnAppUnregistered.lua
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect("connecttest_RequestType.lua")
-commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: shall be removed when APPLINK-16610 is fixed
-config.defaultProtocolVersion = 2
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 Test = require('user_modules/connecttest_RequestType')
 require('cardinalities')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+require('user_modules/AppTypes')
+
+
+--local mobile_session = require('mobile_session')
+--local tcp = require('tcp_connection')
+--local file_connection  = require('file_connection')
+--local mobile  = require('mobile_connection')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-local mobile_session = require('mobile_session')
-local tcp = require('tcp_connection')
-local file_connection  = require('file_connection')
-local mobile  = require('mobile_connection')
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
-local notificationState = {VRSession = false, EmergencyEvent = false, PhoneCall = false}
-
-local function SUSPEND(self, targetLevel)
-
-   if 
-      targetLevel == "FULL" and
-      self.hmiLevel ~= "FULL" then
-            ActivationApp(self)
-            EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-              :Do(function(_,data)
-                self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
-                  {
-                    reason = "SUSPEND"
-                  })
-
-                -- hmi side: expect OnSDLPersistenceComplete notification
-                EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
-
-              end)
-    elseif 
-      targetLevel == "LIMITED" and
-      self.hmiLevel ~= "LIMITED" then
-        if self.hmiLevel ~= "FULL" then
-          ActivationApp(self)
-          EXPECT_NOTIFICATION("OnHMIStatus",
-            {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"},
-            {hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-            :Do(function(exp,data)
-              if exp.occurences == 2 then
-                self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
-                  {
-                    reason = "SUSPEND"
-                  })
-
-                -- hmi side: expect OnSDLPersistenceComplete notification
-                EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
-              end
-            end)
-
-            -- hmi side: sending BasicCommunication.OnAppDeactivated notification
-            self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["Test Application"], reason = "GENERAL"})
-        else 
-            -- hmi side: sending BasicCommunication.OnAppDeactivated notification
-            self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["Test Application"], reason = "GENERAL"})
-
-            EXPECT_NOTIFICATION("OnHMIStatus",
-            {hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-            :Do(function(exp,data)
-                self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
-                  {
-                    reason = "SUSPEND"
-                  })
-
-                -- hmi side: expect OnSDLPersistenceComplete notification
-                EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
-            end)
-        end
-    elseif 
-      (targetLevel == "LIMITED" and
-      self.hmiLevel == "LIMITED") or
-      (targetLevel == "FULL" and
-      self.hmiLevel == "FULL") or
-      targetLevel == nil then
-        self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
-          {
-            reason = "SUSPEND"
-          })
-
-        -- hmi side: expect OnSDLPersistenceComplete notification
-        EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
-    end
-
-end
-
-local function IGNITION_OFF(self, appNumber)
-	StopSDL()
-
-	if appNumber == nil then 
-		appNumber = 1
-	end
-
-	-- hmi side: sends OnExitAllApplications (SUSPENDED)
-	self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
-		{
-		  reason = "IGNITION_OFF"
-		})
-
-	-- hmi side: expect OnSDLClose notification
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-
-	-- hmi side: expect OnAppUnregistered notification
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
-		:Times(appNumber)
-end
-
-local function RegisterApplication(self, registerParams)
-
-    local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", registerParams)
-
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-    :Do(function(_,data)
-        self.applications[registerParams.appName] = data.params.application.appID
-    end)
-
-
-    self.mobileSession:ExpectResponse(CorIdRegister, 
-    	{ 
-    		success = true, 
-    		resultCode = "SUCCESS"
-    	})
-
-	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-
-end
-
-local function ActivationApp(self)
-
-  if 
-    notificationState.VRSession == true then
-      self.hmiConnection:SendNotification("VR.Stopped", {})
-  elseif 
-    notificationState.EmergencyEvent == true then
-      self.hmiConnection:SendNotification("BasicCommunication.OnEmergencyEvent", {enabled = false})
-  elseif
-    notificationState.PhoneCall == true then
-      self.hmiConnection:SendNotification("BasicCommunication.OnPhoneCall", {isActive = false})
-  end
-
-    -- hmi side: sending SDL.ActivateApp request
-      local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-
-    -- hmi side: expect SDL.ActivateApp response
-    EXPECT_HMIRESPONSE(RequestId)
-      	:Do(function(_,data)
-        -- In case when app is not allowed, it is needed to allow app
-          	if
-              data.result.isSDLAllowed ~= true then
-
-                -- hmi side: sending SDL.GetUserFriendlyMessage request
-                  local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
-                          {language = "EN-US", messageCodes = {"DataConsent"}})
-
-                -- hmi side: expect SDL.GetUserFriendlyMessage response
-                -- TODO: comment until resolving APPLINK-16094
-                -- EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-                EXPECT_HMIRESPONSE(RequestId)
-                    :Do(function(_,data)
-
-	                    -- hmi side: send request SDL.OnAllowSDLFunctionality
-	                    self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
-                      		{allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-
-	                    -- hmi side: expect BasicCommunication.ActivateApp request
-	                      EXPECT_HMICALL("BasicCommunication.ActivateApp")
-	                        :Do(function(_,data)
-
-	                          -- hmi side: sending BasicCommunication.ActivateApp response
-	                          self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-
-	                      end)
-	                      :Times(2)
-                      end)
-
-        	end
-        end)
-
-end
-
-local function CreateSession( self)
-	self.mobileSession = mobile_session.MobileSession(
-        self,
-        self.mobileConnection)
-end
-
-local function userPrint( color, message)
-  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
-end
-
-local function OpenConnectionCreateSession(self)
-	local tcpConnection = tcp.Connection(config.mobileHost, config.mobilePort)
-	local fileConnection = file_connection.FileConnection("mobile.out", tcpConnection)
-	self.mobileConnection = mobile.MobileConnection(fileConnection)
-	self.mobileSession= mobile_session.MobileSession(
-	self,
-	self.mobileConnection)
-	event_dispatcher:AddConnection(self.mobileConnection)
-	self.mobileSession:ExpectEvent(events.connectedEvent, "Connection started")
-	self.mobileConnection:Connect()
-	self.mobileSession:StartService(7)
-end
-
------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------
-------------------------- General Precondition before ATF start -----------------------------
----------------------------------------------------------------------------------------------
-function Test:SuspendFromHMI()
-	self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "SUSPEND"})
-
-	-- hmi side: expect OnSDLPersistenceComplete notification
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
-end
-
-function Test:IgnitionOffFromHMI()
-	IGNITION_OFF(self,appNumberForIGNOFF)
-end
-
-function Test:convertPreloadedToJson()
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  pathToFile = config.pathToSDL .. "sdl_preloaded_pt.json"
-  local file  = io.open(pathToFile, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
-  file:close()
-
-  local json = require("json")
-   
-  local data = json.decode(json_data)
-
-  local function has_value (tab, val)
-    for index, value in ipairs (tab) do
-        if value == val then
-            return true
-        end
-    end
-
-    return false
-  end
-
-  for k,v in pairs(data.policy_table.functional_groupings) do
-    if  has_value(data.policy_table.app_policies.default.groups, k) or 
-        has_value(data.policy_table.app_policies.pre_DataConsent.groups, k) then 
-    else 
-      data.policy_table.functional_groupings[k] = nil 
-    end
-  end
-
-  return data
-end
+--ToDo: shall be removed when APPLINK-16610 is fixed
+config.defaultProtocolVersion = 2
 
 local odometerValue = 0
 local exchange_after_x_kilometers = 0
+local requestTypeEnum = {"HTTP", "FILE_RESUME", "AUTH_REQUEST", "AUTH_CHALLENGE", 
+  "AUTH_ACK", "PROPRIETARY", "QUERY_APPS", "LAUNCH_APP", "LOCK_SCREEN_ICON_URL", 
+  "TRAFFIC_MESSAGE_CHANNEL", "DRIVER_PROFILE", "VOICE_SEARCH", "NAVIGATION", 
+  "PHONE", "CLIMATE", "SETTINGS", "VEHICLE_DIAGNOSTICS", "EMERGENCY", "MEDIA", "FOTA"}
 
-function Test:GetExchangeAfterXKilometers( ... )
-  -- body
-  local commandToExecute = "sqlite3 " .. config.pathToSDL .. "/storage/policy.sqlite 'select exchange_after_x_kilometers from module_config;'"
-  local f = assert(io.popen(commandToExecute, 'r'))
-  local s = assert(f:read('*a'))
-  f:close()
-  exchange_after_x_kilometers = tonumber(tostring(s))
+local temp = {}
+for k,v in pairs(requestTypeEnum) do
+  if v ~= "PROPRIETARY" and v ~= "QUERY_APPS" and v ~= "LAUNCH_APP" then
+	  --do
+	  temp[k] = requestTypeEnum[k]
+  end
 end
 
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 local applicationRegisterParams = 
   {
     syncMsgVersion =
@@ -310,57 +64,10 @@ local applicationRegisterParams =
     }
   }
 
-function Test:CreatePTUEmptyRequestTypeDefault(...)
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
 
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = {}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
+local function userPrint( color, message)
+  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
 end
-
-function Test:StartSdlAfterChangeIniFile()
-	StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:InitHmiAfterChangeIniFile()
-	self:initHMI()
-end
-
-function Test:InitHmiOnReadyAfterChangeIniFile()
-	self:initHMI_onReady()
-end
-
-function Test:ConnectMobileAfterChangeIniFile()
-	self:connectMobile()
-end
-
-function Test:StartSesionAfterChangeIniFile()
-	CreateSession(self)
-end
-
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Begin Test case TC.1
-      --Description: This test is intended to check case PTU with "<default>" policies comes and "RequestType" array is empty 
-
-      --Requirement id: APPLINK-14724
-
-      --Verification criteria: PoliciesManager must: 
-        -- leave "RequestType" as empty array
-        -- allow any request type for such app. 
 
 
 function Test:makeDeviceUntrusted()
@@ -376,21 +83,6 @@ function Test:makeDeviceUntrusted()
       }, 
       allowed = false,
       source = "GUI" })
-end
-
-function Test:PrecondMakeDeviceUntrusted()
-  self:makeDeviceUntrusted()
-end
-
-function Test:PrecondRegisterApp1(...)
-	-- body
-	userPrint(35, "================= Precondition ==================")
-
-	self.mobileSession:StartService(7)
-		:Do(function(_,data)
-			RegisterApplication(self, applicationRegisterParams)
-      -- RegisterApplication(self, config.application1.registerAppInterfaceParams)
-		end)
 end
 
 function Test:ptu()
@@ -417,7 +109,7 @@ function Test:ptu()
     EXPECT_HMIRESPONSE(RequestIdGetURLS)
     :Do(function(_,data)
       --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-      urlOfCloud = tostring(data.result.urls[1].url)
+      --urlOfCloud = tostring(data.result.urls[1].url)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
           requestType = "PROPRIETARY",
@@ -461,11 +153,6 @@ function Test:ptu()
   end)
 end
 
-function Test:PrecondPTU()
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
 function Test:unregisterApp( ... )
   userPrint(35, "================= Precondition ==================")
   --mobile side: UnregisterAppInterface request 
@@ -478,10 +165,6 @@ function Test:unregisterApp( ... )
   --mobile side: UnregisterAppInterface response 
   EXPECT_RESPONSE(CorIdUAI, { success = true, resultCode = "SUCCESS"})
   :Timeout(2000)
-end
-
-function Test:PrecondExitApp1()
-  self:unregisterApp()
 end
 
 function Test:checkOnAppRegistered(params)
@@ -509,10 +192,6 @@ function Test:checkOnAppRegistered(params)
         self:FailTestCase("UnexpectedDisconnect")
     end
   end)
-end
-
-function Test:CheckOnAppRegisteredHasEmptyRequestType( ... )
-  self:checkOnAppRegistered({})
 end
 
 function Test:checkRequestTypeInSystemRequest(request_type)
@@ -557,164 +236,47 @@ function Test:checkRequestTypeInSystemRequest(request_type)
     end
 end
 
-
-local requestTypeEnum = {"HTTP", "FILE_RESUME", "AUTH_REQUEST", "AUTH_CHALLENGE", 
-  "AUTH_ACK", "PROPRIETARY", "QUERY_APPS", "LAUNCH_APP", "LOCK_SCREEN_ICON_URL", 
-  "TRAFFIC_MESSAGE_CHANNEL", "DRIVER_PROFILE", "VOICE_SEARCH", "NAVIGATION", 
-  "PHONE", "CLIMATE", "SETTINGS", "VEHICLE_DIAGNOSTICS", "EMERGENCY", "MEDIA", "FOTA"}
-
-for k, v in pairs( requestTypeEnum ) do
-  Test["CheckRequestTypeTC1_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
---End Test case TC.1
-
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Begin Test case TC.2
-      --Description: This test is intended to check case PTU with "<pre_DataConsent>" policies comes and "RequestType" array is empty 
-
-      --Requirement id: APPLINK-14724
-
-      --Verification criteria: PoliciesManager must: 
-        -- leave "RequestType" as empty array
-        -- allow any request type for such app.
-
-function Test:CreatePTUEmptyRequestTypePreData(...)
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  -- data.policy_table.app_policies.default.RequestType = {}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-  
-  --debug
-  file_debug = io.open("/tmp/ptu_update_tc2.json", "w")
-  file_debug:write(data)
-  file_debug:close()
-
-end
-
-function Test:PrecondMakeDeviceUntrusted1( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:PrecondMakeDeviceUnTrusted2( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
-  self:checkOnAppRegistered({})
-end
-
-
-for k, v in pairs( requestTypeEnum ) do
-  Test["CheckRequestTypeTC2_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
---End Test case TC.2
-
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Begin Test case TC.3
-      --Description: This test is intended to check case PTU with "<default>" policies comes with ommited "RequestType" array
-
-      --Requirement id: APPLINK-14723
-
-      -- Verification criteria: PoliciesManager must: 
-      -- assign "RequestType" field from "<default>" or 
-      -- "<pre_DataConsent>" section of PolicyDataBase to such app 
-
-function Test:CreatePTUValidRequestTypeDefault(...)
-  userPrint(35, "================= Precondition ==================")
+function Test:convertPreloadedToJson()
   -- body
   -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  -- data.policy_table.app_policies.default.RequestType = {}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
+  pathToFile = config.pathToSDL .. "sdl_preloaded_pt.json"
+  local file  = io.open(pathToFile, "r")
+  local json_data = file:read("*all") -- may be abbreviated to "*a";
   file:close()
 
-end
+  local json = require("json")
+   
+  local data = json.decode(json_data)
 
-function Test:TriggerPTUForOmmitedRequestType( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
+  local function has_value (tab, val)
+    for index, value in ipairs (tab) do
+        if value == val then
+            return true
+        end
+    end
 
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC3()
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
-
-local temp = {}
-
-for k,v in pairs(requestTypeEnum) do
-  if v ~= "PROPRIETARY" and v ~= "QUERY_APPS" and v ~= "LAUNCH_APP" then
-      --do
-      temp[k] = requestTypeEnum[k]
+    return false
   end
+
+  for k,v in pairs(data.policy_table.functional_groupings) do
+    if  has_value(data.policy_table.app_policies.default.groups, k) or 
+        has_value(data.policy_table.app_policies.pre_DataConsent.groups, k) then 
+    else 
+      data.policy_table.functional_groupings[k] = nil 
+    end
+  end
+
+  return data
 end
 
 function Test:checkRequestTypeInSystemRequestIsDisallowed(request_type)
   userPrint(34, "=================== Test Case ===================")
   local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-      {
-        fileName = "PolicyTableUpdate",
-        requestType = request_type
-      },
-    "files/jsons/QUERY_APP/query_app_response.json")
+	  {
+		fileName = "PolicyTableUpdate",
+		requestType = request_type
+	  },
+	"files/jsons/QUERY_APP/query_app_response.json")
 
   local systemRequestId
   --hmi side: expect SystemRequest request
@@ -725,716 +287,939 @@ function Test:checkRequestTypeInSystemRequestIsDisallowed(request_type)
   :Timeout(5000)
 end
 
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC3_1_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
 
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC3_2_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
 
-function Test:CreatePTUOmmitedRequestTypeDefault(...)
-  userPrint(35, "================= Precondition ==================")
+---------------------------------------------------------------------------------------------
+-------------------------------------------PreConditions-------------------------------------
+---------------------------------------------------------------------------------------------
+
+commonSteps:DeleteLogsFileAndPolicyTable()
+
+function Test:GetExchangeAfterXKilometers( ... )
   -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = nil
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:PrecondMakeDeviceUntrustedOmmited( ... )
-  -- body
-  self:makeDeviceUntrusted()
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC3_1()
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
-
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC3_3_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
-
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC3_4_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
---End Test case TC.3
-
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Begin Test case TC.4
-      --Description: This test is intended to check case PTU with "<pre_DataConsent>" policies comes with ommited "RequestType" array
-
-      --Requirement id: APPLINK-14723
-
-      -- Verification criteria: PoliciesManager must: 
-      -- assign "RequestType" field from "<pre_DataConsent>" section of PolicyDataBase to such app 
-
-function Test:CreatePTUValidRequestTypeDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:PrecondMakeDeviceUntrustedOmmitedPreData( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:PrecondMakeDeviceUntrustedOmmitedPreData2( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
-
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC4_1_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
-
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC4_2_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
-function Test:CreatePTUOmmitedRequestTypePreData(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  -- data.policy_table.app_policies.default.RequestType = nil
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = nil
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-function Test:PrecondMakeDeviceUntrustedOmmitedPreData22()
-  self:makeDeviceUntrusted()
-end
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC4()
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
-
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC4_3_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
-
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC4_4_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
---End Test case TC.4
-
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Begin Test case TC.5
-      --Description: This test is intended to check case PTU comes with several values in "RequestType" array of "<default>" policies 
-      --and at least one of the values is invalid 
-
-
-      --Requirement id: APPLINK-14722
-
-      -- Verification criteria: Policies Manager must: 
-      -- ignore invalid values in "RequestType" array of "<default>" policies 
-      -- copy valid values of "RequestType" array of "<default>" policies
- 
-function Test:CreatePTUValidRequestTypeDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  -- data.policy_table.app_policies.default.RequestType = {}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-function Test:PrecondExitApp()
-  self:unregisterApp()
-end
-
-function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
-
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC5_1_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
-
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC5_2_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
-function Test:CreatePTURequestTypeWithInvalidValuesDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP", "IVSU", "IGOR"}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:PrecondMakeDeviceUntrustedOmmited( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC5()
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
-
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC5_3_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
-
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC5_4_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
---End Test case TC.5
-
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Begin Test case TC.6
-      --Description: This test is intended to check case PTU comes with several values in "RequestType" array of "<pre_DataConsent>" policies 
-      --and at least one of the values is invalid 
-
-
-      --Requirement id: APPLINK-14722
-
-      -- Verification criteria: Policies Manager must: 
-      -- ignore invalid values in "RequestType" array of "<pre_DataConsent>" policies 
-      -- copy valid values of "RequestType" array of "<pre_DataConsent>" policies
-
-function Test:CreatePTUValidRequestTypeDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:PrecondMakeDeviceUntrustedPreDataSomeInvalid( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:PrecondMakeDeviceUntrustedPreDataSomeInvalid2( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
-
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC6_1_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
-
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC6_2_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
-function Test:CreatePTURequestTypeWithInvalidValuesPreData(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP", "IVSU", "IGOR"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:PrecondMakeDeviceUntrustedOmmited( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-function Test:PrecondMakeDeviceUntrustedOmmitedPreData22()
-  self:makeDeviceUntrusted()
-end
-
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
-
-function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC6()
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+  local commandToExecute = "sqlite3 " .. config.pathToSDL .. "/storage/policy.sqlite 'select exchange_after_x_kilometers from module_config;'"
+  local f = assert(io.popen(commandToExecute, 'r'))
+  local s = assert(f:read('*a'))
+  f:close()
+  exchange_after_x_kilometers = tonumber(tostring(s))
 end
 
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC6_3_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
-
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC6_4_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
-
---End Test case TC.6
-
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Begin Test case TC.7
-      --Description: This test is intended to check case PPTU comes with several values in "RequestType" array of "<default>" policies 
-      -- and all these values are invalid 
- 
-
-
-      --Requirement id: APPLINK-14721
-
-      -- Verification criteria: Policies Manager must: 
-      -- ignore the invalid values in "RequestType" array of "<default>" policies 
-      -- copy and assign the values of "RequestType" array of "<default>" policies from PolicyDataBase before updating without any changes
-
-function Test:CreatePTUValidRequestTypeDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  -- data.policy_table.app_policies.default.RequestType = {}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
 
-  local json = require("json")
-  data = json.encode(data)
-  
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
-
-
-function Test:PrecondExitApp()
-  self:unregisterApp()
-end
+-- Req1: APPLINK-14724 [Policies]: SDL behavior in case PTU comes with empty "RequestType" field of <default> or <pre_DataConsent> section
+-- In case
+--		PTU with "<default>" or "<pre_DataConsent>" policies comes
+-- 		and "RequestType" array is empty
+-- PoliciesManager must:
+-- 		leave "RequestType" as empty array
+-- 		allow any request type for such app. 
 
-function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
+local function Req1_APPLINK_14724_Case1_default_RequestType_empty()
+
+	function Test:CreatePTUEmptyRequestTypeDefault(...)
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
 
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC7_1_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
+	  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.default.RequestType = {}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
 
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC7_2_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
+	  local json = require("json")
+	  data = json.encode(data)
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
 
-function Test:CreatePTURequestTypeWithInvalidValuesDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = {"IVSU", "IGOR"}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
+	end
+	function Test:PrecondMakeDeviceUntrusted()
+	  self:makeDeviceUntrusted()
+	end
 
-end
+	function Test:PrecondPTU()
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
 
-function Test:PrecondMakeDeviceUntrustedOmmited( ... )
-  self:makeDeviceUntrusted()
-end
+	function Test:PrecondExitApp1()
+	  self:unregisterApp()
+	end
 
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
+	function Test:CheckOnAppRegisteredHasEmptyRequestType( ... )
+	  self:checkOnAppRegistered({})
+	end
 
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
 
-function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC7()
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
+	for k, v in pairs( requestTypeEnum ) do
+	  Test["CheckRequestTypeTC1_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
 
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC7_3_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
 
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC7_4_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
 end
-
---End Test case TC.7
 
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------
+local function Req1_APPLINK_14724_Case2_pre_DataConsent_RequestType_empty()
 
---Begin Test case TC.8
-      --Description: This test is intended to check case PPTU comes with several values in "RequestType" array of "<pre_DataConsent>" policies 
-      -- and all these values are invalid 
- 
 
+	function Test:CreatePTUEmptyRequestTypePreData(...)
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
 
-      --Requirement id: APPLINK-14721
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
 
-      -- Verification criteria: Policies Manager must: 
-      -- ignore the invalid values in "RequestType" array of "<pre_DataConsent>" policies 
-      -- copy and assign the values of "RequestType" array of "<pre_DataConsent>" policies from PolicyDataBase before updating without any changes
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  -- data.policy_table.app_policies.default.RequestType = {}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
 
-function Test:CreatePTUValidRequestTypeDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
+	  local json = require("json")
+	  data = json.encode(data)
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+	  
+	  --debug
+	  file_debug = io.open("/tmp/ptu_update_tc2.json", "w")
+	  file_debug:write(data)
+	  file_debug:close()
 
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
-  -- data.policy_table.app_policies.default.RequestType = {}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+	end
 
-  local json = require("json")
-  data = json.encode(data)
-  
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
-
-end
-
-function Test:PrecondMakeDeviceUntrustedSeveralValues( ... )
-  self:makeDeviceUntrusted()
-end
-
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
+	function Test:PrecondMakeDeviceUntrusted1( ... )
+	  self:makeDeviceUntrusted()
+	end
 
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
 
-function Test:PrecondExitApp()
-  self:unregisterApp()
-end
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:PrecondMakeDeviceUnTrusted2( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
+	  self:checkOnAppRegistered({})
+	end
+
+
+	for k, v in pairs( requestTypeEnum ) do
+	  Test["CheckRequestTypeTC2_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+end
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req1_APPLINK_14724_Case1_default_RequestType_empty")
+Req1_APPLINK_14724_Case1_default_RequestType_empty()
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req1_APPLINK_14724_Case2_pre_DataConsent_RequestType_empty")
+Req1_APPLINK_14724_Case2_pre_DataConsent_RequestType_empty()
+
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+
+-- Req2: APPLINK-14723 [Policies]: SDL behavior in case PTU comes with omitted "RequestType" field of <default> or <pre_DataConsent> section
+-- In case
+-- 		PTU with "<default>" or "<pre_DataConsent>" policies comes
+-- 		and "RequestType" array is omitted at all
+-- PoliciesManager must:
+-- 		assign "RequestType" field from "<default>" or "<pre_DataConsent>" section of PolicyDataBase to such app 
+
+local function Req2_APPLINK_14723_Case1_default_RequestType_omitted()
+
+	--Precondition: Update PT with default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	function Test:CreatePTUValidRequestTypeDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
 
-function Test:PrecondMakeDeviceUntrustedSeveralValues( ... )
-  self:makeDeviceUntrusted()
-end
+	end
 
-function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
+	function Test:TriggerPTUForOmmitedRequestType( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
 
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC7_1_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC3()
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
 
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC7_2_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
 
-function Test:CreatePTURequestTypeWithInvalidValuesDefault(...)
-  userPrint(35, "================= Precondition ==================")
-  -- body
-  -- Create PTU from sdl_preloaded_pt.json
-  local data = self:convertPreloadedToJson()
-
-  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
-  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
-  data.policy_table.app_policies.pre_DataConsent.RequestType = {"IVSU", "IGOR"}
-  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
-
-  local json = require("json")
-  data = json.encode(data)
-  file = io.open("/tmp/ptu_update.json", "w")
-  file:write(data)
-  file:close()
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC3_1_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC3_2_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+	
+	
+	-- Body of this case:
+	
+	function Test:CreatePTUOmmitedRequestTypeDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
 
-end
+	  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.default.RequestType = nil
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
 
-function Test:TriggerPTU( ... )
-  -- body
-  userPrint(35, "================= Precondition ==================")
-
-  odometerValue = odometerValue + exchange_after_x_kilometers + 1
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
-  self:ptu()
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-end
+	  local json = require("json")
+	  data = json.encode(data)
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmited( ... )
+	  -- body
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC3_1()
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC3_3_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC3_4_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+
+end
+
+local function Req2_APPLINK_14723_Case2_pre_DataConsent_RequestType_omitted()
+
+
+	function Test:CreatePTUValidRequestTypeDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
 
-function Test:PrecondMakeDeviceUntrustedOmmited( ... )
-  self:makeDeviceUntrusted()
-end
+	end
 
-function Test:PrecondExitAppPreData()
-  self:unregisterApp()
-end
+	function Test:PrecondMakeDeviceUntrustedOmmitedPreData( ... )
+	  self:makeDeviceUntrusted()
+	end
 
-function Test:CheckOnAppRegisteredHasDeafultRequestType()
-  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
-end
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
 
-for k, v in pairs( temp ) do
-  Test["CheckRequestTypeTC7_3_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequestIsDisallowed(v)
-  end
-end
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
 
-for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
-  Test["CheckRequestTypeTC7_4_" .. v] = function(self)
-    self:checkRequestTypeInSystemRequest(v)
-  end
-end
 
---End Test case TC.8
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmitedPreData2( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC4_1_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC4_2_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+	function Test:CreatePTUOmmitedRequestTypePreData(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  -- data.policy_table.app_policies.default.RequestType = nil
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = nil
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmitedPreData22()
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC4()
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC4_3_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC4_4_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+
+end
+
+
+-- ToDo: According to defect APPLINK-28498, if script is executed from Re1 to Req4, tests for Req2, 3 and 4 will be failed. So please execute each Req1, then comment it and execute Req2, 3 and 4
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req2_APPLINK_14723_Case1_default_RequestType_omitted")
+Req2_APPLINK_14723_Case1_default_RequestType_omitted()
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req2_APPLINK_14723_Case1_pre_DataConsent_RequestType_omitted")
+Req2_APPLINK_14723_Case2_pre_DataConsent_RequestType_omitted()
+
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+
+-- Req3: APPLINK-14722 [Policies]: SDL behavior in case PTU comes with at least one invalid value in "RequestType" of <default> or <pre_DataConsent> section
+-- In case
+-- 		PTU comes with several values in "RequestType" array of "<default>" and "<pre_DataConsent>" policies
+-- 		and at least one of the values is invalid
+-- Policies Manager must:
+-- 		ignore invalid values in "RequestType" array of "<default>" or "<pre_DataConsent>" policies
+-- 		copy valid values of "RequestType" array of "<default>" or "<pre_DataConsent>" policies 
+
+local function Req3_APPLINK_14722_Case1_default_RequestType_valid_invalid()
+	 
+	--Precondition: Update PT with default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	function Test:CreatePTUValidRequestTypeDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondExitApp()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC5_1_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC5_2_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+	
+	-- Body of this test 
+	
+	function Test:CreatePTURequestTypeWithInvalidValuesDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP", "IVSU", "IGOR"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+	  
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmited( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC5()
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC5_3_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC5_4_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+end
+
+local function Req3_APPLINK_14722_Case2_pre_DataConsent_RequestType_valid_invalid()
+
+	--Precondition: Update PT with pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	function Test:CreatePTUValidRequestTypeDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+	  
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:PrecondMakeDeviceUntrustedPreDataSomeInvalid( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:PrecondMakeDeviceUntrustedPreDataSomeInvalid2( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC6_1_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC6_2_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+	
+	
+	-- Body of this test 
+	
+	function Test:CreatePTURequestTypeWithInvalidValuesPreData(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP", "IVSU", "IGOR"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+	  
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmited( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmitedPreData22()
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC6()
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC6_3_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC6_4_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+
+end
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req3_APPLINK_14722_Case1_default_RequestType_valid_invalid")
+Req3_APPLINK_14722_Case1_default_RequestType_valid_invalid()
+
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req3_APPLINK_14722_Case2_pre_DataConsent_RequestType_valid_invalid")
+Req3_APPLINK_14722_Case2_pre_DataConsent_RequestType_valid_invalid()
+
+
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+
+-- Req4: APPLINK-14721 [Policies]: SDL behavior in case PTU comes with all invalid values in "RequestType" of <default> or <pre_DataConsent> section
+-- In case
+-- 		PTU comes with several values in "RequestType" array of "<default>" or "<pre_DataConsent>" policies
+-- 		and all these values are invalid
+-- Policies Manager must:
+-- 		ignore the invalid values in "RequestType" array of "<default>" or "<pre_DataConsent>" policies
+-- 		copy and assign the values of "RequestType" array of "<default>" or "<pre_DataConsent>" policies from PolicyDataBase before updating without any changes
+
+
+local function Req4_APPLINK_14721_Case1_default_RequestType_invalid()
+
+	--Precondition: Update PT with default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	function Test:CreatePTUValidRequestTypeDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  -- data.policy_table.app_policies.default.RequestType = {}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+	  
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+
+	function Test:PrecondExitApp()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC7_1_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC7_2_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+	
+	
+	-- Body of this test 
+	
+	function Test:CreatePTURequestTypeWithInvalidValuesDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  -- data.policy_table.app_policies.default.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies.default.RequestType = {"IVSU", "IGOR"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+	  
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmited( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasDeafultRequestTypeTC7()
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC7_3_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC7_4_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+
+
+end
+
+local function Req4_APPLINK_14721_Case2_pre_DataConsent_RequestType_invalid()
+
+
+	--Precondition: Update PT with pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	function Test:CreatePTUValidRequestTypeDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
+	  -- data.policy_table.app_policies.default.RequestType = {}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+	  
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:PrecondMakeDeviceUntrustedSeveralValues( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+
+	function Test:PrecondExitApp()
+	  self:unregisterApp()
+	end
+
+	function Test:PrecondMakeDeviceUntrustedSeveralValues( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:CheckOnAppRegisteredHasEmptyRequestTypePreData( ... )
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC8_1_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC8_2_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+	
+	
+	-- Body of this test 
+		
+	function Test:CreatePTURequestTypeWithInvalidValuesDefault(...)
+	  userPrint(35, "================= Precondition ==================")
+	  -- body
+	  -- Create PTU from sdl_preloaded_pt.json
+	  local data = self:convertPreloadedToJson()
+
+	  data.policy_table.app_policies.default.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.device.RequestType = {"PROPRIETARY"}
+	  data.policy_table.app_policies.pre_DataConsent.RequestType = {"IVSU", "IGOR"}
+	  data.policy_table.app_policies[applicationRegisterParams.appName] = "default"
+
+	  local json = require("json")
+	  data = json.encode(data)
+	  file = io.open("/tmp/ptu_update.json", "w")
+	  file:write(data)
+	  file:close()
+
+	end
+
+	function Test:TriggerPTU( ... )
+	  -- body
+	  userPrint(35, "================= Precondition ==================")
+
+	  odometerValue = odometerValue + exchange_after_x_kilometers + 1
+	  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", { odometer = odometerValue})
+	  self:ptu()
+	  EXPECT_NOTIFICATION("OnPermissionsChange")
+	end
+
+	function Test:PrecondMakeDeviceUntrustedOmmited( ... )
+	  self:makeDeviceUntrusted()
+	end
+
+	function Test:PrecondExitAppPreData()
+	  self:unregisterApp()
+	end
+
+	function Test:CheckOnAppRegisteredHasDeafultRequestType()
+	  self:checkOnAppRegistered({"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"})
+	end
+
+	for k, v in pairs( temp ) do
+	  Test["CheckRequestTypeTC8_3_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequestIsDisallowed(v)
+	  end
+	end
+
+	for k, v in pairs( {"PROPRIETARY", "QUERY_APPS", "LAUNCH_APP"} ) do
+	  Test["CheckRequestTypeTC8_4_" .. v] = function(self)
+		self:checkRequestTypeInSystemRequest(v)
+	  end
+	end
+
+end
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req4_APPLINK_14721_Case1_default_RequestType_invalid")
+Req4_APPLINK_14721_Case1_default_RequestType_invalid()
+
+--Print new line to separate Preconditions
+commonFunctions:newTestCasesGroup("Req4_APPLINK_14721_Case2_pre_DataConsent_RequestType_invalid")
+Req4_APPLINK_14721_Case2_pre_DataConsent_RequestType_invalid()
+
+
+return Test
