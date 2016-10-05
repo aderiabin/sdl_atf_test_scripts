@@ -336,7 +336,15 @@
 					self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID	
 				end)
 
-				self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+				self.mobileSession:ExpectResponse(CorIdRegister, { success = true })--, resultCode = "SUCCESS" })
+				:ValidIf(function(_,data)
+					if ( data.payload.resultCode == "SUCCESS" or data.payload.resultCode == "RESUME_FAILED") then
+			    		return true
+			    	else
+			    		userPrint(31, "result Code of RAI is " ..data.payload.resultCode)
+			    		return false
+			    	end
+				end)
 				:Timeout(2000)
 
 				self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
@@ -4395,14 +4403,17 @@
 					end
 
 					Test["TC21_CheckInternalList_OneCommand"] = function(self)
+						
+						local SGP_helpPrompt = {}
+						local SGP_vrHelp = {}
 							
-							SGP_helpPrompt[1] ={
+						SGP_helpPrompt[1] ={
 																text = "VRCommand" .. tostring(202),
 																type = "TEXT" }
 							
-							SGP_vrHelp[1] = { text = "VRCommand" .. tostring(202) }
+						SGP_vrHelp[1] = { text = "VRCommand" .. tostring(202) }
 							
-							CheckUpdateFile(self, SGP_helpPrompt, SGP_vrHelp)
+						CheckUpdateFile(self, SGP_helpPrompt, SGP_vrHelp)
 					end
 					
 					Test["TC21_DeleteCommand_HMI_REJECTED"] = function(self)
@@ -4481,9 +4492,6 @@
 							SGP_helpPrompt[1] ={
 																		text = "VRCommand" .. tostring(202),
 																		type = "TEXT" }
-							SGP_helpPrompt[2] ={
-																		text = "300",
-																		type = "SILENCE" }
 								
 							SGP_vrHelp[1] = { text = "VRCommand" .. tostring(202) }
 							
@@ -4701,7 +4709,9 @@
 			end
 
 			Test["TC22_CheckInternalList_OneCommand"] = function(self)
-							
+				local SGP_helpPrompt = {}
+				local SGP_vrHelp     = {}
+
 				SGP_helpPrompt[1] ={
 																text = "VRCommand" .. tostring(202),
 																type = "TEXT" }								
@@ -4777,14 +4787,17 @@
 					end
 
 					Test["TC22_NoUpdateFile_HMI_UnsupportedDeletCommand"] = function(self)
-							
-							SGP_helpPrompt[1] ={
+						
+						local SGP_helpPrompt = {}
+						local SGP_vrHelp = {}
+						
+						SGP_helpPrompt[1] ={
 																text = "VRCommand" .. tostring(202), --menuName}
 																type = "TEXT" }
 								
-							SGP_vrHelp[1] = { text = "VRCommand" .. tostring(202) }
+						SGP_vrHelp[1] = { text = "VRCommand" .. tostring(202) }
 							
-							CheckUpdateFile(self, SGP_helpPrompt, SGP_vrHelp)
+						CheckUpdateFile(self, SGP_helpPrompt, SGP_vrHelp)
 					end
 		--End Test case NegativeRequestCheck.4
 
@@ -5105,6 +5118,51 @@
 					EXPECT_HMICALL("UI.AddCommand", {})
 					:Times(0)
 
+				end
+
+				Test["TC23_SetGlobalProperties_NoParams_DefaultvrHelp_HelpPromt"] = function (self)					
+					xmlReporter.AddMessage("Test Case 4")
+					userPrint(35,"======================================= Test Case 23 =============================================")
+					--mobile side: sending SetGlobalProperties request
+					local cid = self.mobileSession:SendRPC("SetGlobalProperties",{ menuTitle = "Menu Title"})
+					
+					--hmi side: expect UI.SetGlobalProperties request
+					EXPECT_HMICALL("UI.SetGlobalProperties",
+													{
+														vrHelpTitle = config.application1.registerAppInterfaceParams.appName,
+													  -- Clarification is done: APPLINK-26638
+														vrHelp = { 
+																	{
+																		text = config.application1.registerAppInterfaceParams.appName,
+																		position = 1
+																}	},
+														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+													})
+					:Do(function(_,data)
+						--hmi side: sending UI.SetGlobalProperties response
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+					end)
+
+					--hmi side: expect TTS.SetGlobalProperties request
+					EXPECT_HMICALL("TTS.SetGlobalProperties",
+													{
+														helpPrompt = default_HelpPromt,																		
+														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+													})
+					:Do(function(_,data)
+			 			--hmi side: sending UI.SetGlobalProperties response
+			 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+					end)		
+
+					--mobile side: expect SetGlobalProperties response
+					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+			
+					--mobile side: expect OnHashChange notification
+					EXPECT_NOTIFICATION("OnHashChange")
+					:Do(function(_, data)
+						
+						self.currentHashID = data.payload.hashID
+					end)										
 				end
 		--End Test case EmulatingUserAction.2
   --End Test suit EmulatingUserAction 
