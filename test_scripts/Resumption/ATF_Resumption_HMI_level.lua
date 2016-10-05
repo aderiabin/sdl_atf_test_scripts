@@ -5,11 +5,11 @@
 -- Preconditions
 --------------------------------------------------------------------------------
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 --------------------------------------------------------------------------------
 --Precondition: preparation connecttest_resumption.lua
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect("connecttest_resumption.lua")
-
 commonPreconditions:Connecttest_adding_timeOnReady("connecttest_resumption.lua")
 
 Test = require('user_modules/connecttest_resumption')
@@ -815,7 +815,8 @@ local UseDBForResumptionArray = {false, true}
 
 --Register Application checking current HMI Level
 local function RegisterAppInterface2(self)
-
+	self.mobileSession:StartService(7)
+	:Do(function()
   --mobile side: sending request
     local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
     
@@ -846,41 +847,42 @@ local function RegisterAppInterface2(self)
       currentHMILevel = data.payload.hmiLevel
     end)
     :Timeout(2000)
-end
+	end)end
 
 --Restart sdl and activate app in FULL
 local function RestartSDL_InitHMI_ConnectMobile_ActivateApp(self)
 	--Stop SDL
 	Test["StopSDL"] = function(self)
+
 		StopSDL()
 	end
 	--Start SDL
 	Test["StartSDL"] = function(self)
+
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 	--InitHMI
 	Test["InitHMI"] = function(self)
+
 		self:initHMI()
 	end
 	--InitHMIonReady
 	Test["InitHMIonReady"] = function(self)
+
 		self:initHMI_onReady()
 	end
 	--ConnectMobile
 	Test["ConnectMobile"] = function(self)
-		self:connectMobile()
+
+	  self:connectMobile()
 	end
-	--StartSession
-	Test["StartSession"] = function(self)
+	-- StartSession and Register Application 
+	function Test:RegisterApp()		
 		self.mobileSession = mobile_session.MobileSession(
 															self,
     														self.mobileConnection,
     														config.application1.registerAppInterfaceParams)
-  		--self.mobileSession:Start()
-	end
-	-- Register Application 
-	function Test:RegisterApp()
-	 	self.mobileSession:StartService(7)
+		self.mobileSession:StartService(7)
 		:Do(function()	
 			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
@@ -888,7 +890,8 @@ local function RestartSDL_InitHMI_ConnectMobile_ActivateApp(self)
 	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
 	 															})
 	 			:Do(function(_,data)					
-	 		  		self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
 	 		  		HMIAppID = data.params.application.appID
 	 			end)
 
@@ -912,7 +915,41 @@ local function RestartSDL_InitHMI_ConnectMobile_ActivateApp(self)
 			
 		-- hmi side: expect SDL.ActivateApp response
 		EXPECT_HMIRESPONSE(RequestId)
-		
+      	:Do(function(_,data)
+        -- In case when app is not allowed, it is needed to allow app
+          	if
+              data.result.isSDLAllowed ~= true then
+
+                -- hmi side: sending SDL.GetUserFriendlyMessage request
+                  local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
+                          {language = "EN-US", messageCodes = {"DataConsent"}})
+
+                -- hmi side: expect SDL.GetUserFriendlyMessage response
+                -- TODO: comment until resolving APPLINK-16094
+                -- EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+                
+                EXPECT_HMIRESPONSE(RequestId)
+                    :Do(function(_,data)
+
+	                    -- hmi side: send request SDL.OnAllowSDLFunctionality
+	                    self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
+                      		{allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+
+	                    -- hmi side: expect BasicCommunication.ActivateApp request
+	                      EXPECT_HMICALL("BasicCommunication.ActivateApp")
+	                        :Do(function(_,data)
+
+	                          -- hmi side: sending BasicCommunication.ActivateApp response
+	                          self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+
+	                      end)
+	                      :Times(AnyNumber())
+	                      --:Times(2) NB:Clarification to be made with IKovalenko
+                      end)
+
+        	end
+        end)
+
 		--mobile side: expect OnHMIStatus notification
 		EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 		:Do(function(_,data)
@@ -921,6 +958,7 @@ local function RestartSDL_InitHMI_ConnectMobile_ActivateApp(self)
 		end)
 	end
 end
+
 
 --Send on EventChanged is Active 
 local function SendOnEventChanged(self, enable , hmilevel,case)
@@ -997,22 +1035,48 @@ end
 -- Restore application to FULL
 local function RestoreAppFull(self)
 
+		self.mobileSession = mobile_session.MobileSession(
+															self,
+    														self.mobileConnection,
+    														config.application1.registerAppInterfaceParams)
+		self.mobileSession:StartService(7)
+		:Do(function()	
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+	 															{
+	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
+	 															})
+	 			:Do(function(_,data)					
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+	 		  		HMIAppID = data.params.application.appID
+	 			end)
+
+		
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+			:Timeout(2000)
+
+		end)
+
+	--mobile side: expect OnHMIStatus notification
+	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})		
+	
+	EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, "BasicCommunication.UpdateAppList", "SUCCESS", {})
+	end)		
+	
 	-- hmi side: expect BasicCommunication.ActivateApp request
 	EXPECT_HMICALL("BasicCommunication.ActivateApp")
 	:Do(function(_,data)
-			
-	-- hmi side: sending BasicCommunication.ActivateApp response
-	self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-		
+		-- hmi side: sending BasicCommunication.ActivateApp response
+		self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})		
 	end)
-	:Times (2)
+	:Timeout(20000)
 
 	--mobile side: expect OnHMIStatus notification
-	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-	:Do(function(_,data)
-	--print("100: currentHMILevel = " ..currentHMILevel)
-	currentHMILevel = data.payload.hmiLevel
-	end)
+	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+
 end
 
 --Bring Application to LIMITED
@@ -1111,6 +1175,7 @@ if ( commonSteps:file_exists(config.pathToSDL .. "policy.sqlite") == true ) then
 		print("policy.sqlite is found in bin folder")
   	os.remove(config.pathToSDL .. "policy.sqlite")
 	end
+
 
 -- Test cases are executed with UseDBForResumptionArray=false in first iteration and with UseDBForResumptionArray=true in second one
 for u=1, #UseDBForResumptionArray do
@@ -2714,132 +2779,264 @@ for u=1, #UseDBForResumptionArray do
 end
 
 --////////////////////////////////////////////////////////////////////////////////////////////--
-	--Resumption of HMIlevel after unexpected disconnect due to DEACTIVATE_HMI reason - APPLINK-23349
+	--Resumption of HMIlevel after unexpected disconnect due to DEACTIVATE_HMI reason - APPLINK-21349
 --////////////////////////////////////////////////////////////////////////////////////////////--
 
 --    --======================================================================================--
---    --Resumption of FULL hmiLevel - CarPlay activated while application is running in FULL and AUDIBLE and then desactivated
+--    --Resumption of FULL hmiLevel - CarPlay activated while application is running in FULL and AUDIBLE then desactivated and force close
 --    --======================================================================================--
 
 --Application is Activated and in FULL
+commonFunctions:newTestCasesGroup("CarPlay activated while application is running in FULL and AUDIBLE then desactivated and force close")
 
 RestartSDL_InitHMI_ConnectMobile_ActivateApp (self)
 
 -- CarPlay mode is activated and OnEventChanged with DEACTIVATE_HMI, isActive=true is sent 
 function Test:DEACIVATE_HMI_ON_FULL()
 
-  SendOnEventChanged(self,true, "NONE")
+  SendOnEventChanged(self,true, "BACKGROUND", 1)
 end
 
 --Session is Closed
 function Test:CloseSessionFULL ()
-      self.mobileSession:Stop()
-          EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
-end
-
--- Session is Started
-Test["SessionAfterDEACTIVATE_HMI_ON_FULL "] = function(self)
-  --CreateSession(self)
-  self.mobileSession = mobile_session.MobileSession(
-                              self,
-                              self.mobileConnection,
-                              config.application1.registerAppInterfaceParams)
-    self.mobileSession:Start()
-end
-
--- Application is registered again  
-function Test:RegisterAfterDEACTIVATE_HMI_ON_FULL()
-
-  RegisterAppInterface2(self)
+    self.mobileSession:Stop()
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
 end
 
 --OnEventChanged with DEACTIVATE_HMI, isActive=false
 function Test:DEACIVATE_HMI_OFF_FULL()
 
-  SendOnEventChanged2(self,true, "NONE")
-end
-
---Close session due to CarPlay Deactivation
-function Test:DeactivateCarPlay_FULL ()
-      self.mobileSession:Stop()
-          EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
-end
-
--- Start session again and register it
-Test["SessionAfterDEACTIVATE_HMI_OFF_FULL"] = function(self)
-  self.mobileSession = mobile_session.MobileSession(
-                              self,
-                              self.mobileConnection,
-                              config.application1.registerAppInterfaceParams)
-    self.mobileSession:Start()
+  SendOnEventChanged(self,false, "BACKGROUND", 2)
 end
 
 --Restore Application to FULL
 function Test:ActivateApp_FULL ()
 
-  RestoreAppFull (self)
+		self.mobileSession = mobile_session.MobileSession(
+															self,
+    														self.mobileConnection,
+    														config.application1.registerAppInterfaceParams)
+		self.mobileSession:StartService(7)
+		:Do(function()	
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+	 															{
+	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
+	 															})
+	 			:Do(function(_,data)					
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+	 		  		HMIAppID = data.params.application.appID
+	 			end)
+
+		
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+			:Do(function(_,data)
+				--mobile side: expect OnHMIStatus notification, status switch from NONE to FULL
+				EXPECT_NOTIFICATION("OnHMIStatus",{hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+				:Do(function(_,data)
+					EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+					:Timeout(4000)
+				end)
+			end)
+			
+		end)
+
+	EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, "BasicCommunication.UpdateAppList", "SUCCESS", {})
+	end)		
+	
+	-- hmi side: expect BasicCommunication.ActivateApp request
+	EXPECT_HMICALL("BasicCommunication.ActivateApp")
+	:Do(function(_,data)
+		-- hmi side: sending BasicCommunication.ActivateApp response
+		self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})		
+	end)
+
 end
 
 --    --======================================================================================--
---    --Resumption of default hmiLevel - CarPlay activated while application is running in FULL and AUDIBLE then IGNITION_OFF
+--    --Resumption of FULL hmiLevel - CarPlay activated while application is running in FULL and AUDIBLE then force close without desactivated 
 --    --======================================================================================--
+
+--Application is Activated and in FULL
+commonFunctions:newTestCasesGroup("CarPlay activated while application is running in FULL and AUDIBLE then force close without desactivated")
+
+RestartSDL_InitHMI_ConnectMobile_ActivateApp (self)
+
+-- CarPlay mode is activated and OnEventChanged with DEACTIVATE_HMI, isActive=true is sent 
+function Test:DEACIVATE_HMI_ON_FULL()
+
+  SendOnEventChanged(self,true, "BACKGROUND", 1)
+end
+
+--Session is Closed
+function Test:CloseSessionFULL ()
+    self.mobileSession:Stop()
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
+end
+
+
+--Restore Application, FULL status is postponsed
+function Test:ActivateApp_NOT_FULL ()
+
+		self.mobileSession = mobile_session.MobileSession(
+															self,
+    														self.mobileConnection,
+    														config.application1.registerAppInterfaceParams)
+		self.mobileSession:StartService(7)
+		:Do(function()	
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+	 															{
+	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
+	 															})
+	 			:Do(function(_,data)					
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+	 		  		HMIAppID = data.params.application.appID
+	 			end)
+
+		
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+			:Do(function(_,data)
+				--mobile side: expect OnHMIStatus notification, status switch from NONE to FULL
+				EXPECT_NOTIFICATION("OnHMIStatus",{hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+				:Do(function(_,data)
+					EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+					:Times(0)
+					:Timeout(20000)
+				end)
+			end)
+		end)
+
+
+	EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, "BasicCommunication.UpdateAppList", "SUCCESS", {})
+	end)		
+	
+	-- hmi side: expect BasicCommunication.ActivateApp request
+	EXPECT_HMICALL("BasicCommunication.ActivateApp")
+	:Times(0)
+	:Timeout(20000)
+
+end
+
+
+--    --======================================================================================--
+--    --Resumption of default hmiLevel - CarPlay activated while application is running in FULL and AUDIBLE then IGNITION_OFF without desactivated
+--    --======================================================================================--
+commonFunctions:newTestCasesGroup("CarPlay activated while application is running in FULL and AUDIBLE then IGNITION_OFF without desactivated")
 
 --Application is Activated and in FULL
 RestartSDL_InitHMI_ConnectMobile_ActivateApp (self)
 
 -- CarPlay mode is activated and OnEventChanged with DEACTIVATE_HMI, isActive=true is sent 
-function Test:OnEventChanged_DEACIVATE_HMI_FULL_ON()
+function Test:DEACIVATE_HMI_ON_FULL()
 
-  SendOnEventChanged(self,true, "NONE")
+  SendOnEventChanged(self, true, "BACKGROUND", 1)
 end
 
 --Session is Closed
-function Test:CloseSession ()
-      self.mobileSession:Stop()
-          EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
+function Test:CloseSessionFULL_by_IGNITION_OFF ()
+			--hmi side: sending request to SDL
+			self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
+						
+			--hmi side: expect BasicCommunication.OnAppUnregistered
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = HMIAppID, unexpectedDisconnect =  false})
+			
+			--mobile side: expect notification
+			self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "IGNITION_OFF"}})
+			:Do(function(_,data)			
+				StopSDL()
+			 end)
+			
+			--hmi side: expect to BasicCommunication.OnSDLClose
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose",{})
+
+			--hmi side: UpdateAppList request
+			EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+			
 end
 
--- Session is Started
-Test["Start Session After DEACTIVATE_HMI ON FULL"] = function(self)
-  --CreateSession(self)
-  self.mobileSession = mobile_session.MobileSession(
-                              self,
-                              self.mobileConnection,
-                              config.application1.registerAppInterfaceParams)
-    self.mobileSession:Start()
+	--Start SDL
+	Test["StartSDL"] = function(self)
+
+		StartSDL(config.pathToSDL, config.ExitOnCrash)
+	end
+	--InitHMI
+	Test["InitHMI"] = function(self)
+
+		self:initHMI()
+	end
+	--InitHMIonReady
+	Test["InitHMIonReady"] = function(self)
+
+		self:initHMI_onReady()
+	end
+	--ConnectMobile
+	Test["ConnectMobile"] = function(self)
+
+	  self:connectMobile()
+	end
+	-- StartSession and Register Application 
+
+function Test:ActivateApp_FULL ()
+
+		self.mobileSession = mobile_session.MobileSession(
+															self,
+    														self.mobileConnection,
+    														config.application1.registerAppInterfaceParams)
+		self.mobileSession:StartService(7)
+		:Do(function()	
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+	 															{
+	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
+	 															})
+	 			:Do(function(_,data)					
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+	 		  		HMIAppID = data.params.application.appID
+	 			end)
+
+		
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+			:Do(function(_,data)
+				--mobile side: expect OnHMIStatus notification, status switch from NONE to FULL
+				EXPECT_NOTIFICATION("OnHMIStatus",{hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+				:Do(function(_,data)
+					EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+					:Timeout(4000)
+				end)
+			end)
+			
+		end)
+		
+	EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, "BasicCommunication.UpdateAppList", "SUCCESS", {})
+	end)		
+	
+	-- hmi side: expect BasicCommunication.ActivateApp request
+	EXPECT_HMICALL("BasicCommunication.ActivateApp")
+	:Do(function(_,data)
+		-- hmi side: sending BasicCommunication.ActivateApp response
+		self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})		
+	end)
+	
 end
 
--- Application is registered again 
-function Test:RegisterApp_after_DEACTIVATE_HMI_FULL()
-
-  RegisterAppInterface2(self)
-end
-
--- Ignition off happens 
-Test["IGNITION_OFF_FULL"] = function (self)
-  
-  StopSDL()
-  
-  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",{reason = "IGNITION_OFF"})
-
-  -- hmi side: expect OnSDLClose notification
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-
-  -- hmi side: expect OnAppUnregistered notification
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
-  :Times(1)
-end
-
---Application is registered after IGNITON_OFF again 
-InitHMI_RegisterAppInterface_OnAppRegistered(self)
 
 --    --======================================================================================--
---    --Resumption of LIMITED hmiLevel - CarPlay activated while application is running in LIMITED and AUDIBLE and then desactivated
+--    --Resumption of LIMITED hmiLevel - CarPlay activated while application is running in LIMITED and AUDIBLE then desactivated and force close
 --    --======================================================================================--
-
+commonFunctions:newTestCasesGroup("CarPlay activated while application is running in LIMITED and AUDIBLE and then desactivated and force close")
 --Application is Activated and in FULL
 
-RestartSDL_InitHMI_ConnectMobile_ActivateApp ()
+RestartSDL_InitHMI_ConnectMobile_ActivateApp (self)
 
 -- Bring App to LIMITED 
 function Test:APP_In_LIMITED ()
@@ -2849,116 +3046,245 @@ end
 -- CarPlay mode is activated and OnEventChanged with DEACTIVATE_HMI, isActive=true is sent 
 function Test:DEACIVATE_HMI_ON_LIMITED()
 
-  SendOnEventChanged(self,true, "NONE")
+  SendOnEventChanged(self,true, "BACKGROUND", 1)
 end
 
 --Session is Closed
 function Test:CloseSessionLIMITED ()
-      self.mobileSession:Stop()
-          EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
-end
-
--- Session is Started
-Test["SessionAfterDEACTIVATE_HMI_ON_LIMITED "] = function(self)
-  --CreateSession(self)
-  self.mobileSession = mobile_session.MobileSession(
-                              self,
-                              self.mobileConnection,
-                              config.application1.registerAppInterfaceParams)
-    self.mobileSession:Start()
-end
-
--- Application is registered again  
-function Test:RegisterAfterDEACTIVATE_HMI_ON_LIMITED()
-
-  RegisterAppInterface2(self)
+    self.mobileSession:Stop()
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
 end
 
 --OnEventChanged with DEACTIVATE_HMI, isActive=false
 function Test:DEACIVATE_HMI_OFF_LIMITED()
 
-  SendOnEventChanged2(self,true, "NONE")
-end
-
---Close session due to CarPlay Deactivation
-function Test:DeactivateCarPlay_LIMITED ()
-      self.mobileSession:Stop()
-          EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
-end
-
--- Start session again and register it
-Test["SessionAfterDEACTIVATE_HMI_OFF_LIMITED"] = function(self)
-  self.mobileSession = mobile_session.MobileSession(
-                              self,
-                              self.mobileConnection,
-                              config.application1.registerAppInterfaceParams)
-    self.mobileSession:Start()
+  SendOnEventChanged(self,false, "BACKGROUND", 2)
 end
 
 -- --Restore Application to LIMITED
-function Test:ActivateApp_FULL ()
+function Test:ActivateApp_LIMITED ()
+	self.mobileSession = mobile_session.MobileSession(
+															self,
+    														self.mobileConnection,
+    														config.application1.registerAppInterfaceParams)
+	self.mobileSession:StartService(7)
+	:Do(function()	
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+	 															{
+	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
+	 															})
+	 			:Do(function(_,data)					
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+	 		  		HMIAppID = data.params.application.appID
+	 			end)
 
-  RestoreAppLIMITED (self)
+		
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+			:Do(function(_,data)
+				--mobile side: expect OnHMIStatus notification, status switch from NONE to LIMITED
+				EXPECT_NOTIFICATION("OnHMIStatus",{hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+				:Do(function(_,data)
+					EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+					:Timeout(4000)
+				end)
+			end)
+	end)
+
+	
+	EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, "BasicCommunication.UpdateAppList", "SUCCESS", {})
+	end) 
+ 
+	-- hmi side: expect BasicCommunication.OnResumeAudioSource request
+	EXPECT_HMICALL("BasicCommunication.OnResumeAudioSource")
+	:Do(function(_,data)
+		-- hmi side: sending BasicCommunication.OnResumeAudioSource response
+		self.hmiConnection:SendResponse(data.id,"BasicCommunication.OnResumeAudioSource", "SUCCESS", {})
+	end)
+
 end
 
 --    --======================================================================================--
---    --Resumption of default hmiLevel - CarPlay activated while application is running in LIMITED and AUDIBLE then IGNITION_OFF
+--    --Resumption of LIMITED hmiLevel - CarPlay activated while application is running in LIMITED and AUDIBLE then force close without desactivated
 --    --======================================================================================--
+commonFunctions:newTestCasesGroup("CarPlay activated while application is running in LIMITED and AUDIBLE then force close without desactivated")
+--Application is Activated and in FULL
 
+RestartSDL_InitHMI_ConnectMobile_ActivateApp (self)
+
+-- Bring App to LIMITED 
+function Test:APP_In_LIMITED ()
+ChangeHMIToLimited (self)
+end
+
+-- CarPlay mode is activated and OnEventChanged with DEACTIVATE_HMI, isActive=true is sent 
+function Test:DEACIVATE_HMI_ON_LIMITED()
+
+  SendOnEventChanged(self,true, "BACKGROUND", 1)
+end
+
+--Session is Closed
+function Test:CloseSessionLIMITED ()
+    self.mobileSession:Stop()
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
+end
+
+-- --Restore Application, LIMITED status is postponsed
+function Test:ActivateApp_NOT_LIMITED ()
+	self.mobileSession = mobile_session.MobileSession(
+															self,
+    														self.mobileConnection,
+    														config.application1.registerAppInterfaceParams)
+	self.mobileSession:StartService(7)
+	:Do(function()	
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+	 															{
+	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
+	 															})
+	 			:Do(function(_,data)					
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+	 		  		HMIAppID = data.params.application.appID
+	 			end)
+
+		
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+			:Do(function(_,data)
+				--mobile side: expect OnHMIStatus notification, status switch from NONE to LIMITED
+				EXPECT_NOTIFICATION("OnHMIStatus",{hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+				:Do(function(_,data)
+					EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+					:Times(0)
+					:Timeout(20000)
+				end)
+			end)
+	end)
+
+
+	EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, "BasicCommunication.UpdateAppList", "SUCCESS", {})
+	end) 
+
+	-- hmi side: expect BasicCommunication.OnResumeAudioSource request
+	EXPECT_HMICALL("BasicCommunication.OnResumeAudioSource")
+	:Times (0)
+	:Timeout(20000)
+
+end
+
+
+--    --======================================================================================--
+--    --Resumption of default hmiLevel - CarPlay activated while application is running in LIMITED and AUDIBLE then IGNITION_OFF without desactivated
+--    --======================================================================================--
+commonFunctions:newTestCasesGroup("CarPlay activated while application is running in LIMITED and AUDIBLE then IGNITION_OFF without desactivated")
 -- --Application is Activated and in FULL
 RestartSDL_InitHMI_ConnectMobile_ActivateApp (self)
 
 -- Bring App to LIMITED 
 function Test:APP_In_LIMITED ()
-
-  ChangeHMIToLimited (self)
+	ChangeHMIToLimited (self)
 end
 
 -- CarPlay mode is activated and OnEventChanged with DEACTIVATE_HMI, isActive=true is sent 
-function Test:OnEventChanged_DEACIVATE_HMI_LIMITED_ON()
+function Test:DEACIVATE_HMI_ON_LIMITED()
 
-   SendOnEventChanged(self,true, "NONE")
+  SendOnEventChanged(self, true, "BACKGROUND", 1)
 end
 
--- --Session is Closed
-function Test:CloseSession ()
-     self.mobileSession:Stop()
-         EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = HMIAppID})
+--Session is Closed
+function Test:CloseSessionLIMITED_by_IGNITION_OFF ()
+			--hmi side: sending request to SDL
+			self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
+						
+			--hmi side: expect BasicCommunication.OnAppUnregistered
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = HMIAppID, unexpectedDisconnect =  false})
+			
+			--mobile side: expect notification
+			self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "IGNITION_OFF"}})
+			:Do(function(_,data)			
+				StopSDL()
+			 end)
+			
+			--hmi side: expect to BasicCommunication.OnSDLClose
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose",{})
+
+			--hmi side: UpdateAppList request
+			EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+			
 end
 
--- Session is Started
-Test["Start Session After DEACTIVATE_HMI ON_LIMITED"] = function(self)
- --CreateSession(self)
- self.mobileSession = mobile_session.MobileSession(
-                             self,
-                             self.mobileConnection,
-                             config.application1.registerAppInterfaceParams)
-   self.mobileSession:Start()
+--Start SDL
+Test["StartSDL"] = function(self)
+	StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
--- Application is registered again 
-function Test:RegisterApp_after_DEACTIVATE_HMI_LIMITED()
-
- RegisterAppInterface2(self)
+--InitHMI
+Test["InitHMI"] = function(self)
+	self:initHMI()
 end
 
--- Ignition off happens 
-Test["IGNITION_OFF_LIMITED"] = function (self)
-  
- StopSDL()
-  
- self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",{reason = "IGNITION_OFF"})
+--InitHMIonReady
+Test["InitHMIonReady"] = function(self)
 
- -- hmi side: expect OnSDLClose notification
- EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-
- -- hmi side: expect OnAppUnregistered notification
- EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
- :Times(1)
+	self:initHMI_onReady()
 end
 
--- Application is registered again after IGNITON_OFF 
-InitHMI_RegisterAppInterface_OnAppRegistered(self)
+--ConnectMobile
+Test["ConnectMobile"] = function(self)
+	self:connectMobile()
+end
+
+-- StartSession and Register Application 
+function Test:ActivateApp_LIMITED ()
+
+		self.mobileSession = mobile_session.MobileSession(
+															self,
+    														self.mobileConnection,
+    														config.application1.registerAppInterfaceParams)
+		self.mobileSession:StartService(7)
+		:Do(function()	
+			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+				EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+	 															{
+	 			  												application = {	appName = config.application1.registerAppInterfaceParams.appName }
+	 															})
+	 			:Do(function(_,data)					
+	 		  		--self.applications[data.params.application.appName] = data.params.application.appID
+	 		  		self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+	 		  		HMIAppID = data.params.application.appID
+	 			end)
+
+		
+			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+			:Do(function(_,data)
+				--mobile side: expect OnHMIStatus notification, status switch from NONE to FULL
+				EXPECT_NOTIFICATION("OnHMIStatus",{hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+				:Do(function(_,data)
+					EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+					:Timeout(4000)
+				end)
+			end)
+			
+		end)
+		
+	EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, "BasicCommunication.UpdateAppList", "SUCCESS", {})
+	end) 
+ 
+	-- hmi side: expect BasicCommunication.OnResumeAudioSource request
+	EXPECT_HMICALL("BasicCommunication.OnResumeAudioSource")
+	:Do(function(_,data)
+		-- hmi side: sending BasicCommunication.OnResumeAudioSource response
+		self.hmiConnection:SendResponse(data.id,"BasicCommunication.OnResumeAudioSource", "SUCCESS", {})
+	end)
+	
+end
 
 --------------------------------------------------------------------------------
 -- Postconditions
