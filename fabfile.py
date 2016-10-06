@@ -48,7 +48,7 @@ def resolve_path(relative_path):
     :param relative_path: relative path
     :return: absolute path
     """
-    return os.path.abspath(os.path.expanduser(relative_path))
+    return os.path.abspath(os.path.expanduser(relative_path)) + "/"
 
 config.work_dir = resolve_path(config.work_dir)
 config.sdl_clone_dir = resolve_path(config.sdl_clone_dir)
