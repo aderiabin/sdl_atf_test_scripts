@@ -24,6 +24,7 @@ This repository contains ATF scripts and data to run it.
 ### Preconditions:
 For test script automation workstation should be able to build SDL and ATF, also python fabric should be installed.
 To install all dependencies please execute setup_env.sh. Note that it will ask sudo password to install missed software
+Note that network access should be available. 
 
 ```
 ./setup_env.sh
