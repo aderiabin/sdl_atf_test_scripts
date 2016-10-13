@@ -2171,7 +2171,6 @@ local ElementBoundary = {1, 12}
 integerParameter:verify_Integer_Parameter(Request, {"timeStamp", "month"}, ElementBoundary, true)
 
 -- year parameter
---TODO: update when APPLINK-26717 is resolved
 local ElementBoundary = {0, 4095}
 integerParameter:verify_Integer_Parameter(Request, {"timeStamp", "year"}, ElementBoundary, true)
 
