@@ -215,13 +215,9 @@ end
 	local PermissionLinesForBase4 = PermissionLines_OnTouchEvent 
 	local PermissionLinesForGroup1 = nil
 	local PermissionLinesForApplication = nil
-	--TODO: PT is blocked by ATF defect APPLINK-19188
 	local PTName = testCasesForPolicyTable:createPolicyTableFile(PermissionLinesForBase4, PermissionLinesForGroup1, PermissionLinesForApplication)	
 	testCasesForPolicyTable:updatePolicy(PTName)
-	-- PAY ATTENTION - now sdl_preloaded is used, may be this TODO is not required	
-	
-	
-				
+			
 -----------------------------------------------------------------------------------------------
 -------------------------------------------TEST BLOCK I----------------------------------------
 --------------------------------Check normal cases of Mobile request---------------------------
@@ -1688,8 +1684,5 @@ end
 		----------------------------------------------------------------------------------------------
 	end
 	DifferentHMIlevelChecks()
-
-
-return Test	
 	
 	
