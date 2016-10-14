@@ -216,8 +216,8 @@ end
 	local PermissionLinesForGroup1 = nil
 	local PermissionLinesForApplication = nil
 	--TODO: PT is blocked by ATF defect APPLINK-19188
-	--local PTName = testCasesForPolicyTable:createPolicyTableFile(PermissionLinesForBase4, PermissionLinesForGroup1, PermissionLinesForApplication)	
-	--testCasesForPolicyTable:updatePolicy(PTName)
+	local PTName = testCasesForPolicyTable:createPolicyTableFile(PermissionLinesForBase4, PermissionLinesForGroup1, PermissionLinesForApplication)	
+	testCasesForPolicyTable:updatePolicy(PTName)
 	-- PAY ATTENTION - now sdl_preloaded is used, may be this TODO is not required	
 	
 	
@@ -546,7 +546,7 @@ end
 
 		
 	----------------------------------------------------------------------------------------------
-	--Parameter #5: Checks event.ts parameter: type=Integer, mandatory=true, array=true, minvalue=0, maxvalue=2147483647 minsize=1, maxsize=1000
+	--Parameter #5: Checks event.ts parameter: type=Long, mandatory=true, array=true, minvalue=0, maxvalue=5000000000 minsize=1, maxsize=1000
 	----------------------------------------------------------------------------------------------
 		local function TCs_verify_event_ts_parameter()
 
@@ -560,7 +560,7 @@ end
 			local ValidValues = {
 						{name = "IsLowerBound", value = 0},
 						{name = "IsMiddle", value = 1147483647},
-						{name = "IsUpperBound", value = 2147483647}}
+						{name = "IsUpperBound", value = 5000000000}}
 								
 			for i = 1, #ValidValues  do
 				Test["OnTouchEvent_event_ts_" .. ValidValues[i].name] = function(self)
@@ -588,7 +588,7 @@ end
 			
 			local InvalidValues = {	{name = "IsMissed", value = nil},
 									{name = "IsOutLowerBound", value = -1},
-									{name = "IsOutUpperBound", value = 2147483648},
+									{name = "IsOutUpperBound", value = 5000000001},
 									{name = "WrongDataType", value = "123"}}
 			
 			for i = 1, #InvalidValues  do
