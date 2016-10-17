@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------------------
+ ---------------------------------------------------------------------------------------------
 --ATF version: 2.2
 --Last modified date: 25/Oct/2015
 --Author: Ta Thanh Dong
@@ -58,148 +58,15 @@ end
 -------------------------------------------Preconditions-------------------------------------
 ---------------------------------------------------------------------------------------------
 
-	-- commonSteps:DeleteLogsFileAndPolicyTable()
-
-
 	--Print new line to separate new test cases group
 	commonFunctions:newTestCasesGroup("Preconditions")
+	-- 1. Delete PolicyTable and Logs
+	commonSteps:DeleteLogsFileAndPolicyTable()
+
+	-- 2. Activate application
+	commonSteps:ActivationApp()
 	
-		
-	function Test:StopSDLToBackUpPreloadedPt( ... )
-		-- body
-		StopSDL()
-		DelayedExp(1000)
-	end
-
-	function Test:BackUpPreloadedPt()
-		-- body
-		os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-		os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
-	end
-
-	function Test:SetParameterInJson(pathToFile)
-		-- body
-		pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-		local file  = io.open(pathToFile, "r")
-		local json_data = file:read("*all") -- may be abbreviated to "*a";
-		file:close()
-
-		local json = require("modules/json")
-		 
-		local data = json.decode(json_data)
-		for k,v in pairs(data.policy_table.functional_groupings) do
-			if (data.policy_table.functional_groupings[k].rpcs == nil) then
-			    --do
-			    data.policy_table.functional_groupings[k] = nil
-			else
-			    --do
-			    local count = 0
-			    for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
-			    if (count < 30) then
-			        --do
-					data.policy_table.functional_groupings[k] = nil
-			    end
-			end
-		end
-		
-		data.policy_table.functional_groupings.OnTouchEventGroup = {}
-		data.policy_table.functional_groupings.OnTouchEventGroup.rpcs = {}
-		data.policy_table.functional_groupings.OnTouchEventGroup.rpcs.OnTouchEvent = {}
-		data.policy_table.functional_groupings.OnTouchEventGroup.rpcs.OnTouchEvent.hmi_levels = {'FULL'}
-
-		data.policy_table.app_policies.default.groups = {"Base-4", "OnTouchEventGroup"}
-		
-		data = json.encode(data)
-		-- print(data)
-		-- for i=1, #data.policy_table.app_policies.default.groups do
-		-- 	print(data.policy_table.app_policies.default.groups[i])
-		-- end
-		file = io.open(pathToFile, "w")
-		file:write(data)
-		file:close()
-	end
-
-	local function StartSDLAfterChangePreloaded()
-		-- body
-
-		Test["Precondition_StartSDL"] = function(self)
-			StartSDL(config.pathToSDL, config.ExitOnCrash)
-			DelayedExp(1000)
-		end
-
-		Test["Precondition_InitHMI_1"] = function(self)
-			self:initHMI()
-		end
-
-		Test["Precondition_InitHMI_onReady_1"] = function(self)
-			self:initHMI_onReady()
-		end
-
-		Test["Precondition_ConnectMobile_1"] = function(self)
-			self:connectMobile()
-		end
-
-		Test["Precondition_StartSession_1"] = function(self)
-			self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-		end
-
-	end
-
-	StartSDLAfterChangePreloaded()
-
-	function Test:RestorePreloadedPt()
-		-- body
-		os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-		os.execute('rm ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-	end
-	--End Precondition.1
-
-	--Begin Precondition.2
-	--Description: Activation application			
-	local GlobalVarAppID = 0
-	function RegisterApplication(self)
-		-- body
-		config.application1.registerAppInterfaceParams.appHMIType = {'NAVIGATION'}
-		local corrID = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-		:Do(function (_, data)
-			-- body
-			GlobalVarAppID = data.params.application.appID
-		end)
-
-		EXPECT_RESPONSE(corrID, {success = true})
-
-		-- delay - bug of ATF - it is not wait for UpdateAppList and later
-		-- line appID = self.applications["Test Application"]} will not assign appID
-		DelayedExp(1000)
-	end
-	
-	function Test:RegisterApp()
-		-- body
-		self.mobileSession:StartService(7)
-		:Do(function (_, data)
-			-- body
-			RegisterApplication(self)
-		end)
-	end
-	--End Precondition.2
-
-	--1. Activate application
-		--Begin Precondition.1
-		--Description: Activation application		
-			function Test:ActivationApp()			
-				--hmi side: sending SDL.ActivateApp request
-				-- local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
-				local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = GlobalVarAppID})
-				EXPECT_HMIRESPONSE(RequestId)	
-				
-				--mobile side: expect notification
-				EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
-			end
-		--End Precondition.1
-
-	--2. Create PT that allowed OnTouchEvent in Base-4 group and update PT
+	--3. Create PT that allowed OnTouchEvent in Base-4 group and update PT
 	local PermissionLines_OnTouchEvent = 
 [[					"OnTouchEvent": {
 						"hmi_levels": [
@@ -539,8 +406,6 @@ end
 
 		TCs_verify_event_c_parameter()
 
-
-		
 	----------------------------------------------------------------------------------------------
 	--Parameter #5: Checks event.ts parameter: type=Long, mandatory=true, array=true, minvalue=0, maxvalue=5000000000 minsize=1, maxsize=1000
 	----------------------------------------------------------------------------------------------
@@ -574,8 +439,6 @@ end
 					
 				end
 			end
-			
-			
 
 			--4. IsMissed
 			--5. IsOutLowerBound
