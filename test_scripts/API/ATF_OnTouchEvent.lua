@@ -1,4 +1,4 @@
- ---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 --ATF version: 2.2
 --Last modified date: 25/Oct/2015
 --Author: Ta Thanh Dong
@@ -60,19 +60,19 @@ end
 
 	--Print new line to separate new test cases group
 	commonFunctions:newTestCasesGroup("Preconditions")
-	-- 1. Delete PolicyTable and Logs
-	commonSteps:DeleteLogsFileAndPolicyTable()
-
-	-- 2. Activate application
-	commonSteps:ActivationApp()
 	
-	--3. Create PT that allowed OnTouchEvent in Base-4 group and update PT
+	commonSteps:DeleteLogsFileAndPolicyTable()
+	config.application1.registerAppInterfaceParams.appHMIType = {'NAVIGATION'}
+	
+	--1. Activate application
+	commonSteps:ActivationApp()
+
+	--2. Create PT that allowed OnTouchEvent in Base-4 group and update PT
 	local PermissionLines_OnTouchEvent = 
 [[					"OnTouchEvent": {
 						"hmi_levels": [
 						  "BACKGROUND",
 						  "LIMITED",
-						  "NONE",
 						  "FULL"
 						]
 					  }]] .. ", \n"
@@ -406,6 +406,8 @@ end
 
 		TCs_verify_event_c_parameter()
 
+
+		
 	----------------------------------------------------------------------------------------------
 	--Parameter #5: Checks event.ts parameter: type=Long, mandatory=true, array=true, minvalue=0, maxvalue=5000000000 minsize=1, maxsize=1000
 	----------------------------------------------------------------------------------------------
@@ -439,6 +441,8 @@ end
 					
 				end
 			end
+			
+			
 
 			--4. IsMissed
 			--5. IsOutLowerBound
