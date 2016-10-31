@@ -9,12 +9,14 @@
 -> audioStreamingState of navi app when media app streams
 ]]
 -- This library is used for below scripts:
--- API/ATF_Media_Navi_Activate_Audio_Navi_Source_Ignition_Off_26414
--- API/ATF_Media_Navi_Activate_Audio_Navi_Source_Ignition_Off_26415
--- API/ATF_Media_Navi_Activate_Audio_Navi_Source_Ignition_Off_26473_26503
--- API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26414
--- API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26415
--- API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26473_26503
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Ignition_Off_26414
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Ignition_Off_26415
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Ignition_Off_26473_26503
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26414_MixingAudioSupported_False
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26414_MixingAudioSupported_True
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26415
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26473_26503_MixingAudioSupported_False
+-- test_scripts/API/ATF_Media_Navi_Activate_Audio_Navi_Source_Closing_Session_26473_26503_MixingAudioSupported_True
 
 -- Author: Hoang Quang Nghi
 -- ATF version: 2.2
