@@ -42,7 +42,7 @@ config.defaultProtocolVersion = 3
 -------------------------------------------Preconditions-------------------------------------
 ---------------------------------------------------------------------------------------------
 common_preconditions:BackupFile("smartDeviceLink.ini")
-function_crq_26401:PreconditionSetMixingAudioSupportedValueInIniFile(true)
+function_crq_26401:PreconditionSetMixingAudioSupportedValueInIniFile(false)
 common_steps:DeleteLogsFileAndPolicyTable()
 
 ---------------------------------------------------------------------------------------------
