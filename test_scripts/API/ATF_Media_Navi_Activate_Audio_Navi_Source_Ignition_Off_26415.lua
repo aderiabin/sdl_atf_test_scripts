@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- This script covers requirement APPLINK-26415 [HMILevel resumption] Media app must get AUDIBLE if it's successfully resuming during active embedded navigation. The reason for closing the app to resumption is Ignition_off
+-- This script covers requirement APPLINK-26415 [HMILevel resumption] Media app must get AUDIBLE if it's successfully resuming during active embedded navigation. Resumption in case IGNITION_OFF
 --------------------------------------------------------------------------------
 --[[In case
 media app registers during active embedded navigation
@@ -37,7 +37,7 @@ require('user_modules/AppTypes')
 ---------------------------------------------------------------------------------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when APPLINK-16610 is fixed
---config.defaultProtocolVersion = 3
+config.defaultProtocolVersion = 3
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
