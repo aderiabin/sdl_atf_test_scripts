@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- This script covers requirement APPLINK-26415 [HMILevel resumption] Media app must get AUDIBLE if it's successfully resuming during active embedded navigation. The reason for closing the app to resumption is closing session
+-- This script covers requirement APPLINK-26415 [HMILevel resumption] Media app must get AUDIBLE if it's successfully resuming during active embedded navigation. Resumption in case mobile connection is lost
 --------------------------------------------------------------------------------
 --[[In case
 media app registers during active embedded navigation
