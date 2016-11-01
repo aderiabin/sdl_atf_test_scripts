@@ -10,7 +10,7 @@ set AUDIBLE audioStreamingState to this media app and send via OnHMIStatus toget
 Information:
 1. The value of "MixingAudioSupported"=true at .ini file for this case
 2. Embedded navigation should be still acive -> SDL must attenuate media app when embedded navigation starts streaming (per APPLINK-24164)
-3. Req for media app resumption during active embedded audio source should be stull actual -> please see APPLINK-18866
+3. Req for media app resumption during active embedded audio source should be still actual -> please see APPLINK-18866
 ]]
 
 -- Case 1: Check Media app is resumed to FULL Audible when there is activate navigation source. Value of MixingAudioSupported is true. Reason off is closing session
@@ -44,10 +44,11 @@ config.defaultProtocolVersion = 3
 
 ------------------------------------------------------------------------------
 --- HMI send TTS.Started. Check audible streaming state is changed to Attenuated.
+--- @param test_case_name: main test name
 --- @param level: HMI level of of app
 ------------------------------------------------------------------------------
-function AttenuatedWhenTTSStarted(level)
-  Test["Media app becomes attenuated when there is TTS.Started"] = function(self)
+function AttenuatedWhenTTSStarted(test_case_name, level)
+  Test[test_case_name.."_MediaAppBecomesAttenuatedWhenThereIsTts.Started"] = function(self)
     self.hmiConnection:SendNotification("TTS.Started")
     -- mobile expect the attenuated
     EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = level, systemContext = "MAIN", audioStreamingState = "ATTENUATED"})
@@ -56,11 +57,12 @@ end
 
 ------------------------------------------------------------------------------
 --- HMI send TTS.Stopped. Check audible streaming state is changed to Audible.
+--- @param test_case_name: main test name
 --- @param level: HMI level of of app
 ------------------------------------------------------------------------------
-function AudibleWhenTTSStopped(level)
+function AudibleWhenTTSStopped(test_case_name, level)
   -- Media app becomes audible again when HMI sends TTS.Stopped
-  Test["Media app becomes audible when there is TTS.Stopped"] = function(self)
+  Test[test_case_name.."_MediaAppBecomesAttenuatedWhenThereIsTts.Stopped"] = function(self)
     self.hmiConnection:SendNotification("TTS.Stopped")
     --mobile expect the attenuated
     EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = level, systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
@@ -72,7 +74,6 @@ end
 ---------------------------------------------------------------------------------------------
 common_preconditions:BackupFile("smartDeviceLink.ini")
 common_steps:DeleteLogsFileAndPolicyTable()
-common_steps:DeletePolicyTable()
 
 ---------------------------------------------------------------------------------------------
 -----------------------------------------------Body------------------------------------------
@@ -99,9 +100,9 @@ function_crq_26401:ActiveEmbeddedSource(test_case_name,"EMBEDDED_NAVI",true)
 -- 6. Check app is resumed to FULL
 function_crq_26401:ResumeApp(test_case_name, "FULL")
 -- 7. Check app is become Attenuated when there is TTS.Started from HMI
-AttenuatedWhenTTSStarted("FULL")
+AttenuatedWhenTTSStarted(test_case_name,"FULL")
 -- 8. Check app is become Audible when there is TTS.Stopped from HMI
-AudibleWhenTTSStopped("FULL")
+AudibleWhenTTSStopped(test_case_name,"FULL")
 
 ---------------------------------------------------------------------------------------------
 -- Case 2: App is resumed to LIMITED Audible in case closing session and MixingAudioSupported = true
@@ -126,9 +127,9 @@ function_crq_26401:ActiveEmbeddedSource(test_case_name,"EMBEDDED_NAVI",true)
 -- 7. Check app is resumed to LIMITED
 function_crq_26401:ResumeApp(test_case_name, "LIMITED")
 -- 8. Check app is become Attenuated when there is TTS.Started from HMI
-AttenuatedWhenTTSStarted("LIMITED")
+AttenuatedWhenTTSStarted(test_case_name,"LIMITED")
 -- 9. Check app is become Audible when there is TTS.Stopped from HMI
-AudibleWhenTTSStopped("LIMITED")
+AudibleWhenTTSStopped(test_case_name,"LIMITED")
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Postconditions-------------------------------------
