@@ -46,7 +46,6 @@ config.defaultProtocolVersion = 2
 ---------------------------------------------------------------------------------------------
 common_preconditions:BackupFile("smartDeviceLink.ini")
 common_steps:DeleteLogsFileAndPolicyTable()
-common_steps:DeletePolicyTable()
 
 ---------------------------------------------------------------------------------------------
 -----------------------------------------------Body------------------------------------------
