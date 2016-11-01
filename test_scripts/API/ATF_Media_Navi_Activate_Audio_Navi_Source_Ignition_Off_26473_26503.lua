@@ -56,7 +56,7 @@ require('user_modules/AppTypes')
 ---------------------------------------------------------------------------------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when APPLINK-16610 is fixed
---config.defaultProtocolVersion = 3
+config.defaultProtocolVersion = 2
 
 ---------------------------------------------------------------------------------------------
 ----------------------------------- Local Common Functions-----------------------------------
@@ -168,8 +168,6 @@ function_crq_26401:StopStartSdlInitHmiConnectMobile(test_case_name)
 function_crq_26401:ResumeMediaApp("FULL")
 -- 9. Check navi app is resumed to LIMITED
 function_crq_26401:ResumeNaviApp("LIMITED")
--- 10. Check media app get Attenuated when navi app starts streaming. When navi app stops streaming, the media become Audible. These steps covers APPLINK-26503.
--- TODO: will uncomment when the issue is fixed APPLINK-16610
 
 ---------------------------------------------------------------------------------------------
 -- Case 3: Check Media app is resumed to LIMITED audible and Navi app to FULL audible. Value of MixingAudioSupported is true. Reason off is IGNITION_OFF
