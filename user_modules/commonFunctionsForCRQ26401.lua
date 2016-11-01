@@ -27,7 +27,6 @@ local common_functions = require('user_modules/shared_testcases/commonFunctions'
 local common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
 local common_testcases = require('user_modules/shared_testcases/commonTestCases')
 local common_steps = require('user_modules/shared_testcases/commonSteps')
-
 local config = require('config')
 
 -----------------------------------------------------------------------------
