@@ -4189,14 +4189,12 @@ function DelayedExp(time)
         local response = SetGvdResponse({"tirePressure"})
         response.tirePressure= {
           pressureTelltale = "ON",
-          leftFront = 50.5,
-          rightFront = 50.5,
-          leftRear = 50.5,
-          rightRear = 50.5,
-          innerLeftRear = 50.5,
-          innerRightRear = 50.5,
-          frontRecommended = 50.5,
-          rearRecommended = 50.5
+          leftFront = {status = "UNKNOWN"},
+          rightFront = {status = "UNKNOWN"},
+          leftRear = {status = "UNKNOWN"},
+          rightRear = {status = "UNKNOWN"},
+          innerLeftRear = {status = "UNKNOWN"},
+          innerRightRear = {status = "UNKNOWN"}
         }
         --1. IsMissed
         commonFunctions:TestCaseForResponse(self, response, {"tirePressure"}, "IsMissed", nil, "SUCCESS")
