@@ -146,7 +146,7 @@ local svd_values = { gps = "VEHICLEDATA_GPS",
   abs_State = "VEHICLEDATA_ABS_STATE",
   tirePressureValue = "VEHICLEDATA_TIREPRESSURE_VALUE",
   tpms = "VEHICLEDATA_TPMS",
-  turnSignal = "VEHICLEDATA_TURNSIGNAL"}
+turnSignal = "VEHICLEDATA_TURNSIGNAL"}
 
 local all_vehicle_data = { "gps",
   "speed",
@@ -186,17 +186,17 @@ function Test:subscribeVehicleDataSuccess(params_send)
     end
     return temp
   end
-
+  
   local function SetSvdResponse(params_send, vehicle_data_result_code)
     local temp = {}
     local vehicle_data_result_code_value = ""
-
+    
     if vehicle_data_result_code ~= nil then
       vehicle_data_result_code_value = vehicle_data_result_code
     else
       vehicle_data_result_code_value = "SUCCESS"
     end
-
+    
     for i = 1, #params_send do
       if params_send[i] == "clusterModeStatus" then
         temp["clusterModes"] = {
@@ -212,32 +212,32 @@ function Test:subscribeVehicleDataSuccess(params_send)
     end
     return temp
   end
-
+  
   local function CreateSuccessExpectedResult(response)
     response["success"] = true
     response["resultCode"] = "SUCCESS"
-
+    
     return response
   end
-
+  
   local request = SetSvdRequest(params_send)
   local response = SetSvdResponse(params_send)
-
+  
   --mobile side: sending SubscribeVehicleData request
   local cid = self.mobileSession:SendRPC("SubscribeVehicleData",request)
-
+  
   --hmi side: expect SubscribeVehicleData request
   EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData",request)
   :Do(function(_,data)
-      --hmi side: sending VehicleInfo.SubscribeVehicleData response
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", response)
-    end)
-
+    --hmi side: sending VehicleInfo.SubscribeVehicleData response
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", response)
+  end)
+  
   local expected_result = CreateSuccessExpectedResult(response)
-
+  
   --mobile side: expect SubscribeVehicleData response
   EXPECT_RESPONSE(cid, expected_result)
-
+  
   --mobile side: expect OnHashChange notification
   EXPECT_NOTIFICATION("OnHashChange")
 end
@@ -259,7 +259,7 @@ function Test:verify_SUCCESS_Notification_Case(notification, expect_notification
   else
     exp_notification = expect_notification
   end
-
+  
   self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", notification)
   --mobile side: expected SubscribeVehicleData response
   EXPECT_NOTIFICATION("OnVehicleData", exp_notification)
@@ -487,7 +487,7 @@ local function OnVehicleDataAllParametersLowerBoundSucess(TestCaseName)
       tpms = "UNKNOWN",
       turnSignal = "OFF"
     }
-
+    
     local expect_notification =
     {
       speed = 0.0,
@@ -611,7 +611,7 @@ local function OnVehicleDataAllParametersLowerBoundSucess(TestCaseName)
       tpms = "UNKNOWN",
       turnSignal = "OFF"
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification, expect_notification)
   end
 end
@@ -754,7 +754,7 @@ local function OnVehicleData_AllParametersLowerBoundand_IntForFloat_SUCCESS(Test
       tpms = "TIRES_NOT_TRAINED",
       turnSignal = "UNUSED"
     }
-
+    
     local expect_notification =
     {
       speed = 0,
@@ -878,7 +878,7 @@ local function OnVehicleData_AllParametersLowerBoundand_IntForFloat_SUCCESS(Test
       tpms = "TIRES_NOT_TRAINED",
       turnSignal = "UNUSED"
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification, expect_notification)
   end
 end
@@ -895,7 +895,7 @@ local function common_Test_Cases_For_Notification()
   --3. All parameters are lower bound
   --4. All parameters are upper bound
   -----------------------------------------------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_OnlyMandatoryParameters_SUCCESS_gps"] = function(self)
     local notification =
     {
@@ -903,17 +903,17 @@ local function common_Test_Cases_For_Notification()
         latitudeDegrees = 90
       }
     }
-
+    
     local expect_notification =
     {
       gps = { longitudeDegrees = 180,
         latitudeDegrees = 90
       }
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification, expect_notification)
   end
-
+  
   Test["OnVehicleData_PositiveNotification_SUCCESS"] = function(self)
     local notification =
     {
@@ -1038,7 +1038,7 @@ local function common_Test_Cases_For_Notification()
       tpms = "LOW",
       turnSignal = "LEFT"
     }
-
+    
     local expect_notification =
     {
       speed = 1.1,
@@ -1162,12 +1162,12 @@ local function common_Test_Cases_For_Notification()
       tpms = "LOW",
       turnSignal = "LEFT"
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification, expect_notification)
   end
-
+  
   -----------------------------------------------------------------------------------------------------------------------------
-
+  
   --This test case is used to verify positive response to notification when integer values for next params of float type are sent:
   -- speed
   -- fuelLevel
@@ -1178,7 +1178,7 @@ local function common_Test_Cases_For_Notification()
   -- steeringWheelAngle
   -- gps params
   -- fuelRange
-
+  
   Test["OnVehicleData_PositiveNotification_IntForFloat_SUCCESS"] = function(self)
     local notification =
     {
@@ -1303,7 +1303,7 @@ local function common_Test_Cases_For_Notification()
       tpms = "SYSTEM_ACTIVE",
       turnSignal = "RIGHT"
     }
-
+    
     local expect_notification =
     {
       speed = 1,
@@ -1427,16 +1427,16 @@ local function common_Test_Cases_For_Notification()
       tpms = "SYSTEM_ACTIVE",
       turnSignal = "RIGHT"
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification, expect_notification)
   end
-
+  
   --------------------------------------------------------------------------------------------------------------
   OnVehicleDataAllParametersLowerBoundSucess("OnVehicleDataAllParametersLowerBoundSucess")
   ----------------------------------------------------------------------------------------------------------------
   OnVehicleData_AllParametersLowerBoundand_IntForFloat_SUCCESS("OnVehicleData_AllParametersLowerBoundand_IntForFloat_SUCCESS")
   ----------------------------------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_AllParametersUpperBound_SUCCESS"] = function(self)
     local notification =
     {
@@ -1561,7 +1561,7 @@ local function common_Test_Cases_For_Notification()
       tpms = "SENSOR_FAULT",
       turnSignal = "OFF"
     }
-
+    
     local expect_notification =
     {
       speed = 700.0,
@@ -1685,12 +1685,12 @@ local function common_Test_Cases_For_Notification()
       tpms = "SENSOR_FAULT",
       turnSignal = "OFF"
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification, expect_notification)
   end
-
+  
   ----------------------------------------------------------------------------------------------------------------
-
+  
   --This test case is used to verify all parameters are upper bound when integer values for next params of float type are sent:
   -- speed
   -- fuelLevel
@@ -1701,7 +1701,7 @@ local function common_Test_Cases_For_Notification()
   -- steeringWheelAngle
   -- gps params
   -- fuelRange
-
+  
   Test["OnVehicleData_AllParametersUpperBound_IntForFloat_SUCCESS"] = function(self)
     local notification =
     {
@@ -1826,7 +1826,7 @@ local function common_Test_Cases_For_Notification()
       tpms = "SENSOR_FAULT",
       turnSignal = "OFF"
     }
-
+    
     local expect_notification =
     {
       speed = 700,
@@ -1916,7 +1916,7 @@ local function common_Test_Cases_For_Notification()
         altitude = 10000.0,
         heading = 400,
         speed = 500,
-
+        
         utcYear = 2100,
         utcMonth = 12,
         utcDay = 31,
@@ -1924,7 +1924,7 @@ local function common_Test_Cases_For_Notification()
         utcMinutes = 59,
         utcSeconds = 59,
         satellites = 31,
-
+        
         compassDirection = "NORTH",
         dimension = "NO_FIX",
         actual = true
@@ -1952,7 +1952,7 @@ local function common_Test_Cases_For_Notification()
       tpms = "SENSOR_FAULT",
       turnSignal = "OFF"
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification, expect_notification)
   end
   --------------------------------------------------------------------------------------------------------------------
@@ -1986,7 +1986,7 @@ local function common_Test_Cases_For_Notification()
         passengerSideAirbagDeployed = "YES",
         passengerKneeAirbagDeployed = "YES"
       },
-      tirePressure = { leftFront = {status = "UNKNOWN"},
+        tirePressure = { leftFront = {status = "UNKNOWN"},
         rightFront = {status = "UNKNOWN"},
         leftRear = {status = "UNKNOWN"},
         rightRear = {status = "UNKNOWN"},
@@ -1994,7 +1994,7 @@ local function common_Test_Cases_For_Notification()
         innerRightRear = {status = "UNKNOWN"}
       }
     }
-
+    
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
@@ -2009,7 +2009,7 @@ local function common_Test_Cases_For_Notification()
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_OnlyMandatoryParameters_SUCCESS_headLampStatus"] = function(self)
     local notification =
     {
@@ -2021,7 +2021,7 @@ local function common_Test_Cases_For_Notification()
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_OnlyMandatoryParameters_SUCCESS_myKey"] = function(self)
     local notification =
     {
@@ -2030,7 +2030,7 @@ local function common_Test_Cases_For_Notification()
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_OnlyMandatoryParameters_SUCCESS_eCallInfo"] = function(self)
     local notification =
     {
@@ -2042,7 +2042,7 @@ local function common_Test_Cases_For_Notification()
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_OnlyMandatoryParameters_SUCCESS_clusterModeStatus"] = function(self)
     local notification =
     {
@@ -2055,7 +2055,7 @@ local function common_Test_Cases_For_Notification()
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_OnlyMandatoryParameters_SUCCESS_airbagStatus"] = function(self)
     local notification =
     {
@@ -2072,11 +2072,11 @@ local function common_Test_Cases_For_Notification()
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
-
+  
   Test["OnVehicleData_OnlyMandatoryParameters_SUCCESS_tirePressure"] = function(self)
     local notification =
     {
-      tirePressure = { leftFront = {status = "UNKNOWN"},
+        tirePressure = { leftFront = {status = "UNKNOWN"},
         rightFront = {status = "UNKNOWN"},
         leftRear = {status = "UNKNOWN"},
         rightRear = {status = "UNKNOWN"},
@@ -2087,9 +2087,9 @@ local function common_Test_Cases_For_Notification()
     self:verify_SUCCESS_Notification_Case(notification)
   end
   -----------------------------------------------------------------------------------------
-
+  
   --OnVehicleData_OnlyMandatoryParameters_SUCCESS_tirePressure: sub-parameters
-  local test_data = { leftFront = {status = "UNKNOWN"},
+    local test_data = { leftFront = {status = "UNKNOWN"},
     rightFront = {status = "UNKNOWN"},
     leftRear = {status = "UNKNOWN"},
     rightRear = {status = "UNKNOWN"},
@@ -2165,7 +2165,7 @@ local function verify_headLampStatus_parameter()
   --name="lowBeamsOn" type="Boolean" mandatory="true"
   --name="highBeamsOn" type="Boolean" mandatory="true"
   --name="ambientLightSensorStatus" type="Common.AmbientLightStatus" mandatory="true"]]
-
+  
   --Enumerations:
   local AmbientLightStatus = {"NIGHT", "TWILIGHT_1", "TWILIGHT_2", "TWILIGHT_3", "TWILIGHT_4", "DAY", "UNKNOWN", "INVALID"}
   local notification = {instantFuelConsumption = 0, headLampStatus = {}}
@@ -2173,7 +2173,7 @@ local function verify_headLampStatus_parameter()
   commonFunctions:TestCaseForNotification(self, notification, {"headLampStatus"}, "IsMissed", nil, true)
   --2. IsWrongDataType
   commonFunctions:TestCaseForNotification(self, notification, {"headLampStatus"}, "IsWrongDataType", 123, false)
-
+  
   local notification = {rpm = 1, headLampStatus = {lowBeamsOn = false, highBeamsOn = false, ambientLightSensorStatus = AmbientLightStatus[1]}}
   --3. TCs for parameter: lowBeamsOn, highBeamsOn
   booleanParameterInNotification:verify_Boolean_Parameter(notification, {"headLampStatus", "lowBeamsOn"}, true)
@@ -2186,10 +2186,10 @@ verify_headLampStatus_parameter()
 local function verify_myKey_parameter()
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite For Parameter: myKey")
-
+  
   -- myKey: type=Common.MyKey mandatory=false
   local notification = {rpm = 1, myKey = {}}
-
+  
   --1. IsMissed: valid notification
   commonFunctions:TestCaseForNotification(self, notification, {"myKey"}, "IsMissed", nil, true)
   --2. IsWrongDataType
@@ -2213,10 +2213,10 @@ local function VerifyDeviceStatusParameter()
   --name="primaryAudioSource" type="Common.PrimaryAudioSource" mandatory="false"
   --name="battLevelStatus" type="Common.DeviceLevelStatus" mandatory="false"
   --name="signalLevelStatus" type="Common.DeviceLevelStatus" mandatory="false"]]
-
+  
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite For Parameter: deviceStatus")
-
+  
   local Notification = {speed = 0.0, deviceStatus = {}}
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"deviceStatus"}, "IsMissed", nil, true)
@@ -2242,12 +2242,12 @@ local function VerifyDeviceStatusParameter()
   booleanParameterInNotification:verify_Boolean_Parameter(Notification, {"deviceStatus", "monoAudioOutputMuted"}, false)
   local Notification = {rpm = 1, deviceStatus = { monoAudioOutputMuted = false }}
   booleanParameterInNotification:verify_Boolean_Parameter(Notification, {"deviceStatus", "eCallEventActive"}, false)
-
+  
   --6. TCs for parameter: primaryAudioSource
   local PrimaryAudioSource = {"NO_SOURCE_SELECTED", "USB", "USB2", "BLUETOOTH_STEREO_BTST", "LINE_IN", "IPOD", "MOBILE_APP"}
   local Notification = {rpm = 1, deviceStatus = { eCallEventActive = false }}
   enumParameterInNotification:verify_Enumeration_Parameter(Notification, {"deviceStatus", "primaryAudioSource"}, PrimaryAudioSource, false)
-
+  
   --7. TCs for parameter: battLevelStatus, signalLevelStatus
   local DeviceLevelStatus = {"ZERO_LEVEL_BARS", "ONE_LEVEL_BARS", "TWO_LEVEL_BARS", "THREE_LEVEL_BARS", "FOUR_LEVEL_BARS", "NOT_PROVIDED"}
   local Notification = {rpm = 1, deviceStatus = { primaryAudioSource = "USB" }}
@@ -2262,17 +2262,17 @@ local function VerifyECallInfoParameter()
   --name="eCallNotificationStatus" type="Common.VehicleDataNotificationStatus"
   --name="auxECallNotificationStatus" type="Common.VehicleDataNotificationStatus"
   --name="eCallConfirmationStatus" type="Common.ECallConfirmationStatus"]]
-
+  
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite For Parameter: eCallInfo")
-
+  
   --Enumerations:
   local VehicleDataNotificationStatus = {"NOT_SUPPORTED", "NORMAL", "ACTIVE", "NOT_USED"}
   local ECallConfirmationStatus = {"NORMAL", "CALL_IN_PROGRESS", "CALL_CANCELLED", "CALL_COMPLETED", "CALL_UNSUCCESSFUL", "ECALL_CONFIGURED_OFF", "CALL_COMPLETE_DTMF_TIMEOUT"}
-  local Notification = {fuelLevel = -6, eCallInfo = { eCallNotificationStatus = VehicleDataNotificationStatus[1],
+    local Notification = {fuelLevel = -6, eCallInfo = { eCallNotificationStatus = VehicleDataNotificationStatus[1],
       auxECallNotificationStatus = VehicleDataNotificationStatus[1],
-      eCallConfirmationStatus = ECallConfirmationStatus[1]}}
-
+  eCallConfirmationStatus = ECallConfirmationStatus[1]}}
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"eCallInfo"}, "IsMissed", nil, true)
   --2. IsWrongDataType
@@ -2293,18 +2293,18 @@ local function VerifyEmergencyEventParameter()
   --name="rolloverEvent" type="Common.VehicleDataEventStatus"
   --name="maximumChangeVelocity" type="Common.VehicleDataEventStatus" --APPLINK-15385: maximumChangeVelocity, type="Integer" minvalue="0" maxvalue="255"
   --name="multipleEvents" type="Common.VehicleDataEventStatus"]]
-
+  
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite For Parameter: emergencyEvent")
-
+  
   local EmergencyEventType = {"NO_EVENT", "FRONTAL", "SIDE", "REAR", "ROLLOVER", "NOT_SUPPORTED", "FAULT"}
   local FuelCutoffStatus = {"TERMINATE_FUEL", "NORMAL_OPERATION", "FAULT"}
-  local Notification = {rpm = 1, emergencyEvent = { emergencyEventType = EmergencyEventType[1],
+    local Notification = {rpm = 1, emergencyEvent = { emergencyEventType = EmergencyEventType[1],
       fuelCutoffStatus = FuelCutoffStatus[1],
       rolloverEvent = VehicleDataEventStatus[1],
       maximumChangeVelocity = 0,
-      multipleEvents = VehicleDataEventStatus[1]}}
-
+  multipleEvents = VehicleDataEventStatus[1]}}
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"emergencyEvent"}, "IsMissed", nil, true)
   --2. IsWrongDataType
@@ -2327,25 +2327,25 @@ local function VerifyBodyInformationParameter()
   --name="rearRightDoorAjar" type="Boolean" mandatory="false"
   --name="ignitionStableStatus" type="Common.IgnitionStableStatus" mandatory="true"
   --name="ignitionStatus" type="Common.IgnitionStatus" mandatory="true"]]
-
+  
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite For Parameter: bodyInformation")
-
+  
   --Enumerations:
   local IgnitionStableStatus = {"IGNITION_SWITCH_NOT_STABLE", "IGNITION_SWITCH_STABLE", "MISSING_FROM_TRANSMITTER"}
   local IgnitionStatus = {"UNKNOWN", "OFF", "ACCESSORY", "RUN", "START", "INVALID"}
   local Notification = {rpm = 1, bodyInformation = {}}
-
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"bodyInformation"}, "IsMissed", nil, true)
   --2. IsWrongDataType
   commonFunctions:TestCaseForNotification(self, Notification, {"bodyInformation"}, "IsWrongDataType", 123, false)
-
+  
   local Notification = { rpm = 1,
     bodyInformation = { parkBrakeActive = true,
       ignitionStableStatus = "IGNITION_SWITCH_NOT_STABLE",
-      ignitionStatus = "UNKNOWN"}}
-
+  ignitionStatus = "UNKNOWN"}}
+  
   --3. TCs for parameter: parkBrakeActive
   booleanParameterInNotification:verify_Boolean_Parameter(Notification, {"bodyInformation", "parkBrakeActive"}, true)
   --4. TCs for parameters: driverDoorAjar, passengerDoorAjar, rearLeftDoorAjar, rearRightDoorAjar
@@ -2365,16 +2365,16 @@ local function VerifyClusterModeStatusParameter()
   --name="powerModeQualificationStatus" type="Common.PowerModeQualificationStatus"
   --name="carModeStatus" type="Common.CarModeStatus"
   --name="powerModeStatus" type="Common.PowerModeStatus"]]
-
+  
   --Enumerations:
   local PowerModeQualificationStatus = {"POWER_MODE_UNDEFINED", "POWER_MODE_EVALUATION_IN_PROGRESS", "NOT_DEFINED", "POWER_MODE_OK"}
   local CarModeStatus = {"NORMAL", "FACTORY", "TRANSPORT", "CRASH"}
   local PowerModeStatus = {"KEY_OUT", "KEY_RECENTLY_OUT", "KEY_APPROVED_0", "POST_ACCESORY_0", "ACCESORY_1", "POST_IGNITION_1", "IGNITION_ON_2", "RUNNING_2", "CRANK_3"}
-  local Notification = {rpm = 1, clusterModeStatus = { powerModeActive = true,
+    local Notification = {rpm = 1, clusterModeStatus = { powerModeActive = true,
       powerModeQualificationStatus = PowerModeQualificationStatus[1],
       carModeStatus = CarModeStatus[1],
-      powerModeStatus = PowerModeStatus[1]}}
-
+  powerModeStatus = PowerModeStatus[1]}}
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"clusterModeStatus"}, "IsMissed", nil, true)
   --2. IsWrongDataType
@@ -2412,7 +2412,7 @@ local function VerifyBeltStatusParameter()
   --name="middleRow1BuckleBelted" type="Common.VehicleDataEventStatus" mandatory="false"]]
   commonFunctions:newTestCasesGroup("Test suite For Verifying: beltStatus structure")
   local Notification = {rpm = 1, beltStatus = {}}
-
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"beltStatus"}, "IsMissed", nil, true)
   --2. IsEmptyTable
@@ -2463,8 +2463,8 @@ local function VerifyAirbagStatusParameter()
   --name="driverKneeAirbagDeployed" type="Common.VehicleDataEventStatus"
   --name="passengerSideAirbagDeployed" type="Common.VehicleDataEventStatus"
   --name="passengerKneeAirbagDeployed" type="Common.VehicleDataEventStatus"]]
-
-  local Notification = {rpm = 1, airbagStatus = {
+  
+    local Notification = {rpm = 1, airbagStatus = {
       driverAirbagDeployed = "YES",
       driverSideAirbagDeployed = "YES",
       driverCurtainAirbagDeployed = "YES",
@@ -2472,8 +2472,8 @@ local function VerifyAirbagStatusParameter()
       passengerCurtainAirbagDeployed = "YES",
       driverKneeAirbagDeployed = "YES",
       passengerSideAirbagDeployed = "YES",
-      passengerKneeAirbagDeployed = "YES"}}
-
+  passengerKneeAirbagDeployed = "YES"}}
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"airbagStatus"}, "IsMissed", nil, true)
   --2. IsWrongDataType
@@ -2500,7 +2500,7 @@ local function VerifyGpsParameter()
   --name=altitude type=Float minvalue=-10000 maxvalue=10000 mandatory=false
   --name=heading type=Float minvalue=0 maxvalue=359.99 mandatory=false
   --name=speed type=Float minvalue=0 maxvalue=500 mandatory=false
-
+  
   --name="utcYear" type="Integer" minvalue="2010" maxvalue="2100" mandatory="false",
   --name="utcMonth" type="Integer" minvalue="1" maxvalue="12" mandatory="false",
   --name="utcDay" type="Integer" minvalue="1" maxvalue="31" mandatory="false",
@@ -2508,7 +2508,7 @@ local function VerifyGpsParameter()
   --name=utcMinutes type=Integer minvalue=0 maxvalue=59 mandatory=false
   --name=utcSeconds type=Integer minvalue=0 maxvalue=59 mandatory=false
   --name=satellites type=Integer minvalue=0 maxvalue=31 mandatory=false
-
+  
   --name=actual type=Boolean mandatory=false
   --name=shifted type=Boolean mandatory=false
   --name=compassDirection type=Common.CompassDirection mandatory=false
@@ -2516,7 +2516,7 @@ local function VerifyGpsParameter()
   ]]
   commonFunctions:newTestCasesGroup("Test suite For Verifying: gps structure")
   local Notification = {rpm = 1, gps = {}}
-
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"gps"}, "IsMissed", nil, true)
   --2. IsEmptyTable
@@ -2524,9 +2524,9 @@ local function VerifyGpsParameter()
   --3. IsWrongDataType
   commonFunctions:TestCaseForNotification(self, Notification, {"gps"}, "IsWrongDataType", 123, false)
   --4. TCs for parameters
-  local Notification = {rpm = 1, gps = {longitudeDegrees = 180,
+    local Notification = {rpm = 1, gps = {longitudeDegrees = 180,
       latitudeDegrees = 90,
-      actual = true}}
+  actual = true}}
   floatParameterInNotification:verify_Float_Parameter(Notification, {"gps", "longitudeDegrees"}, {-180.000000, 180.000000}, true)
   floatParameterInNotification:verify_Float_Parameter(Notification, {"gps", "latitudeDegrees"}, {-90.000000, 90.000000}, true)
   floatParameterInNotification:verify_Float_Parameter(Notification, {"gps", "pdop"}, {0.000000, 10.000000}, false)
@@ -2542,17 +2542,17 @@ local function VerifyGpsParameter()
   integerParameterInNotification:verify_Integer_Parameter(Notification, {"gps", "utcMinutes"}, {0, 59}, false)
   integerParameterInNotification:verify_Integer_Parameter(Notification, {"gps", "utcSeconds"}, {0, 59}, false)
   integerParameterInNotification:verify_Integer_Parameter(Notification, {"gps", "satellites"}, {0, 31}, false)
-
+  
   local CompassDirection = {"NORTH", "NORTHWEST", "WEST", "SOUTHWEST", "SOUTH", "SOUTHEAST", "EAST", "NORTHEAST"}
   enumParameterInNotification:verify_Enumeration_Parameter(Notification, {"gps", "compassDirection"}, CompassDirection, false)
   local Dimension = {"NO_FIX", "2D", "3D"}
   enumParameterInNotification:verify_Enumeration_Parameter(Notification, {"gps", "dimension"}, Dimension, false)
-  local Notification = {rpm = 1, gps = {longitudeDegrees = 180,
+    local Notification = {rpm = 1, gps = {longitudeDegrees = 180,
       latitudeDegrees = 90,
-      satellites = 1}}
+  satellites = 1}}
   booleanParameterInNotification:verify_Boolean_Parameter(Notification, {"gps", "actual"}, false)
   booleanParameterInNotification:verify_Boolean_Parameter(Notification, {"gps", "shifted"}, false)
-
+  
   Test["OnVehicleData_GPS_AllMandatoryParams_IsMissed"] = function(self)
     local Notification =
     {
@@ -2690,12 +2690,12 @@ local function VerifyTirePressureParameter()
   --name="rightRear" type="Common.SingleTireStatus" mandatory="false"
   --name="innerLeftRear" type="Common.SingleTireStatus" mandatory="false"
   --name="innerRightRear" type="Common.SingleTireStatus" mandatory="false"]]
-
+  
   --struct name="SingleTireStatus">
   --name="status" type="Common.ComponentVolumeStatus" mandatory="true": ComponentVolumeStatus = {"UNKNOWN", "NORMAL", "LOW", "FAULT", "ALERT", "NOT_SUPPORTED"}
   commonFunctions:newTestCasesGroup("Test suite For Verifying: tirePressure structure")
   local Notification = {rpm = 1, tirePressure = {}}
-
+  
   --1. IsMissed
   commonFunctions:TestCaseForNotification(self, Notification, {"tirePressure"}, "IsMissed", nil, true)
   --2. IsEmptyTable {}
@@ -2708,11 +2708,11 @@ local function VerifyTirePressureParameter()
   enumParameterInNotification:verify_Enumeration_Parameter(Notification, {"tirePressure", "pressureTelltale"}, WarningLightStatus, false)
   --5. TCs for parameters: "leftFront", "rightFront", "leftRear", "rightRear", "innerLeftRear", "innerRightRear"
   local function verify_SingleTireStatus_parameter_type(Parameter, Notification)
-
+    
     --name="parameterName" type="Common.SingleTireStatus" mandatory="false"
     --struct name="SingleTireStatus">
     --name="status" type="Common.ComponentVolumeStatus" mandatory="true":
-
+    
     --1. IsMissed
     commonFunctions:TestCaseForNotification(self, Notification, Parameter, "IsMissed", nil, true)
     --2. IsWrongDataType
@@ -2721,25 +2721,25 @@ local function VerifyTirePressureParameter()
     local Parameter_status = commonFunctions:BuildChildParameter(Parameter, "status")
     enumParameterInNotification:verify_Enumeration_Parameter(Notification, Parameter_status, ComponentVolumeStatus, true)
   end
-
+  
   local Notification = {rpm = 1, tirePressure = {rightFront = {status = "NORMAL"}, leftFront = {} }}
   verify_SingleTireStatus_parameter_type({"tirePressure", "leftFront"}, Notification)
-
+  
   local Notification = {rpm = 1, tirePressure = {leftRear = {status = "NORMAL"}, rightFront = {} }}
   verify_SingleTireStatus_parameter_type({"tirePressure", "rightFront"}, Notification)
-
+  
   local Notification = {rpm = 1, tirePressure = {rightRear = {status = "NORMAL"}, leftRear = {} }}
   verify_SingleTireStatus_parameter_type({"tirePressure", "leftRear"}, Notification)
-
+  
   local Notification = {rpm = 1, tirePressure = {innerLeftRear = {status = "NORMAL"}, rightRear = {} }}
   verify_SingleTireStatus_parameter_type({"tirePressure", "rightRear"}, Notification)
-
+  
   local Notification = {rpm = 1, tirePressure = {innerRightRear = {status = "NORMAL"}, innerLeftRear = {} }}
   verify_SingleTireStatus_parameter_type({"tirePressure", "innerLeftRear"}, Notification)
-
+  
   local Notification = {rpm = 1, tirePressure = {pressureTelltale = "OFF", innerRightRear = {} }}
   verify_SingleTireStatus_parameter_type({"tirePressure", "innerRightRear"}, Notification)
-
+  
 end
 VerifyTirePressureParameter()
 
@@ -2808,7 +2808,7 @@ enumParameterInNotification:verify_Enumeration_Parameter(notification,{"turnSign
 local function SpecialNotificationChecks()
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite: Check special cases of HMI notification")
-
+  
   --1. Verify OnVehicleData with invalid Json syntax
   ----------------------------------------------------------------------------------------------
   function Test:OnVehicleDataInvalidJsonSyntax()
@@ -2820,7 +2820,7 @@ local function SpecialNotificationChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {})
     :Times(0)
   end
-
+  
   --2. Verify OnVehicleData with invalid structure
   ----------------------------------------------------------------------------------------------
   function Test:OnVehicleDataInvalidJsonStructure()
@@ -2832,7 +2832,7 @@ local function SpecialNotificationChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {})
     :Times(0)
   end
-
+  
   --3. Verify OnVehicleData with FakeParams
   ----------------------------------------------------------------------------------------------
   function Test:OnVehicleDataFakeParams()
@@ -2859,7 +2859,7 @@ local function SpecialNotificationChecks()
         ambientLightSensorStatus = "NIGHT"
       },
       myKey = { fake = 123,
-        e911Override = "NO_DATA_EXISTS"},
+      e911Override = "NO_DATA_EXISTS"},
       deviceStatus = { fake = 123,
         voiceRecOn = true,
         btIconOn = true,
@@ -2971,7 +2971,7 @@ local function SpecialNotificationChecks()
       tpms = "UNKNOWN",
       turnSignal = "OFF"
     }
-
+    
     local notification_expected_result_on_mobile_without_fake_parameters =
     {
       speed = 0.0,
@@ -3095,34 +3095,34 @@ local function SpecialNotificationChecks()
       tpms = "UNKNOWN",
       turnSignal = "OFF"
     }
-
+    
     --hmi side: sending OnVehicleData notification
     self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", notification_with_fake_parameters)
-
+    
     --mobile side: expected Notification
     EXPECT_NOTIFICATION("OnVehicleData", notification_expected_result_on_mobile_without_fake_parameters)
     :ValidIf (function(_,data)
-        if data.payload.fake or
-        data.payload.headLampStatus.fake or
-        data.payload.myKey.fake or
-        data.payload.deviceStatus.fake or
-        data.payload.eCallInfo.fake or
-        data.payload.emergencyEvent.fake or
-        data.payload.bodyInformation.fake or
-        data.payload.clusterModeStatus.fake or
-        data.payload.beltStatus.fake or
-        data.payload.airbagStatus.fake or
-        data.payload.gps.fake or
-        data.payload.tirePressure.fake
-        then
-          commonFunctions:printError(" SDL resends fake parameter to mobile app ")
-          return false
-        else
-          return true
-        end
-      end)
+      if data.payload.fake or
+      data.payload.headLampStatus.fake or
+      data.payload.myKey.fake or
+      data.payload.deviceStatus.fake or
+      data.payload.eCallInfo.fake or
+      data.payload.emergencyEvent.fake or
+      data.payload.bodyInformation.fake or
+      data.payload.clusterModeStatus.fake or
+      data.payload.beltStatus.fake or
+      data.payload.airbagStatus.fake or
+      data.payload.gps.fake or
+      data.payload.tirePressure.fake
+      then
+        commonFunctions:printError(" SDL resends fake parameter to mobile app ")
+        return false
+      else
+        return true
+      end
+    end)
   end
-
+  
   --4. Verify OnVehicleData with FakeParameterIsFromAnotherAPI
   function Test:OnVehicleDataFakeParameterIsFromAnotherAPI()
     local notification_with_fake_parameters =
@@ -3148,7 +3148,7 @@ local function SpecialNotificationChecks()
         ambientLightSensorStatus = "NIGHT"
       },
       myKey = { sliderPosition = 123,
-        e911Override = "NO_DATA_EXISTS"},
+      e911Override = "NO_DATA_EXISTS"},
       deviceStatus = { sliderPosition = 123,
         voiceRecOn = true,
         btIconOn = true,
@@ -3260,7 +3260,7 @@ local function SpecialNotificationChecks()
       tpms = "UNKNOWN",
       turnSignal = "OFF"
     }
-
+    
     local notification_expected_result_on_mobile_without_fake_parameters =
     {
       speed = 0.0,
@@ -3384,34 +3384,34 @@ local function SpecialNotificationChecks()
       tpms = "UNKNOWN",
       turnSignal = "OFF"
     }
-
+    
     --hmi side: sending OnVehicleData notification
     self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", notification_with_fake_parameters)
-
+    
     --mobile side: expected Notification
     EXPECT_NOTIFICATION("OnVehicleData", notification_expected_result_on_mobile_without_fake_parameters)
     :ValidIf (function(_,data)
-        if data.payload.sliderPosition or
-        data.payload.headLampStatus.sliderPosition or
-        data.payload.myKey.sliderPosition or
-        data.payload.deviceStatus.sliderPosition or
-        data.payload.eCallInfo.sliderPosition or
-        data.payload.emergencyEvent.sliderPosition or
-        data.payload.bodyInformation.sliderPosition or
-        data.payload.clusterModeStatus.sliderPosition or
-        data.payload.beltStatus.sliderPosition or
-        data.payload.airbagStatus.sliderPosition or
-        data.payload.gps.sliderPosition or
-        data.payload.tirePressure.sliderPosition
-        then
-          commonFunctions:printError(" SDL resends fake parameter to mobile app ")
-          return false
-        else
-          return true
-        end
-      end)
+      if data.payload.sliderPosition or
+      data.payload.headLampStatus.sliderPosition or
+      data.payload.myKey.sliderPosition or
+      data.payload.deviceStatus.sliderPosition or
+      data.payload.eCallInfo.sliderPosition or
+      data.payload.emergencyEvent.sliderPosition or
+      data.payload.bodyInformation.sliderPosition or
+      data.payload.clusterModeStatus.sliderPosition or
+      data.payload.beltStatus.sliderPosition or
+      data.payload.airbagStatus.sliderPosition or
+      data.payload.gps.sliderPosition or
+      data.payload.tirePressure.sliderPosition
+      then
+        commonFunctions:printError(" SDL resends fake parameter to mobile app ")
+        return false
+      else
+        return true
+      end
+    end)
   end
-
+  
   --5. Verify OnVehicleData misses mandatory parameter
   ----------------------------------------------------------------------------------------------
   function Test:OnVehicleDataMissedmandatoryParameters()
@@ -3422,7 +3422,7 @@ local function SpecialNotificationChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {})
     :Times(0)
   end
-
+  
   --6. Verify OnVehicleData MissedAllPArameters: Covered by case 5.
   ----------------------------------------------------------------------------------------------
   --7. Verify OnVehicleData with SeveralNotifications_WithTheSameValues
@@ -3434,11 +3434,11 @@ local function SpecialNotificationChecks()
     self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {rpm = 1})
     --mobile side: expected Notification
     EXPECT_NOTIFICATION("OnVehicleData", {rpm = 1},
-      {rpm = 1},
-      {rpm = 1})
+    {rpm = 1},
+    {rpm = 1})
     :Times(3)
   end
-
+  
   --8. Verify OnVehicleData with SeveralNotifications_WithDifferentValues
   ----------------------------------------------------------------------------------------------
   function Test:OnVehicleDataSeveralNotifications_WithDifferentValues()
@@ -3447,7 +3447,7 @@ local function SpecialNotificationChecks()
     self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {speed = 2})
     --mobile side: expected Notification
     EXPECT_NOTIFICATION("OnVehicleData", {rpm = 1},
-      {speed = 2})
+    {speed = 2})
     :Times(2)
   end
 end
@@ -3479,7 +3479,7 @@ SpecialNotificationChecks()
 local function SequenceChecks()
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite: Sequence with emulating of user's action(s)")
-
+  
   --1. Notification is not exist in PT => DISALLOWED in policy table, SDL ignores the notification
   ----------------------------------------------------------------------------------------------
   --Precondition: Build policy table file
@@ -3495,7 +3495,7 @@ local function SequenceChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {speed = 1})
     :Times(0)
   end
-
+  
   --2. Notification is allowed but parameters are not allowed => DISALLOWED in policy table, SDL ignores the notification
   ----------------------------------------------------------------------------------------------
   --Precondition: Build policy table file
@@ -3517,14 +3517,14 @@ local function SequenceChecks()
     "odometer"
     ]
   }]]
-
+  
   local permission_lines_for_base_4 = permission_lines_on_vehicle_data_not_allow_parameters .. ", \n"
   local permission_lines_for_group_1 = nil
   local permission_lines_for_application = nil
   local pt_name = testCasesForPolicyTable:createPolicyTableFile(permission_lines_for_base_4, permission_lines_for_group_1, permission_lines_for_application, {"OnVehicleData"})
-
+  
   testCasesForPolicyTable:updatePolicy(pt_name)
-
+  
   --Send notification and check it is ignored
   function Test:OnVehicleDataIsAllowedButParameterIsNotAllowed_Disallowed()
     commonTestCases:DelayedExp(1000)
@@ -3534,7 +3534,7 @@ local function SequenceChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {speed = 1})
     :Times(0)
   end
-
+  
   --3. Notification is exist in PT but it has not consented yet by user => DISALLOWED in policy table, SDL ignores the notification
   ----------------------------------------------------------------------------------------------
   --Precondition: Build policy table file
@@ -3550,10 +3550,10 @@ local function SequenceChecks()
     "groups" : ["Base-4", "group1"]
   },
   ]]
-
+  
   local pt_name = testCasesForPolicyTable:createPolicyTableFile(permission_lines_for_base_4, permission_lines_for_group_1, permission_lines_for_application)
   testCasesForPolicyTable:updatePolicy(pt_name)
-
+  
   --Send notification and check it is ignored
   function Test:OnVehicleDataUserHasNotConsentedYet_Disallowed()
     commonTestCases:DelayedExp(1000)
@@ -3563,12 +3563,12 @@ local function SequenceChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {speed = 1})
     :Times(0)
   end
-
+  
   --4. Notification is exist in PT but user does not allow function group that contains this notification => USER_DISALLOWED in policy table, SDL ignores the notification
   ----------------------------------------------------------------------------------------------
   --Precondition: User does not allow function group
   testCasesForPolicyTable:userConsent(false, "group1")
-
+  
   function Test:OnVehicleData_UserDisallowed()
     commonTestCases:DelayedExp(1000)
     --hmi side: send notification
@@ -3577,7 +3577,7 @@ local function SequenceChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {speed = 1})
     :Times(0)
   end
-
+  
   --5. Notification is exist in PT and user allow function group that contains this notification
   ----------------------------------------------------------------------------------------------
   --Precondition: User allows function group
@@ -3611,12 +3611,12 @@ SequenceChecks()
 local function DifferentHMIlevelChecks()
   --Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup("Test suite: Different HMI Level Checks")
-
+  
   --1. HMI level is NONE
   ----------------------------------------------------------------------------------------------
   --Precondition: Deactivate app to NONE HMI level
   commonSteps:DeactivateAppToNoneHmiLevel()
-
+  
   function Test:OnVehicleDataNotificationInNoneHmiLevel()
     commonTestCases:DelayedExp(1000)
     local notification_all_parameters_low_bound =
@@ -3748,10 +3748,10 @@ local function DifferentHMIlevelChecks()
     EXPECT_NOTIFICATION("OnVehicleData", {})
     :Times(0)
   end
-
+  
   --Postcondition: Activate app
   commonSteps:ActivationApp()
-
+  
   --2. HMI level is LIMITED
   ----------------------------------------------------------------------------------------------
   if commonFunctions:isMediaApp() then
@@ -3761,7 +3761,7 @@ local function DifferentHMIlevelChecks()
     --Postcondition: Activate app
     commonSteps:ActivationApp()
   end
-
+  
   --3. HMI level is BACKGROUND
   ----------------------------------------------------------------------------------------------
   --Precondition:
@@ -3924,7 +3924,7 @@ local function Test_Block_VIII()
     tpms = "UNKNOWN",
     turnSignal = "OFF"
   }
-
+  
   local on_vehicle_data_full_expected_notification =
   {
     speed = 0.0,
@@ -4049,13 +4049,13 @@ local function Test_Block_VIII()
     tpms = "UNKNOWN",
     turnSignal = "OFF"
   }
-
+  
   ----------------------------------------------------------------------------------------------
   --CRQ #1: APPLINK-21166 [Policies] Conditions for PoliciesManager to disallow all requested parameters:
   --DISALLOWED: parameters in PT is empty ({}).
   --It is not applied for OnVehicleData. For OnVehicleData, use CRQ #2: APPLINK-23963
   ----------------------------------------------------------------------------------------------
-
+  
   ----------------------------------------------------------------------------------------------
   --CRQ #2: APPLINK-23963: [Policies] [OnVehicleData] Conditions for PoliciesManager to disallow all requested parameters:
   --DISALLOWED: parameters in PT is empty ({})
@@ -4086,443 +4086,443 @@ local function Test_Block_VIII()
           end
         end
       end
-
+      
       data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
       data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
       data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = {}
       data.policy_table.app_policies.default.groups = {"Base-4"}
-
+      
       data = json.encode(data)
-      --Replace {} by [] for "OnVehicleData":{"parameters":{}
-      data = string.gsub(data, "{}", "[]")
-      file = io.open(path_to_pt, "w")
-      file:write(data)
-      file:close()
-      return path_to_pt
+        --Replace {} by [] for "OnVehicleData":{"parameters":{}
+        data = string.gsub(data, "{}", "[]")
+        file = io.open(path_to_pt, "w")
+        file:write(data)
+        file:close()
+        return path_to_pt
+      end
+      
+      --Create PT
+      local pathToPT = OnVehicleDataParametersIsEmptyCreatePT()
+      local PermissionLines_ParametersIsEmpty =
+      [[ "OnVehicleData": {
+        "hmi_levels": [
+        "BACKGROUND",
+        "FULL",
+        "LIMITED"
+        ],
+        "parameters": []
+      }]]
+      local PermissionLinesForBase4 = PermissionLines_ParametersIsEmpty .. ", \n"
+      local PermissionLinesForGroup1 = nil
+      local PermissionLinesForApplication = nil
+      local PTName = testCasesForPolicyTable:createPolicyTableFile(PermissionLinesForBase4, PermissionLinesForGroup1, PermissionLinesForApplication, {"OnVehicleData"})
+      testCasesForPolicyTable:updatePolicy(PTName, nil, "UpdatePolicy_OnVehicleData_InBase4_WithEmptyParameters")
+      
+      Test["APPLINK_23963_OnVehicleData_InBase4_WithEmptyParameters_Disallowed"] = function(self)
+        self:verify_Notification_IsIgnored_Case(on_vehicle_data_full_notification)
+      end
     end
-
-    --Create PT
-    local pathToPT = OnVehicleDataParametersIsEmptyCreatePT()
-    local PermissionLines_ParametersIsEmpty =
-    [[ "OnVehicleData": {
-      "hmi_levels": [
-      "BACKGROUND",
-      "FULL",
-      "LIMITED"
-      ],
-      "parameters": []
-    }]]
-    local PermissionLinesForBase4 = PermissionLines_ParametersIsEmpty .. ", \n"
-    local PermissionLinesForGroup1 = nil
-    local PermissionLinesForApplication = nil
-    local PTName = testCasesForPolicyTable:createPolicyTableFile(PermissionLinesForBase4, PermissionLinesForGroup1, PermissionLinesForApplication, {"OnVehicleData"})
-    testCasesForPolicyTable:updatePolicy(PTName, nil, "UpdatePolicy_OnVehicleData_InBase4_WithEmptyParameters")
-
-    Test["APPLINK_23963_OnVehicleData_InBase4_WithEmptyParameters_Disallowed"] = function(self)
-      self:verify_Notification_IsIgnored_Case(on_vehicle_data_full_notification)
-    end
-  end
-
-  CRQ2_APPLINK_23963() --SDL defect APPLINK-26967
-
-  ----------------------------------------------------------------------------------------------
-  --CRQ #3: APPLINK-24180: [Policies] SendLocation with disallowed parameters by Policies only
-  --DISALLOWED: OnVehicleData(only disallowed parameters)
-  ----------------------------------------------------------------------------------------------
-  local function CRQ3_APPLINK_24180()
-    --Print new line to separate in ATF log
-    commonFunctions:newTestCasesGroup("CRQ APPLINK 24180")
-    --Define local functions
-    local function OnVehicleData_parameters_disallows_some_parameters_CreatePT()
-      local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_Allows_Some_Parameters_24180.json"
-      os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
-      local file = io.open(pathToPT, "r")
-      local json_data = file:read("*all") -- may be abbreviated to "*a";
-      file:close()
-      local json = require("modules/json")
-      local data = json.decode(json_data)
-      for k,v in pairs(data.policy_table.functional_groupings) do
-        if (data.policy_table.functional_groupings[k].rpcs == nil) then
-          --do
-          data.policy_table.functional_groupings[k] = nil
-        else
-          --do
-          local count = 0
-          for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
-          if (count < 30) then
+    
+    CRQ2_APPLINK_23963() --SDL defect APPLINK-26967
+    
+    ----------------------------------------------------------------------------------------------
+    --CRQ #3: APPLINK-24180: [Policies] SendLocation with disallowed parameters by Policies only
+    --DISALLOWED: OnVehicleData(only disallowed parameters)
+    ----------------------------------------------------------------------------------------------
+    local function CRQ3_APPLINK_24180()
+      --Print new line to separate in ATF log
+      commonFunctions:newTestCasesGroup("CRQ APPLINK 24180")
+      --Define local functions
+      local function OnVehicleData_parameters_disallows_some_parameters_CreatePT()
+        local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_Allows_Some_Parameters_24180.json"
+        os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
+        local file = io.open(pathToPT, "r")
+        local json_data = file:read("*all") -- may be abbreviated to "*a";
+        file:close()
+        local json = require("modules/json")
+        local data = json.decode(json_data)
+        for k,v in pairs(data.policy_table.functional_groupings) do
+          if (data.policy_table.functional_groupings[k].rpcs == nil) then
             --do
             data.policy_table.functional_groupings[k] = nil
+          else
+            --do
+            local count = 0
+            for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
+            if (count < 30) then
+              --do
+              data.policy_table.functional_groupings[k] = nil
+            end
           end
         end
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = {"gps", "speed", "rpm","fuelLevel", "fuelLevel_State"}
+        data.policy_table.app_policies.default.groups = {"Base-4"}
+        
+        data = json.encode(data)
+        file = io.open(pathToPT, "w")
+        file:write(data)
+        file:close()
+        return pathToPT
       end
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = {"gps", "speed", "rpm","fuelLevel", "fuelLevel_State"}
-      data.policy_table.app_policies.default.groups = {"Base-4"}
-
-      data = json.encode(data)
-      file = io.open(pathToPT, "w")
-      file:write(data)
-      file:close()
-      return pathToPT
+      --Create PT
+      local pathToPT = OnVehicleData_parameters_disallows_some_parameters_CreatePT()
+      testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24180_UpdatePolicy_OnVehicleData_InBase4_disallows_some_parameters")
+      Test["APPLINK_24180_OnVehicleData_Only_Disallowed_Parameters_InBase4"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --Disallowed parameters
+          instantFuelConsumption = 0.000000,
+          externalTemperature = -40.000000,
+          engineTorque = -1000.000000
+        }
+        
+        --HMI sends notification
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        --mobile side: expected notification
+        EXPECT_NOTIFICATION("OnVehicleData", {})
+        :Times(0)
+      end
     end
-    --Create PT
-    local pathToPT = OnVehicleData_parameters_disallows_some_parameters_CreatePT()
-    testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24180_UpdatePolicy_OnVehicleData_InBase4_disallows_some_parameters")
-    Test["APPLINK_24180_OnVehicleData_Only_Disallowed_Parameters_InBase4"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --Disallowed parameters
-        instantFuelConsumption = 0.000000,
-        externalTemperature = -40.000000,
-        engineTorque = -1000.000000
-      }
-
-      --HMI sends notification
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-      --mobile side: expected notification
-      EXPECT_NOTIFICATION("OnVehicleData", {})
-      :Times(0)
-    end
-  end
-  CRQ3_APPLINK_24180() --defect APPLINK-26968
-
-  ----------------------------------------------------------------------------------------------
-  --CRQ #7: APPLINK-24229 [Policies] SendLocation with allowed parameters by Policies only
-  --ALLOWED: OnVehicleData(only allowed parameters)
-  ----------------------------------------------------------------------------------------------
-  local function CRQ7_APPLINK_24229()
-    --Print new line to separate in ATF log
-    commonFunctions:newTestCasesGroup("CRQ APPLINK 24229")
-    --Define local functions
-    local function OnVehicleData_parameters_allows_some_parameters_CreatePT()
-      local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_Allows_Some_Parameters_24229.json"
-      os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
-      local file = io.open(pathToPT, "r")
-      local json_data = file:read("*all") -- may be abbreviated to "*a";
-      file:close()
-      local json = require("modules/json")
-      local data = json.decode(json_data)
-      for k,v in pairs(data.policy_table.functional_groupings) do
-        if (data.policy_table.functional_groupings[k].rpcs == nil) then
-          --do
-          data.policy_table.functional_groupings[k] = nil
-        else
-          --do
-          local count = 0
-          for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
-          if (count < 30) then
+    CRQ3_APPLINK_24180() --defect APPLINK-26968
+    
+    ----------------------------------------------------------------------------------------------
+    --CRQ #7: APPLINK-24229 [Policies] SendLocation with allowed parameters by Policies only
+    --ALLOWED: OnVehicleData(only allowed parameters)
+    ----------------------------------------------------------------------------------------------
+    local function CRQ7_APPLINK_24229()
+      --Print new line to separate in ATF log
+      commonFunctions:newTestCasesGroup("CRQ APPLINK 24229")
+      --Define local functions
+      local function OnVehicleData_parameters_allows_some_parameters_CreatePT()
+        local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_Allows_Some_Parameters_24229.json"
+        os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
+        local file = io.open(pathToPT, "r")
+        local json_data = file:read("*all") -- may be abbreviated to "*a";
+        file:close()
+        local json = require("modules/json")
+        local data = json.decode(json_data)
+        for k,v in pairs(data.policy_table.functional_groupings) do
+          if (data.policy_table.functional_groupings[k].rpcs == nil) then
             --do
             data.policy_table.functional_groupings[k] = nil
+          else
+            --do
+            local count = 0
+            for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
+            if (count < 30) then
+              --do
+              data.policy_table.functional_groupings[k] = nil
+            end
           end
         end
+        
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = {"gps", "speed", "rpm","fuelLevel", "fuelLevel_State"}
+        data.policy_table.app_policies.default.groups = {"Base-4"}
+        data = json.encode(data)
+        file = io.open(pathToPT, "w")
+        file:write(data)
+        file:close()
+        return pathToPT
       end
-
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = {"gps", "speed", "rpm","fuelLevel", "fuelLevel_State"}
-      data.policy_table.app_policies.default.groups = {"Base-4"}
-      data = json.encode(data)
-      file = io.open(pathToPT, "w")
-      file:write(data)
-      file:close()
-      return pathToPT
-    end
-
-    --Create PT
-    local pathToPT = OnVehicleData_parameters_allows_some_parameters_CreatePT()
-    testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24229_UpdatePolicy_OnVehicleData_InBase4_allows_some_parameters")
-    Test["APPLINK_24229_OnVehicleData_Only_Allowed_Parameters_InBase4"] = function(self)
-      local OnVehicleData_Notification = {
-        --Allowed parameters:
-        gps = { longitudeDegrees = -180.0,
-          latitudeDegrees = -90.0,
-          pdop = 0.0,
-          hdop = 0.0,
-          vdop = 0.0,
-          altitude = -10000.0,
-          heading = 0.0,
+      
+      --Create PT
+      local pathToPT = OnVehicleData_parameters_allows_some_parameters_CreatePT()
+      testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24229_UpdatePolicy_OnVehicleData_InBase4_allows_some_parameters")
+      Test["APPLINK_24229_OnVehicleData_Only_Allowed_Parameters_InBase4"] = function(self)
+        local OnVehicleData_Notification = {
+          --Allowed parameters:
+          gps = { longitudeDegrees = -180.0,
+            latitudeDegrees = -90.0,
+            pdop = 0.0,
+            hdop = 0.0,
+            vdop = 0.0,
+            altitude = -10000.0,
+            heading = 0.0,
+            speed = 0.0,
+            utcYear = 2010,
+            utcMonth = 1,
+            utcDay = 1,
+            utcHours = 0,
+            utcMinutes = 0,
+            utcSeconds = 0,
+            satellites = 0,
+            compassDirection = "NORTH",
+            dimension = "NO_FIX",
+            actual = true
+          },
           speed = 0.0,
-          utcYear = 2010,
-          utcMonth = 1,
-          utcDay = 1,
-          utcHours = 0,
-          utcMinutes = 0,
-          utcSeconds = 0,
-          satellites = 0,
-          compassDirection = "NORTH",
-          dimension = "NO_FIX",
-          actual = true
-        },
-        speed = 0.0,
-        rpm = 0,
-        fuelLevel = -6.000000,
-        fuelLevel_State = "UNKNOWN"
-      }
-      --HMI sends notification
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-      --mobile side: expected notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
+          rpm = 0,
+          fuelLevel = -6.000000,
+          fuelLevel_State = "UNKNOWN"
+        }
+        --HMI sends notification
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        --mobile side: expected notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
+      end
     end
-  end
-  CRQ7_APPLINK_24229()
-
-  ----------------------------------------------------------------------------------------------
-  --CRQ #4: APPLINK-24215 [Policies]: SendLocation with one OR more allowed parameters and one OR more disallowed parameters by Policies
-  --OnVehicleData - both allowed and disallowed parameters -> ALLOWED + DISALLOWED
-  ----------------------------------------------------------------------------------------------
-  local function CRQ4_APPLINK_24215()
-    --Print new line to separate in ATF log
-    commonFunctions:newTestCasesGroup("CRQ APPLINK 24215")
-    --Define local functions
-    local function OnVehicleData_parameters_allows_some_parameters_CreatePT()
-      local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_Allows_Some_Parameters_24215.json"
-      os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
-      local file = io.open(pathToPT, "r")
-      local json_data = file:read("*all") -- may be abbreviated to "*a";
-      file:close()
-      local json = require("modules/json")
-      local data = json.decode(json_data)
-      for k,v in pairs(data.policy_table.functional_groupings) do
-        if (data.policy_table.functional_groupings[k].rpcs == nil) then
-          --do
-          data.policy_table.functional_groupings[k] = nil
-        else
-          --do
-          local count = 0
-          for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
-          if (count < 30) then
+    CRQ7_APPLINK_24229()
+    
+    ----------------------------------------------------------------------------------------------
+    --CRQ #4: APPLINK-24215 [Policies]: SendLocation with one OR more allowed parameters and one OR more disallowed parameters by Policies
+    --OnVehicleData - both allowed and disallowed parameters -> ALLOWED + DISALLOWED
+    ----------------------------------------------------------------------------------------------
+    local function CRQ4_APPLINK_24215()
+      --Print new line to separate in ATF log
+      commonFunctions:newTestCasesGroup("CRQ APPLINK 24215")
+      --Define local functions
+      local function OnVehicleData_parameters_allows_some_parameters_CreatePT()
+        local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_Allows_Some_Parameters_24215.json"
+        os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
+        local file = io.open(pathToPT, "r")
+        local json_data = file:read("*all") -- may be abbreviated to "*a";
+        file:close()
+        local json = require("modules/json")
+        local data = json.decode(json_data)
+        for k,v in pairs(data.policy_table.functional_groupings) do
+          if (data.policy_table.functional_groupings[k].rpcs == nil) then
             --do
             data.policy_table.functional_groupings[k] = nil
+          else
+            --do
+            local count = 0
+            for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
+            if (count < 30) then
+              --do
+              data.policy_table.functional_groupings[k] = nil
+            end
           end
         end
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = {"gps", "speed", "rpm","fuelLevel", "fuelLevel_State"}
+        data.policy_table.app_policies.default.groups = {"Base-4"}
+        data = json.encode(data)
+        file = io.open(pathToPT, "w")
+        file:write(data)
+        file:close()
+        return pathToPT
       end
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = {"gps", "speed", "rpm","fuelLevel", "fuelLevel_State"}
-      data.policy_table.app_policies.default.groups = {"Base-4"}
-      data = json.encode(data)
-      file = io.open(pathToPT, "w")
-      file:write(data)
-      file:close()
-      return pathToPT
-    end
-    --Create PT
-    local pathToPT = OnVehicleData_parameters_allows_some_parameters_CreatePT()
-    testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24215_UpdatePolicy_OnVehicleData_InBase4_allows_some_parameters")
-    Test["APPLINK_24215_OnVehicleData_Only_Allowed_Parameters_InBase4_And_Disallowed"] = function(self)
-      local OnVehicleData_Notification = {
-        --Allowed parameters:
-        speed = 0.0,
-        fuelLevel = -6.000000,
-        --Disallowed parameters:
-        instantFuelConsumption = 0.000000,
-        externalTemperature = -40.000000
-      }
-      --HMI sends notification
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-
-      local OnVehicleData_ExpectedNotification = {
-        --Allowed parameters:
-        speed = 0.0,
-        fuelLevel = -6.000000
-      }
-
-      --mobile side: expected notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
-      :ValidIf (function(_,data)
+      --Create PT
+      local pathToPT = OnVehicleData_parameters_allows_some_parameters_CreatePT()
+      testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24215_UpdatePolicy_OnVehicleData_InBase4_allows_some_parameters")
+      Test["APPLINK_24215_OnVehicleData_Only_Allowed_Parameters_InBase4_And_Disallowed"] = function(self)
+        local OnVehicleData_Notification = {
+          --Allowed parameters:
+          speed = 0.0,
+          fuelLevel = -6.000000,
+          --Disallowed parameters:
+          instantFuelConsumption = 0.000000,
+          externalTemperature = -40.000000
+        }
+        --HMI sends notification
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        
+        local OnVehicleData_ExpectedNotification = {
+          --Allowed parameters:
+          speed = 0.0,
+          fuelLevel = -6.000000
+        }
+        
+        --mobile side: expected notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
+        :ValidIf (function(_,data)
           local result = true
           if data.payload.instantFuelConsumption then
             commonFunctions:printError(" SDL resends disallowed parameter 'instantFuelConsumption' to mobile app ")
             result = false
           end
-
+          
           if data.payload.externalTemperature then
             commonFunctions:printError(" SDL resends disallowed parameter 'externalTemperature' to mobile app ")
             result = false
           end
           return result
         end)
+      end
     end
-  end
-  CRQ4_APPLINK_24215() --defect APPLINK-26968
-
-  ----------------------------------------------------------------------------------------------
-  --CRQ #5: APPLINK-24224 [Policies] PoliciesManager must allow all requested parameters in case "parameters" field is omitted.
-  --It is not applied for OnVehicleData. For OnVehicleData, use CRQ #6: APPLINK-24225
-  ----------------------------------------------------------------------------------------------
-
-  ----------------------------------------------------------------------------------------------
-  --CRQ #6: APPLINK-24225 [Policies] [OnVehicleData] PoliciesManager must allow all requested parameters in case "parameters" field is omitted
-  --OnVehicleData - omitted parameters{} -> ALLOW
-  ----------------------------------------------------------------------------------------------
-  local function CRQ6_APPLINK_24225()
-    --Print new line to separate in ATF log
-    commonFunctions:newTestCasesGroup("CRQ APPLINK 24225")
-    --Define local functions
-    local function OnVehicleData_parameters_IsOmitted_CreatePT()
-      local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_parameters_IsOmitted.json"
-      os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
-      local file = io.open(pathToPT, "r")
-      local json_data = file:read("*all") -- may be abbreviated to "*a";
-      file:close()
-      local json = require("modules/json")
-      local data = json.decode(json_data)
-      for k,v in pairs(data.policy_table.functional_groupings) do
-        if (data.policy_table.functional_groupings[k].rpcs == nil) then
-          --do
-          data.policy_table.functional_groupings[k] = nil
-        else
-          --do
-          local count = 0
-          for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
-          if (count < 30) then
+    CRQ4_APPLINK_24215() --defect APPLINK-26968
+    
+    ----------------------------------------------------------------------------------------------
+    --CRQ #5: APPLINK-24224 [Policies] PoliciesManager must allow all requested parameters in case "parameters" field is omitted.
+    --It is not applied for OnVehicleData. For OnVehicleData, use CRQ #6: APPLINK-24225
+    ----------------------------------------------------------------------------------------------
+    
+    ----------------------------------------------------------------------------------------------
+    --CRQ #6: APPLINK-24225 [Policies] [OnVehicleData] PoliciesManager must allow all requested parameters in case "parameters" field is omitted
+    --OnVehicleData - omitted parameters{} -> ALLOW
+    ----------------------------------------------------------------------------------------------
+    local function CRQ6_APPLINK_24225()
+      --Print new line to separate in ATF log
+      commonFunctions:newTestCasesGroup("CRQ APPLINK 24225")
+      --Define local functions
+      local function OnVehicleData_parameters_IsOmitted_CreatePT()
+        local pathToPT = "user_modules/shared_testcases/PolicyTables/TestingPolicyTable_OnVehicleData_parameters_IsOmitted.json"
+        os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. pathToPT)
+        local file = io.open(pathToPT, "r")
+        local json_data = file:read("*all") -- may be abbreviated to "*a";
+        file:close()
+        local json = require("modules/json")
+        local data = json.decode(json_data)
+        for k,v in pairs(data.policy_table.functional_groupings) do
+          if (data.policy_table.functional_groupings[k].rpcs == nil) then
             --do
             data.policy_table.functional_groupings[k] = nil
+          else
+            --do
+            local count = 0
+            for _ in pairs(data.policy_table.functional_groupings[k].rpcs) do count = count + 1 end
+            if (count < 30) then
+              --do
+              data.policy_table.functional_groupings[k] = nil
+            end
           end
         end
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
+        data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
+        --data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = nil
+        data.policy_table.app_policies.default.groups = {"Base-4"}
+        data = json.encode(data)
+        file = io.open(pathToPT, "w")
+        file:write(data)
+        file:close()
+        return pathToPT
       end
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData = {}
-      data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
-      --data.policy_table.functional_groupings["Base-4"].rpcs.OnVehicleData.parameters = nil
-      data.policy_table.app_policies.default.groups = {"Base-4"}
-      data = json.encode(data)
-      file = io.open(pathToPT, "w")
-      file:write(data)
-      file:close()
-      return pathToPT
+      --Create PT
+      local pathToPT = OnVehicleData_parameters_IsOmitted_CreatePT()
+      testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24225_UpdatePolicy_OnVehicleData_InBase4_Omitted_Parameters")
+      
+      Test["APPLINK_24225_OnVehicleData_InBase4_omitted_parameters_Allowed"] = function(self)
+        self:verify_SUCCESS_Notification_Case(on_vehicle_data_full_notification, on_vehicle_data_full_expected_notification)
+      end
     end
-    --Create PT
-    local pathToPT = OnVehicleData_parameters_IsOmitted_CreatePT()
-    testCasesForPolicyTable:updatePolicy(pathToPT, nil, "APPLINK_24225_UpdatePolicy_OnVehicleData_InBase4_Omitted_Parameters")
-
-    Test["APPLINK_24225_OnVehicleData_InBase4_omitted_parameters_Allowed"] = function(self)
-      self:verify_SUCCESS_Notification_Case(on_vehicle_data_full_notification, on_vehicle_data_full_expected_notification)
-    end
-  end
-  CRQ6_APPLINK_24225()
-  ----------------------------------------------------------------------------------------------
-  --CRQ #8: APPLINK-25890 [Policies] Conditions for PoliciesManager to respond with USER_DISALLOWED
-  --only parameters from disallowed function group -> USER_DISALLOWED
-  ----------------------------------------------------------------------------------------------
-  local function CRQ8_APPLINK_25890()
-    --Print new line to separate in ATF log
-    commonFunctions:newTestCasesGroup("CRQ APPLINK 25890")
-    local function precondition_create_PT()
-      local PermissionLinesForBase4 =
-      [[ "OnVehicleData": {
-        "hmi_levels": ["BACKGROUND", "FULL", "LIMITED"],
-        "parameters": ["airbagStatus", "beltStatus", "driverBraking"]
-      },]]
-      local PermissionLines_AllowedForOnVehicleData =
-      [[ "OnVehicleData": {
-        "hmi_levels": ["BACKGROUND", "FULL", "LIMITED"],
-        "parameters": ["speed", "rpm","fuelLevel", "fuelLevel_State", "driverBraking"]
-      }]]
-      local PermissionLinesForApp1=[[ "]].."0000001" ..[[":{
-        "keep_context": true,
-        "steal_focus": true,
-        "priority": "NONE",
-        "default_hmi": "BACKGROUND",
-        "groups": ["group1","Base-4"]
-      },]]
-      local PermissionLinesForSendLocation = PermissionLines_AllowedForOnVehicleData
-      local PermissionLinesForApplication = PermissionLinesForApp1
-      local RemovedOtherRPCsInPT = {"OnVehicleData"}
-      local PTName = testCasesForPolicyTable:createPolicyTableFile(PermissionLinesForBase4, PermissionLines_AllowedForOnVehicleData, PermissionLinesForApplication, RemovedOtherRPCsInPT)
-      return PTName
-    end
-
-    local PTName = precondition_create_PT()
-    testCasesForPolicyTable:updatePolicy(PTName, nil, "APPLINK_25890_UpdatePolicy_OnVehicleData_In_group1_CreatePT")
-
-    --Case 1: User_Has_Not_Consented_Yet
-    Test["APPLINK_25890_OnVehicleData_in_group1_User_Has_Not_Consented_Yet"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --parameters in function group that has not been consented yet.
-        speed = 0.0,
-        fuelLevel = -6.000000
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", {})
-      :Times(0)
-    end
-
-    --OnVehicleData(parameters are in consent group1 + parameters are in base-4)
-    Test["APPLINK_25890_OnVehicleData_parameters_in_Not_Consented_Yet_group1_And_parameters_in_Base_4"] = function(self)
-      local OnVehicleData_Notification = {
-        --parameters in function group that has not been consented yet.
-        speed = 0.0,
-        fuelLevel = -6.000000,
-        --Allowed in base-4
-        airbagStatus = {
-          driverAirbagDeployed = "YES",
-          driverSideAirbagDeployed = "YES",
-          driverCurtainAirbagDeployed = "YES",
-          passengerAirbagDeployed = "YES",
-          passengerCurtainAirbagDeployed = "YES",
-          driverKneeAirbagDeployed = "YES",
-          passengerSideAirbagDeployed = "YES",
-          passengerKneeAirbagDeployed = "YES"
-        },
-        beltStatus = {
-          driverBeltDeployed = "NO_EVENT",
-          passengerBeltDeployed = "NO_EVENT",
-          passengerBuckleBelted = "NO_EVENT",
-          driverBuckleBelted = "NO_EVENT",
-          leftRow2BuckleBelted = "NO_EVENT",
-          passengerChildDetected = "NO_EVENT",
-          rightRow2BuckleBelted = "NO_EVENT",
-          middleRow2BuckleBelted = "NO_EVENT",
-          middleRow3BuckleBelted = "NO_EVENT",
-          leftRow3BuckleBelted = "NO_EVENT",
-          rightRow3BuckleBelted = "NO_EVENT",
-          leftRearInflatableBelted = "NO_EVENT",
-          rightRearInflatableBelted = "NO_EVENT",
-          middleRow1BeltDeployed = "NO_EVENT",
-          middleRow1BuckleBelted = "NO_EVENT"
-        },
-        driverBraking = "NO_EVENT"
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-
-      local OnVehicleData_ExpectedNotification = {
-        --Allowed in base-4
-        airbagStatus = {
-          driverAirbagDeployed = "YES",
-          driverSideAirbagDeployed = "YES",
-          driverCurtainAirbagDeployed = "YES",
-          passengerAirbagDeployed = "YES",
-          passengerCurtainAirbagDeployed = "YES",
-          driverKneeAirbagDeployed = "YES",
-          passengerSideAirbagDeployed = "YES",
-          passengerKneeAirbagDeployed = "YES"
-        },
-        beltStatus = {
-          driverBeltDeployed = "NO_EVENT",
-          passengerBeltDeployed = "NO_EVENT",
-          passengerBuckleBelted = "NO_EVENT",
-          driverBuckleBelted = "NO_EVENT",
-          leftRow2BuckleBelted = "NO_EVENT",
-          passengerChildDetected = "NO_EVENT",
-          rightRow2BuckleBelted = "NO_EVENT",
-          middleRow2BuckleBelted = "NO_EVENT",
-          middleRow3BuckleBelted = "NO_EVENT",
-          leftRow3BuckleBelted = "NO_EVENT",
-          rightRow3BuckleBelted = "NO_EVENT",
-          leftRearInflatableBelted = "NO_EVENT",
-          rightRearInflatableBelted = "NO_EVENT",
-          middleRow1BeltDeployed = "NO_EVENT",
-          middleRow1BuckleBelted = "NO_EVENT"
-        },
-        driverBraking = "NO_EVENT"
-      }
-
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
-      :ValidIf (function(_,data)
+    CRQ6_APPLINK_24225()
+    ----------------------------------------------------------------------------------------------
+    --CRQ #8: APPLINK-25890 [Policies] Conditions for PoliciesManager to respond with USER_DISALLOWED
+    --only parameters from disallowed function group -> USER_DISALLOWED
+    ----------------------------------------------------------------------------------------------
+    local function CRQ8_APPLINK_25890()
+      --Print new line to separate in ATF log
+      commonFunctions:newTestCasesGroup("CRQ APPLINK 25890")
+      local function precondition_create_PT()
+        local PermissionLinesForBase4 =
+        [[ "OnVehicleData": {
+          "hmi_levels": ["BACKGROUND", "FULL", "LIMITED"],
+          "parameters": ["airbagStatus", "beltStatus", "driverBraking"]
+        },]]
+        local PermissionLines_AllowedForOnVehicleData =
+        [[ "OnVehicleData": {
+          "hmi_levels": ["BACKGROUND", "FULL", "LIMITED"],
+          "parameters": ["speed", "rpm","fuelLevel", "fuelLevel_State", "driverBraking"]
+        }]]
+        local PermissionLinesForApp1=[[ "]].."0000001" ..[[":{
+          "keep_context": true,
+          "steal_focus": true,
+          "priority": "NONE",
+          "default_hmi": "BACKGROUND",
+          "groups": ["group1","Base-4"]
+        },]]
+        local PermissionLinesForSendLocation = PermissionLines_AllowedForOnVehicleData
+        local PermissionLinesForApplication = PermissionLinesForApp1
+        local RemovedOtherRPCsInPT = {"OnVehicleData"}
+        local PTName = testCasesForPolicyTable:createPolicyTableFile(PermissionLinesForBase4, PermissionLines_AllowedForOnVehicleData, PermissionLinesForApplication, RemovedOtherRPCsInPT)
+        return PTName
+      end
+      
+      local PTName = precondition_create_PT()
+      testCasesForPolicyTable:updatePolicy(PTName, nil, "APPLINK_25890_UpdatePolicy_OnVehicleData_In_group1_CreatePT")
+      
+      --Case 1: User_Has_Not_Consented_Yet
+      Test["APPLINK_25890_OnVehicleData_in_group1_User_Has_Not_Consented_Yet"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --parameters in function group that has not been consented yet.
+          speed = 0.0,
+          fuelLevel = -6.000000
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", {})
+        :Times(0)
+      end
+      
+      --OnVehicleData(parameters are in consent group1 + parameters are in base-4)
+      Test["APPLINK_25890_OnVehicleData_parameters_in_Not_Consented_Yet_group1_And_parameters_in_Base_4"] = function(self)
+        local OnVehicleData_Notification = {
+          --parameters in function group that has not been consented yet.
+          speed = 0.0,
+          fuelLevel = -6.000000,
+          --Allowed in base-4
+          airbagStatus = {
+            driverAirbagDeployed = "YES",
+            driverSideAirbagDeployed = "YES",
+            driverCurtainAirbagDeployed = "YES",
+            passengerAirbagDeployed = "YES",
+            passengerCurtainAirbagDeployed = "YES",
+            driverKneeAirbagDeployed = "YES",
+            passengerSideAirbagDeployed = "YES",
+            passengerKneeAirbagDeployed = "YES"
+          },
+          beltStatus = {
+            driverBeltDeployed = "NO_EVENT",
+            passengerBeltDeployed = "NO_EVENT",
+            passengerBuckleBelted = "NO_EVENT",
+            driverBuckleBelted = "NO_EVENT",
+            leftRow2BuckleBelted = "NO_EVENT",
+            passengerChildDetected = "NO_EVENT",
+            rightRow2BuckleBelted = "NO_EVENT",
+            middleRow2BuckleBelted = "NO_EVENT",
+            middleRow3BuckleBelted = "NO_EVENT",
+            leftRow3BuckleBelted = "NO_EVENT",
+            rightRow3BuckleBelted = "NO_EVENT",
+            leftRearInflatableBelted = "NO_EVENT",
+            rightRearInflatableBelted = "NO_EVENT",
+            middleRow1BeltDeployed = "NO_EVENT",
+            middleRow1BuckleBelted = "NO_EVENT"
+          },
+          driverBraking = "NO_EVENT"
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        
+        local OnVehicleData_ExpectedNotification = {
+          --Allowed in base-4
+          airbagStatus = {
+            driverAirbagDeployed = "YES",
+            driverSideAirbagDeployed = "YES",
+            driverCurtainAirbagDeployed = "YES",
+            passengerAirbagDeployed = "YES",
+            passengerCurtainAirbagDeployed = "YES",
+            driverKneeAirbagDeployed = "YES",
+            passengerSideAirbagDeployed = "YES",
+            passengerKneeAirbagDeployed = "YES"
+          },
+          beltStatus = {
+            driverBeltDeployed = "NO_EVENT",
+            passengerBeltDeployed = "NO_EVENT",
+            passengerBuckleBelted = "NO_EVENT",
+            driverBuckleBelted = "NO_EVENT",
+            leftRow2BuckleBelted = "NO_EVENT",
+            passengerChildDetected = "NO_EVENT",
+            rightRow2BuckleBelted = "NO_EVENT",
+            middleRow2BuckleBelted = "NO_EVENT",
+            middleRow3BuckleBelted = "NO_EVENT",
+            leftRow3BuckleBelted = "NO_EVENT",
+            rightRow3BuckleBelted = "NO_EVENT",
+            leftRearInflatableBelted = "NO_EVENT",
+            rightRearInflatableBelted = "NO_EVENT",
+            middleRow1BeltDeployed = "NO_EVENT",
+            middleRow1BuckleBelted = "NO_EVENT"
+          },
+          driverBraking = "NO_EVENT"
+        }
+        
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
+        :ValidIf (function(_,data)
           local result = true
           if data.payload.speed then
             commonFunctions:printError(" SDL resends disallowed parameter 'speed' to mobile app ")
@@ -4534,57 +4534,57 @@ local function Test_Block_VIII()
           end
           return result
         end)
-    end
-
-    --OnVehicleData(parameters are in consent group1 + parameters are in base-4 + parameters are not in base-4)
-    Test["APPLINK_25890_OnVehicleData_parameters_in_Not_Consented_Yet_group1_And_parameters_in_Base_4_And_parameters_not_in_Base_4"] = function(self)
-      local OnVehicleData_Notification = {
-        --parameters in function group that has not been consented yet.
-        speed = 0.0,
-        fuelLevel = -6.000000,
-        --Allowed in base-4
-        airbagStatus = {
-          driverAirbagDeployed = "YES",
-          driverSideAirbagDeployed = "YES",
-          driverCurtainAirbagDeployed = "YES",
-          passengerAirbagDeployed = "YES",
-          passengerCurtainAirbagDeployed = "YES",
-          driverKneeAirbagDeployed = "YES",
-          passengerSideAirbagDeployed = "YES",
-          passengerKneeAirbagDeployed = "YES"
-        },
-        beltStatus = {
-          driverBeltDeployed = "NO_EVENT",
-          passengerBeltDeployed = "NO_EVENT",
-          passengerBuckleBelted = "NO_EVENT",
-          driverBuckleBelted = "NO_EVENT",
-          leftRow2BuckleBelted = "NO_EVENT",
-          passengerChildDetected = "NO_EVENT",
-          rightRow2BuckleBelted = "NO_EVENT",
-          middleRow2BuckleBelted = "NO_EVENT",
-          middleRow3BuckleBelted = "NO_EVENT",
-          leftRow3BuckleBelted = "NO_EVENT",
-          rightRow3BuckleBelted = "NO_EVENT",
-          leftRearInflatableBelted = "NO_EVENT",
-          rightRearInflatableBelted = "NO_EVENT",
-          middleRow1BeltDeployed = "NO_EVENT",
-          middleRow1BuckleBelted = "NO_EVENT"
-        },
-        driverBraking = "NO_EVENT",
-        --parameters are not in base-4
-        tpms = "UNKNOWN",
-        turnSignal = "OFF"
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-
-      local OnVehicleData_ExpectedNotification = {}
-      OnVehicleData_ExpectedNotification.airbagStatus = OnVehicleData_Notification.airbagStatus
-      OnVehicleData_ExpectedNotification.beltStatus = OnVehicleData_Notification.beltStatus
-      OnVehicleData_ExpectedNotification.driverBraking = OnVehicleData_Notification.driverBraking
-
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
-      :ValidIf (function(_,data)
+      end
+      
+      --OnVehicleData(parameters are in consent group1 + parameters are in base-4 + parameters are not in base-4)
+      Test["APPLINK_25890_OnVehicleData_parameters_in_Not_Consented_Yet_group1_And_parameters_in_Base_4_And_parameters_not_in_Base_4"] = function(self)
+        local OnVehicleData_Notification = {
+          --parameters in function group that has not been consented yet.
+          speed = 0.0,
+          fuelLevel = -6.000000,
+          --Allowed in base-4
+          airbagStatus = {
+            driverAirbagDeployed = "YES",
+            driverSideAirbagDeployed = "YES",
+            driverCurtainAirbagDeployed = "YES",
+            passengerAirbagDeployed = "YES",
+            passengerCurtainAirbagDeployed = "YES",
+            driverKneeAirbagDeployed = "YES",
+            passengerSideAirbagDeployed = "YES",
+            passengerKneeAirbagDeployed = "YES"
+          },
+          beltStatus = {
+            driverBeltDeployed = "NO_EVENT",
+            passengerBeltDeployed = "NO_EVENT",
+            passengerBuckleBelted = "NO_EVENT",
+            driverBuckleBelted = "NO_EVENT",
+            leftRow2BuckleBelted = "NO_EVENT",
+            passengerChildDetected = "NO_EVENT",
+            rightRow2BuckleBelted = "NO_EVENT",
+            middleRow2BuckleBelted = "NO_EVENT",
+            middleRow3BuckleBelted = "NO_EVENT",
+            leftRow3BuckleBelted = "NO_EVENT",
+            rightRow3BuckleBelted = "NO_EVENT",
+            leftRearInflatableBelted = "NO_EVENT",
+            rightRearInflatableBelted = "NO_EVENT",
+            middleRow1BeltDeployed = "NO_EVENT",
+            middleRow1BuckleBelted = "NO_EVENT"
+          },
+          driverBraking = "NO_EVENT",
+          --parameters are not in base-4
+          tpms = "UNKNOWN",
+          turnSignal = "OFF"
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        
+        local OnVehicleData_ExpectedNotification = {}
+        OnVehicleData_ExpectedNotification.airbagStatus = OnVehicleData_Notification.airbagStatus
+        OnVehicleData_ExpectedNotification.beltStatus = OnVehicleData_Notification.beltStatus
+        OnVehicleData_ExpectedNotification.driverBraking = OnVehicleData_Notification.driverBraking
+        
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
+        :ValidIf (function(_,data)
           local result = true
           if data.payload.speed then
             commonFunctions:printError(" SDL resends disallowed parameter 'speed' to mobile app ")
@@ -4604,112 +4604,112 @@ local function Test_Block_VIII()
           end
           return result
         end)
-    end
-
-    --OnVehicleData(parameters are in base-4 only)
-    Test["APPLINK_25890_OnVehicleData_Not_Consented_Yet_group1_And_parameters_in_Base_4"] = function(self)
-      local OnVehicleData_Notification = {
+      end
+      
+      --OnVehicleData(parameters are in base-4 only)
+      Test["APPLINK_25890_OnVehicleData_Not_Consented_Yet_group1_And_parameters_in_Base_4"] = function(self)
+        local OnVehicleData_Notification = {
+          --Allowed in base-4
+          airbagStatus = {
+            driverAirbagDeployed = "YES",
+            driverSideAirbagDeployed = "YES",
+            driverCurtainAirbagDeployed = "YES",
+            passengerAirbagDeployed = "YES",
+            passengerCurtainAirbagDeployed = "YES",
+            driverKneeAirbagDeployed = "YES",
+            passengerSideAirbagDeployed = "YES",
+            passengerKneeAirbagDeployed = "YES"
+          },
+          beltStatus = {
+            driverBeltDeployed = "NO_EVENT",
+            passengerBeltDeployed = "NO_EVENT",
+            passengerBuckleBelted = "NO_EVENT",
+            driverBuckleBelted = "NO_EVENT",
+            leftRow2BuckleBelted = "NO_EVENT",
+            passengerChildDetected = "NO_EVENT",
+            rightRow2BuckleBelted = "NO_EVENT",
+            middleRow2BuckleBelted = "NO_EVENT",
+            middleRow3BuckleBelted = "NO_EVENT",
+            leftRow3BuckleBelted = "NO_EVENT",
+            rightRow3BuckleBelted = "NO_EVENT",
+            leftRearInflatableBelted = "NO_EVENT",
+            rightRearInflatableBelted = "NO_EVENT",
+            middleRow1BeltDeployed = "NO_EVENT",
+            middleRow1BuckleBelted = "NO_EVENT"
+          },
+          driverBraking = "NO_EVENT"
+        }
+        
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
+      end
+      
+      --Case 2: User disallowed
+      testCasesForPolicyTable:userConsent(false, "group1", "APPLINK_25890_UserConsent_Answer_No")
+      
+      Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --parameters in disallowed function group
+          speed = 0.0,
+          fuelLevel = -6.000000
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", {})
+        :Times(0)
+      end
+      
+      Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed_And_Base_4"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --parameters in disallowed function group
+          speed = 0.0,
+          fuelLevel = -6.000000,
+          --Allowed in base-4
+          airbagStatus = {
+            driverAirbagDeployed = "YES",
+            driverSideAirbagDeployed = "YES",
+            driverCurtainAirbagDeployed = "YES",
+            passengerAirbagDeployed = "YES",
+            passengerCurtainAirbagDeployed = "YES",
+            driverKneeAirbagDeployed = "YES",
+            passengerSideAirbagDeployed = "YES",
+            passengerKneeAirbagDeployed = "YES"
+          },
+          beltStatus = {
+            driverBeltDeployed = "NO_EVENT",
+            passengerBeltDeployed = "NO_EVENT",
+            passengerBuckleBelted = "NO_EVENT",
+            driverBuckleBelted = "NO_EVENT",
+            leftRow2BuckleBelted = "NO_EVENT",
+            passengerChildDetected = "NO_EVENT",
+            rightRow2BuckleBelted = "NO_EVENT",
+            middleRow2BuckleBelted = "NO_EVENT",
+            middleRow3BuckleBelted = "NO_EVENT",
+            leftRow3BuckleBelted = "NO_EVENT",
+            rightRow3BuckleBelted = "NO_EVENT",
+            leftRearInflatableBelted = "NO_EVENT",
+            rightRearInflatableBelted = "NO_EVENT",
+            middleRow1BeltDeployed = "NO_EVENT",
+            middleRow1BuckleBelted = "NO_EVENT"
+          },
+          driverBraking = "NO_EVENT"
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        
+        local OnVehicleData_ExpectedNotification = {}
         --Allowed in base-4
-        airbagStatus = {
-          driverAirbagDeployed = "YES",
-          driverSideAirbagDeployed = "YES",
-          driverCurtainAirbagDeployed = "YES",
-          passengerAirbagDeployed = "YES",
-          passengerCurtainAirbagDeployed = "YES",
-          driverKneeAirbagDeployed = "YES",
-          passengerSideAirbagDeployed = "YES",
-          passengerKneeAirbagDeployed = "YES"
-        },
-        beltStatus = {
-          driverBeltDeployed = "NO_EVENT",
-          passengerBeltDeployed = "NO_EVENT",
-          passengerBuckleBelted = "NO_EVENT",
-          driverBuckleBelted = "NO_EVENT",
-          leftRow2BuckleBelted = "NO_EVENT",
-          passengerChildDetected = "NO_EVENT",
-          rightRow2BuckleBelted = "NO_EVENT",
-          middleRow2BuckleBelted = "NO_EVENT",
-          middleRow3BuckleBelted = "NO_EVENT",
-          leftRow3BuckleBelted = "NO_EVENT",
-          rightRow3BuckleBelted = "NO_EVENT",
-          leftRearInflatableBelted = "NO_EVENT",
-          rightRearInflatableBelted = "NO_EVENT",
-          middleRow1BeltDeployed = "NO_EVENT",
-          middleRow1BuckleBelted = "NO_EVENT"
-        },
-        driverBraking = "NO_EVENT"
-      }
-
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
-    end
-
-    --Case 2: User disallowed
-    testCasesForPolicyTable:userConsent(false, "group1", "APPLINK_25890_UserConsent_Answer_No")
-
-    Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --parameters in disallowed function group
-        speed = 0.0,
-        fuelLevel = -6.000000
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", {})
-      :Times(0)
-    end
-
-    Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed_And_Base_4"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --parameters in disallowed function group
-        speed = 0.0,
-        fuelLevel = -6.000000,
-        --Allowed in base-4
-        airbagStatus = {
-          driverAirbagDeployed = "YES",
-          driverSideAirbagDeployed = "YES",
-          driverCurtainAirbagDeployed = "YES",
-          passengerAirbagDeployed = "YES",
-          passengerCurtainAirbagDeployed = "YES",
-          driverKneeAirbagDeployed = "YES",
-          passengerSideAirbagDeployed = "YES",
-          passengerKneeAirbagDeployed = "YES"
-        },
-        beltStatus = {
-          driverBeltDeployed = "NO_EVENT",
-          passengerBeltDeployed = "NO_EVENT",
-          passengerBuckleBelted = "NO_EVENT",
-          driverBuckleBelted = "NO_EVENT",
-          leftRow2BuckleBelted = "NO_EVENT",
-          passengerChildDetected = "NO_EVENT",
-          rightRow2BuckleBelted = "NO_EVENT",
-          middleRow2BuckleBelted = "NO_EVENT",
-          middleRow3BuckleBelted = "NO_EVENT",
-          leftRow3BuckleBelted = "NO_EVENT",
-          rightRow3BuckleBelted = "NO_EVENT",
-          leftRearInflatableBelted = "NO_EVENT",
-          rightRearInflatableBelted = "NO_EVENT",
-          middleRow1BeltDeployed = "NO_EVENT",
-          middleRow1BuckleBelted = "NO_EVENT"
-        },
-        driverBraking = "NO_EVENT"
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-
-      local OnVehicleData_ExpectedNotification = {}
-      --Allowed in base-4
-      OnVehicleData_ExpectedNotification.airbagStatus = OnVehicleData_Notification.airbagStatus
-      OnVehicleData_ExpectedNotification.beltStatus = OnVehicleData_Notification.beltStatus
-      OnVehicleData_ExpectedNotification.driverBraking = OnVehicleData_Notification.driverBraking
-
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
-      :ValidIf (function(_,data)
+        OnVehicleData_ExpectedNotification.airbagStatus = OnVehicleData_Notification.airbagStatus
+        OnVehicleData_ExpectedNotification.beltStatus = OnVehicleData_Notification.beltStatus
+        OnVehicleData_ExpectedNotification.driverBraking = OnVehicleData_Notification.driverBraking
+        
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
+        :ValidIf (function(_,data)
           local result = true
           if data.payload.speed then
             commonFunctions:printError(" SDL resends disallowed parameter 'speed' to mobile app ")
@@ -4721,74 +4721,74 @@ local function Test_Block_VIII()
           end
           return result
         end)
-    end
-
-    Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed_And_Not_in_Base_4"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --parameters in disallowed function group
-        speed = 0.0,
-        fuelLevel = -6.000000,
-        --parameters are not in base-4
-        tpms = "UNKNOWN",
-        turnSignal = "OFF"
-      }
-
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", {})
-      :Times(0)
-    end
-
-    Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed_And_Base_4_And_not_in_Base_4"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --parameters in disallowed function group
-        speed = 0.0,
-        fuelLevel = -6.000000,
+      end
+      
+      Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed_And_Not_in_Base_4"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --parameters in disallowed function group
+          speed = 0.0,
+          fuelLevel = -6.000000,
+          --parameters are not in base-4
+          tpms = "UNKNOWN",
+          turnSignal = "OFF"
+        }
+        
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", {})
+        :Times(0)
+      end
+      
+      Test["APPLINK_25890_OnVehicleData_in_group1_User_Disallowed_And_Base_4_And_not_in_Base_4"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --parameters in disallowed function group
+          speed = 0.0,
+          fuelLevel = -6.000000,
+          --Allowed in base-4
+          airbagStatus = {
+            driverAirbagDeployed = "YES",
+            driverSideAirbagDeployed = "YES",
+            driverCurtainAirbagDeployed = "YES",
+            passengerAirbagDeployed = "YES",
+            passengerCurtainAirbagDeployed = "YES",
+            driverKneeAirbagDeployed = "YES",
+            passengerSideAirbagDeployed = "YES",
+            passengerKneeAirbagDeployed = "YES"
+          },
+          beltStatus = {
+            driverBeltDeployed = "NO_EVENT",
+            passengerBeltDeployed = "NO_EVENT",
+            passengerBuckleBelted = "NO_EVENT",
+            driverBuckleBelted = "NO_EVENT",
+            leftRow2BuckleBelted = "NO_EVENT",
+            passengerChildDetected = "NO_EVENT",
+            rightRow2BuckleBelted = "NO_EVENT",
+            middleRow2BuckleBelted = "NO_EVENT",
+            middleRow3BuckleBelted = "NO_EVENT",
+            leftRow3BuckleBelted = "NO_EVENT",
+            rightRow3BuckleBelted = "NO_EVENT",
+            leftRearInflatableBelted = "NO_EVENT",
+            rightRearInflatableBelted = "NO_EVENT",
+            middleRow1BeltDeployed = "NO_EVENT",
+            middleRow1BuckleBelted = "NO_EVENT"
+          },
+          driverBraking = "NO_EVENT",
+          --parameters are not in base-4
+          tpms = "UNKNOWN",
+          turnSignal = "OFF"
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        
+        local OnVehicleData_ExpectedNotification = {}
         --Allowed in base-4
-        airbagStatus = {
-          driverAirbagDeployed = "YES",
-          driverSideAirbagDeployed = "YES",
-          driverCurtainAirbagDeployed = "YES",
-          passengerAirbagDeployed = "YES",
-          passengerCurtainAirbagDeployed = "YES",
-          driverKneeAirbagDeployed = "YES",
-          passengerSideAirbagDeployed = "YES",
-          passengerKneeAirbagDeployed = "YES"
-        },
-        beltStatus = {
-          driverBeltDeployed = "NO_EVENT",
-          passengerBeltDeployed = "NO_EVENT",
-          passengerBuckleBelted = "NO_EVENT",
-          driverBuckleBelted = "NO_EVENT",
-          leftRow2BuckleBelted = "NO_EVENT",
-          passengerChildDetected = "NO_EVENT",
-          rightRow2BuckleBelted = "NO_EVENT",
-          middleRow2BuckleBelted = "NO_EVENT",
-          middleRow3BuckleBelted = "NO_EVENT",
-          leftRow3BuckleBelted = "NO_EVENT",
-          rightRow3BuckleBelted = "NO_EVENT",
-          leftRearInflatableBelted = "NO_EVENT",
-          rightRearInflatableBelted = "NO_EVENT",
-          middleRow1BeltDeployed = "NO_EVENT",
-          middleRow1BuckleBelted = "NO_EVENT"
-        },
-        driverBraking = "NO_EVENT",
-        --parameters are not in base-4
-        tpms = "UNKNOWN",
-        turnSignal = "OFF"
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-
-      local OnVehicleData_ExpectedNotification = {}
-      --Allowed in base-4
-      OnVehicleData_ExpectedNotification.airbagStatus = OnVehicleData_Notification.airbagStatus
-      OnVehicleData_ExpectedNotification.beltStatus = OnVehicleData_Notification.beltStatus
-      OnVehicleData_ExpectedNotification.driverBraking = OnVehicleData_Notification.driverBraking
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
-      :ValidIf (function(_,data)
+        OnVehicleData_ExpectedNotification.airbagStatus = OnVehicleData_Notification.airbagStatus
+        OnVehicleData_ExpectedNotification.beltStatus = OnVehicleData_Notification.beltStatus
+        OnVehicleData_ExpectedNotification.driverBraking = OnVehicleData_Notification.driverBraking
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_ExpectedNotification)
+        :ValidIf (function(_,data)
           local result = true
           if data.payload.speed then
             commonFunctions:printError(" SDL resends disallowed parameter 'speed' to mobile app ")
@@ -4808,84 +4808,127 @@ local function Test_Block_VIII()
           end
           return result
         end)
+      end
+      
+      Test["APPLINK_25890_OnVehicleData_only_parameters_in_base_4_User_Disallowed_group1"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --Allowed in base-4
+          airbagStatus = {
+            driverAirbagDeployed = "YES",
+            driverSideAirbagDeployed = "YES",
+            driverCurtainAirbagDeployed = "YES",
+            passengerAirbagDeployed = "YES",
+            passengerCurtainAirbagDeployed = "YES",
+            driverKneeAirbagDeployed = "YES",
+            passengerSideAirbagDeployed = "YES",
+            passengerKneeAirbagDeployed = "YES"
+          },
+          beltStatus = {
+            driverBeltDeployed = "NO_EVENT",
+            passengerBeltDeployed = "NO_EVENT",
+            passengerBuckleBelted = "NO_EVENT",
+            driverBuckleBelted = "NO_EVENT",
+            leftRow2BuckleBelted = "NO_EVENT",
+            passengerChildDetected = "NO_EVENT",
+            rightRow2BuckleBelted = "NO_EVENT",
+            middleRow2BuckleBelted = "NO_EVENT",
+            middleRow3BuckleBelted = "NO_EVENT",
+            leftRow3BuckleBelted = "NO_EVENT",
+            rightRow3BuckleBelted = "NO_EVENT",
+            leftRearInflatableBelted = "NO_EVENT",
+            rightRearInflatableBelted = "NO_EVENT",
+            middleRow1BeltDeployed = "NO_EVENT",
+            middleRow1BuckleBelted = "NO_EVENT"
+          },
+          driverBraking = "NO_EVENT"
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
+      end
     end
-
-    Test["APPLINK_25890_OnVehicleData_only_parameters_in_base_4_User_Disallowed_group1"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --Allowed in base-4
-        airbagStatus = {
-          driverAirbagDeployed = "YES",
-          driverSideAirbagDeployed = "YES",
-          driverCurtainAirbagDeployed = "YES",
-          passengerAirbagDeployed = "YES",
-          passengerCurtainAirbagDeployed = "YES",
-          driverKneeAirbagDeployed = "YES",
-          passengerSideAirbagDeployed = "YES",
-          passengerKneeAirbagDeployed = "YES"
-        },
-        beltStatus = {
-          driverBeltDeployed = "NO_EVENT",
-          passengerBeltDeployed = "NO_EVENT",
-          passengerBuckleBelted = "NO_EVENT",
-          driverBuckleBelted = "NO_EVENT",
-          leftRow2BuckleBelted = "NO_EVENT",
-          passengerChildDetected = "NO_EVENT",
-          rightRow2BuckleBelted = "NO_EVENT",
-          middleRow2BuckleBelted = "NO_EVENT",
-          middleRow3BuckleBelted = "NO_EVENT",
-          leftRow3BuckleBelted = "NO_EVENT",
-          rightRow3BuckleBelted = "NO_EVENT",
-          leftRearInflatableBelted = "NO_EVENT",
-          rightRearInflatableBelted = "NO_EVENT",
-          middleRow1BeltDeployed = "NO_EVENT",
-          middleRow1BuckleBelted = "NO_EVENT"
-        },
-        driverBraking = "NO_EVENT"
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
-    end
-  end
-  CRQ8_APPLINK_25890()
-
-  ----------------------------------------------------------------------------------------------
-  --CRQ #9: APPLINK-25891 [Policies]: SendLocation with one OR more allowed parameters and one OR more disallowed parameters by user
-  -- OnVehicleData(some parameters from disallowed function group + some parameters is not allowed by PT)-> USER_DISALLOWED
-  ----------------------------------------------------------------------------------------------
-  --Precondition: CRQ8_APPLINK_25890 was succeeded.
-  local function CRQ9_APPLINK_25891()
-    --Print new line to separate Preconditions
-    commonFunctions:newTestCasesGroup("APPLINK_25891")
+    CRQ8_APPLINK_25890()
+    
+    ----------------------------------------------------------------------------------------------
+    --CRQ #9: APPLINK-25891 [Policies]: SendLocation with one OR more allowed parameters and one OR more disallowed parameters by user
+    -- OnVehicleData(some parameters from disallowed function group + some parameters is not allowed by PT)-> USER_DISALLOWED
+    ----------------------------------------------------------------------------------------------
     --Precondition: CRQ8_APPLINK_25890 was succeeded.
-    Test["APPLINK_25891_OnVehicleData_some_parameters_disallowed_by_user_some_parameters_disallowed_by_PT"] = function(self)
-      commonTestCases:DelayedExp(1000)
-      local OnVehicleData_Notification = {
-        --Allowed parameters in group1 but group1 is disallowed by user.
-        speed = 0.0,
-        fuelLevel = -6.000000,
-        --Disallowed parameters by PT
-        wiperStatus = "OFF",
-        odometer = 0
-      }
-      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-      --mobile side: does not receive notification
-      EXPECT_NOTIFICATION("OnVehicleData", {})
-      :Times(0)
+    local function CRQ9_APPLINK_25891()
+      --Print new line to separate Preconditions
+      commonFunctions:newTestCasesGroup("APPLINK_25891")
+      --Precondition: CRQ8_APPLINK_25890 was succeeded.
+      Test["APPLINK_25891_OnVehicleData_some_parameters_disallowed_by_user_some_parameters_disallowed_by_PT"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --Allowed parameters in group1 but group1 is disallowed by user.
+          speed = 0.0,
+          fuelLevel = -6.000000,
+          --Disallowed parameters by PT
+          wiperStatus = "OFF",
+          odometer = 0
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        --mobile side: does not receive notification
+        EXPECT_NOTIFICATION("OnVehicleData", {})
+        :Times(0)
+      end
     end
-  end
-  CRQ9_APPLINK_25891()
-
-  --only user allowed parameters in consented group
-  local function Additional_Case()
-    --Print new line to separate in ATF log
-    commonFunctions:newTestCasesGroup("Additional case: User allows function group")
-    testCasesForPolicyTable:userConsent(true, "group1", "UserConsent_Answer_YES")
-    Test["APPLINK_25890_OnVehicleData_in_group1_User_Allowed"] = function(self)
-      commonTestCases:DelayedExp(1000)
+    CRQ9_APPLINK_25891()
+    
+    --only user allowed parameters in consented group
+    local function Additional_Case()
+      --Print new line to separate in ATF log
+      commonFunctions:newTestCasesGroup("Additional case: User allows function group")
+      testCasesForPolicyTable:userConsent(true, "group1", "UserConsent_Answer_YES")
+      Test["APPLINK_25890_OnVehicleData_in_group1_User_Allowed"] = function(self)
+        commonTestCases:DelayedExp(1000)
+        local OnVehicleData_Notification = {
+          --Allowed parameters:
+          speed = 0.0,
+          fuelLevel = -6.000000
+        }
+        self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+        --mobile side: receives notification
+        EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
+      end
+    end
+    Additional_Case()
+    
+    --allowed parameters in consented group + allowed parameters by PT
+    Test["Allowed_Parameters_In_Consent_Group_And_Allowed_Parameters_In_Base_4"] = function(self)
       local OnVehicleData_Notification = {
-        --Allowed parameters:
+        --Allowed parameters in Base-4 group
+        airbagStatus = {
+          driverAirbagDeployed = "YES",
+          driverSideAirbagDeployed = "YES",
+          driverCurtainAirbagDeployed = "YES",
+          passengerAirbagDeployed = "YES",
+          passengerCurtainAirbagDeployed = "YES",
+          driverKneeAirbagDeployed = "YES",
+          passengerSideAirbagDeployed = "YES",
+          passengerKneeAirbagDeployed = "YES"
+        },
+        beltStatus = {
+          driverBeltDeployed = "NO_EVENT",
+          passengerBeltDeployed = "NO_EVENT",
+          passengerBuckleBelted = "NO_EVENT",
+          driverBuckleBelted = "NO_EVENT",
+          leftRow2BuckleBelted = "NO_EVENT",
+          passengerChildDetected = "NO_EVENT",
+          rightRow2BuckleBelted = "NO_EVENT",
+          middleRow2BuckleBelted = "NO_EVENT",
+          middleRow3BuckleBelted = "NO_EVENT",
+          leftRow3BuckleBelted = "NO_EVENT",
+          rightRow3BuckleBelted = "NO_EVENT",
+          leftRearInflatableBelted = "NO_EVENT",
+          rightRearInflatableBelted = "NO_EVENT",
+          middleRow1BeltDeployed = "NO_EVENT",
+          middleRow1BuckleBelted = "NO_EVENT"
+        },
+        driverBraking = "NO_EVENT",
+        --Allowed parameters in consented group1
         speed = 0.0,
         fuelLevel = -6.000000
       }
@@ -4893,71 +4936,28 @@ local function Test_Block_VIII()
       --mobile side: receives notification
       EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
     end
-  end
-  Additional_Case()
-
-  --allowed parameters in consented group + allowed parameters by PT
-  Test["Allowed_Parameters_In_Consent_Group_And_Allowed_Parameters_In_Base_4"] = function(self)
-    local OnVehicleData_Notification = {
-      --Allowed parameters in Base-4 group
-      airbagStatus = {
-        driverAirbagDeployed = "YES",
-        driverSideAirbagDeployed = "YES",
-        driverCurtainAirbagDeployed = "YES",
-        passengerAirbagDeployed = "YES",
-        passengerCurtainAirbagDeployed = "YES",
-        driverKneeAirbagDeployed = "YES",
-        passengerSideAirbagDeployed = "YES",
-        passengerKneeAirbagDeployed = "YES"
-      },
-      beltStatus = {
-        driverBeltDeployed = "NO_EVENT",
-        passengerBeltDeployed = "NO_EVENT",
-        passengerBuckleBelted = "NO_EVENT",
-        driverBuckleBelted = "NO_EVENT",
-        leftRow2BuckleBelted = "NO_EVENT",
-        passengerChildDetected = "NO_EVENT",
-        rightRow2BuckleBelted = "NO_EVENT",
-        middleRow2BuckleBelted = "NO_EVENT",
-        middleRow3BuckleBelted = "NO_EVENT",
-        leftRow3BuckleBelted = "NO_EVENT",
-        rightRow3BuckleBelted = "NO_EVENT",
-        leftRearInflatableBelted = "NO_EVENT",
-        rightRearInflatableBelted = "NO_EVENT",
-        middleRow1BeltDeployed = "NO_EVENT",
-        middleRow1BuckleBelted = "NO_EVENT"
-      },
-      driverBraking = "NO_EVENT",
-      --Allowed parameters in consented group1
-      speed = 0.0,
-      fuelLevel = -6.000000
-    }
-    self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-    --mobile side: receives notification
-    EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
-  end
-
-  --allowed parameters in consented group + disallowed parameters by PT: --defect APPLINK-26968
-  Test["Allowed_Parameters_In_Consent_Group_And_Disallowed_Parameters_In_Base_4"] = function(self)
-    local OnVehicleData_Notification = {
-      --Disallowed parameters in PT(Base-4 group)
-      instantFuelConsumption = 0.000000,
-      externalTemperature = -40.000000,
-      --Allowed parameters in consented group1
-      speed = 0.0,
-      fuelLevel = -6.000000,
-      driverBraking = "NO_EVENT"
-    }
-    self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-    local OnVehicleData_Notification = {
-      --Allowed parameters in consented group1
-      speed = 0.0,
-      fuelLevel = -6.000000,
-      driverBraking = "NO_EVENT"
-    }
-    --mobile side: receives notification
-    EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
-    :ValidIf (function(_,data)
+    
+    --allowed parameters in consented group + disallowed parameters by PT: --defect APPLINK-26968
+    Test["Allowed_Parameters_In_Consent_Group_And_Disallowed_Parameters_In_Base_4"] = function(self)
+      local OnVehicleData_Notification = {
+        --Disallowed parameters in PT(Base-4 group)
+        instantFuelConsumption = 0.000000,
+        externalTemperature = -40.000000,
+        --Allowed parameters in consented group1
+        speed = 0.0,
+        fuelLevel = -6.000000,
+        driverBraking = "NO_EVENT"
+      }
+      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+      local OnVehicleData_Notification = {
+        --Allowed parameters in consented group1
+        speed = 0.0,
+        fuelLevel = -6.000000,
+        driverBraking = "NO_EVENT"
+      }
+      --mobile side: receives notification
+      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
+      :ValidIf (function(_,data)
         local result = true
         if data.payload.instantFuelConsumption then
           commonFunctions:printError(" SDL resends disallowed parameter 'instantFuelConsumption' to mobile app ")
@@ -4969,52 +4969,52 @@ local function Test_Block_VIII()
         end
         return result
       end)
-  end
-
-  --allow group 1 + allowed base-4 + disallowed base-4
-  Test["Allowed_Parameters_In_Consent_Group_And_Allowed_Parameters_In_Base_4_Disallowed"] = function(self)
-    local OnVehicleData_Notification = {
-      --Allowed parameters in Base-4 group
-      airbagStatus = {
-        driverAirbagDeployed = "YES",
-        driverSideAirbagDeployed = "YES",
-        driverCurtainAirbagDeployed = "YES",
-        passengerAirbagDeployed = "YES",
-        passengerCurtainAirbagDeployed = "YES",
-        driverKneeAirbagDeployed = "YES",
-        passengerSideAirbagDeployed = "YES",
-        passengerKneeAirbagDeployed = "YES"
-      },
-      beltStatus = {
-        driverBeltDeployed = "NO_EVENT",
-        passengerBeltDeployed = "NO_EVENT",
-        passengerBuckleBelted = "NO_EVENT",
-        driverBuckleBelted = "NO_EVENT",
-        leftRow2BuckleBelted = "NO_EVENT",
-        passengerChildDetected = "NO_EVENT",
-        rightRow2BuckleBelted = "NO_EVENT",
-        middleRow2BuckleBelted = "NO_EVENT",
-        middleRow3BuckleBelted = "NO_EVENT",
-        leftRow3BuckleBelted = "NO_EVENT",
-        rightRow3BuckleBelted = "NO_EVENT",
-        leftRearInflatableBelted = "NO_EVENT",
-        rightRearInflatableBelted = "NO_EVENT",
-        middleRow1BeltDeployed = "NO_EVENT",
-        middleRow1BuckleBelted = "NO_EVENT"
-      },
-      driverBraking = "NO_EVENT",
-      --Disallowed parameters in PT(Base-4 group)
-      instantFuelConsumption = 0.000000,
-      externalTemperature = -40.000000,
-      --Allowed parameters in consented group1
-      speed = 0.0,
-      fuelLevel = -6.000000,
-    }
-
-    self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
-    --mobile side: receives notification
-    EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
-    :ValidIf (function(_,data)
+    end
+    
+    --allow group 1 + allowed base-4 + disallowed base-4
+    Test["Allowed_Parameters_In_Consent_Group_And_Allowed_Parameters_In_Base_4_Disallowed"] = function(self)
+      local OnVehicleData_Notification = {
+        --Allowed parameters in Base-4 group
+        airbagStatus = {
+          driverAirbagDeployed = "YES",
+          driverSideAirbagDeployed = "YES",
+          driverCurtainAirbagDeployed = "YES",
+          passengerAirbagDeployed = "YES",
+          passengerCurtainAirbagDeployed = "YES",
+          driverKneeAirbagDeployed = "YES",
+          passengerSideAirbagDeployed = "YES",
+          passengerKneeAirbagDeployed = "YES"
+        },
+        beltStatus = {
+          driverBeltDeployed = "NO_EVENT",
+          passengerBeltDeployed = "NO_EVENT",
+          passengerBuckleBelted = "NO_EVENT",
+          driverBuckleBelted = "NO_EVENT",
+          leftRow2BuckleBelted = "NO_EVENT",
+          passengerChildDetected = "NO_EVENT",
+          rightRow2BuckleBelted = "NO_EVENT",
+          middleRow2BuckleBelted = "NO_EVENT",
+          middleRow3BuckleBelted = "NO_EVENT",
+          leftRow3BuckleBelted = "NO_EVENT",
+          rightRow3BuckleBelted = "NO_EVENT",
+          leftRearInflatableBelted = "NO_EVENT",
+          rightRearInflatableBelted = "NO_EVENT",
+          middleRow1BeltDeployed = "NO_EVENT",
+          middleRow1BuckleBelted = "NO_EVENT"
+        },
+        driverBraking = "NO_EVENT",
+        --Disallowed parameters in PT(Base-4 group)
+        instantFuelConsumption = 0.000000,
+        externalTemperature = -40.000000,
+        --Allowed parameters in consented group1
+        speed = 0.0,
+        fuelLevel = -6.000000,
+      }
+      
+      self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", OnVehicleData_Notification)
+      --mobile side: receives notification
+      EXPECT_NOTIFICATION("OnVehicleData", OnVehicleData_Notification)
+      :ValidIf (function(_,data)
         local result = true
         if data.payload.instantFuelConsumption then
           commonFunctions:printError(" SDL resends disallowed parameter 'instantFuelConsumption' to mobile app ")
@@ -5026,18 +5026,18 @@ local function Test_Block_VIII()
         end
         return result
       end)
+    end
   end
-end
-
-Test_Block_VIII()
-
----------------------------------------------------------------------------------------------
--------------------------------------------Postcondition-------------------------------------
----------------------------------------------------------------------------------------------
-
---Print new line to separate Postconditions
-commonFunctions:newTestCasesGroup("Postconditions")
-testCasesForPolicyTable:Restore_preloaded_pt()
-Test["Stop_SDL"] = function(self)
-  StopSDL()
-end
+  
+  Test_Block_VIII()
+  
+  ---------------------------------------------------------------------------------------------
+  -------------------------------------------Postcondition-------------------------------------
+  ---------------------------------------------------------------------------------------------
+  
+  --Print new line to separate Postconditions
+  commonFunctions:newTestCasesGroup("Postconditions")
+  testCasesForPolicyTable:Restore_preloaded_pt()
+  Test["Stop_SDL"] = function(self)
+    StopSDL()
+  end
