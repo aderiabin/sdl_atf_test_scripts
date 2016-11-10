@@ -33,7 +33,7 @@ sdl_repository = "https://github.com/CustomSDL/sdl_panasonic/"
 sdl_branch = "develop"
 
 atf_repository = "https://github.com/CustomSDL/sdl_atf/"
-atf_branch = "BUILD_SERVER_VERSION"
+atf_branch = "release/candidate_release_4.3.0"
 
 scripts_repository = "https://github.com/CustomSDL/sdl_atf_test_scripts/"
 scripts_branch = "develop"
