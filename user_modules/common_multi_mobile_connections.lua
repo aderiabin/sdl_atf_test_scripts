@@ -745,4 +745,39 @@ function CommonSteps:RestoreIniFile(test_case_name)
   end
 end
 
+-----------------------------------------------------------------------------
+-- Precondition steps: 
+-- @param test_case_name: Test name
+-- @param number_of_precondition_steps: Number from 1 to 6: 
+-- 1: Include step InitHMI
+-- 2: Include steps InitHMI and InitHMI_OnReady
+-- 3: Include steps InitHMI, InitHMI_OnReady and AddMobileConnection
+-- 4: Include steps InitHMI, InitHMI_OnReady, AddMobileConnection and AddMobileSession
+-- 5: Include steps InitHMI, InitHMI_OnReady, AddMobileConnection, AddMobileSession and RegisterApp
+-- 6: Include steps InitHMI, InitHMI_OnReady, AddMobileConnection, AddMobileSession, RegisterApp and ActivateApp
+-----------------------------------------------------------------------------
+function CommonSteps:PreconditionSteps(test_case_name, number_of_precondition_steps)
+  local mobile_connection_name = "mobileConnection"
+  local mobile_session_name = "mobileSession"
+  local app = config.application1.registerAppInterfaceParams  
+  if number_of_precondition_steps >= 1 then
+    CommonSteps:InitializeHmi(test_case_name .. "_InitHMI")
+  end
+  if number_of_precondition_steps >= 2 then
+    CommonSteps:HmiRespondOnReady(test_case_name .. "_InitHMI_onReady")
+  end  
+  if number_of_precondition_steps >= 3 then
+    CommonSteps:AddMobileConnection(test_case_name .. "_AddDefaultMobileConnection_" .. mobile_connection_name, mobile_connection_name)
+  end
+  if number_of_precondition_steps >= 4 then
+    CommonSteps:AddMobileSession(test_case_name .. "_AddDefaultMobileConnect_" .. mobile_session_name, mobile_connection_name, mobile_session_name)
+  end  
+  if number_of_precondition_steps >= 5 then
+    CommonSteps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name)		  
+  end
+  if number_of_precondition_steps >= 6 then
+    CommonSteps:ActivateApplication(test_case_name .. "_Activate_App", app.appName)		
+  end
+end
+
 return CommonSteps

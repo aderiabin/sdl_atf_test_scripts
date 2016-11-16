@@ -283,16 +283,6 @@ function module:RunSDL()
   self:runSDL()
 end
 
-function module:InitHMI()
-  critical(true)
-  self:initHMI()
-end
-
-function module:InitHMI_onReady()
-  critical(true)
-  self:initHMI_onReady()
-end
-
 function module:runSDL()
   if config.autorunSDL ~= true then
     SDL.autoStarted = false
