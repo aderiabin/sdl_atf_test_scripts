@@ -341,7 +341,7 @@ end
 --------------------------------------------------------------------------------
 function CommonSteps:RestoreIniFile(test_case_name)
   Test[test_case_name] = function(self)
-		local file_name = "smartDeviceLink.ini"
+    local file_name = "smartDeviceLink.ini"
     os.execute(" cp " .. config.pathToSDL .. file_name .. "_origin " .. config.pathToSDL .. file_name )
   end
 end
