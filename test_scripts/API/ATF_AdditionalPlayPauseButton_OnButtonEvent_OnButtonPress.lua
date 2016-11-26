@@ -12,7 +12,7 @@ local BUTTON_NAME = "PLAY_PAUSE"
 local MOBILE_SESSION = "mobileSession"
 local BUTTON_PRESS_MODES = {"SHORT", "LONG"}
 local BUTTON_EVENT_MODES = {"BUTTONDOWN","BUTTONUP"}
-local InvalidButtonEventModes = {
+local InvalidModes = {
   {value = {""}, name = "IsEmtpy"},
   {value = "ANY", name = "NonExist"},
   {value = 123, name = "WrongDataType"}
@@ -32,45 +32,56 @@ local function SubcribeButton(test_case_name, subscribe_param, expect_hmi_notifi
   end
 end
 
-local function OnButtonEventSuccess(test_case_name, button_press_mode)
-  Test[test_case_name] = function(self)
-    button_up = "BUTTONUP"
-    button_down = "BUTTONDOWN"
-    self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = button_down})
-    self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = button_up})
-    self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = BUTTON_NAME, mode = button_press_mode})
-    EXPECT_NOTIFICATION("OnButtonEvent",
-      {buttonName = BUTTON_NAME, buttonEventMode = button_down},
-      {buttonName = BUTTON_NAME, buttonEventMode = button_up},
-      {buttonName = BUTTON_NAME, buttonPressMode = button_press_mode})
-    :Times(2)
-    EXPECT_NOTIFICATION("OnButtonPress", {buttonName = BUTTON_NAME, buttonPressMode = button_press_mode})
+local function OnButtonEventSuccess(test_case_name)
+  for i =1, #BUTTON_PRESS_MODES do
+    Test[test_case_name .. BUTTON_PRESS_MODES[i] .. "_Success"] = function(self)
+      self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = "BUTTONDOWN"})
+      self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = "BUTTONUP"})
+      self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = BUTTON_NAME, mode = BUTTON_PRESS_MODES[i]})
+      EXPECT_NOTIFICATION("OnButtonEvent",
+        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONDOWN"},
+        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONUP"},
+        {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
+      :Times(2)
+      EXPECT_NOTIFICATION("OnButtonPress", {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
+    end
   end
 end
 
-local function OnButtonEventWithButtonDownInvalid(test_case_name, button_press_mode, invalid_event_mode)
-  Test[test_case_name] = function(self)
-    self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = invalid_event_mode})
-    self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = "BUTTONUP"})
-    self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = BUTTON_NAME, mode = button_press_mode})
-    EXPECT_NOTIFICATION("OnButtonEvent",
-      {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONUP"},
-      {buttonName = BUTTON_NAME, buttonPressMode = button_press_mode})
-    :Times(1)
-    EXPECT_NOTIFICATION("OnButtonPress", {buttonName = BUTTON_NAME, buttonPressMode = button_press_mode})
+local function OnButtonEventSuccessWithFakeParam(test_case_name)
+  for i =1, #BUTTON_PRESS_MODES do
+    Test[test_case_name .. BUTTON_PRESS_MODES[i] .. "_Fake_Param"] = function(self)
+      subscribe_param = subscribe_param or {buttonName = BUTTON_NAME}
+      self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{fakeParameter = "fakeParameter", name = BUTTON_NAME, mode = "BUTTONDOWN"})
+      self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{fakeParameter = "fakeParameter", name = BUTTON_NAME, mode = "BUTTONUP"})
+      self.hmiConnection:SendNotification("Buttons.OnButtonPress",{fakeParameter = "fakeParameter", name = BUTTON_NAME, mode = BUTTON_PRESS_MODES[i]})
+      EXPECT_NOTIFICATION("OnButtonEvent",
+        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONDOWN"},
+        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONUP"},
+        {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
+      :Times(2)
+      EXPECT_NOTIFICATION("OnButtonPress", {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
+    end
   end
 end
 
-local function OnButtonEventWithButtonUpInvalid(test_case_name, button_press_mode, invalid_event_mode)
-  Test[test_case_name] = function(self)
-    self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = "BUTTONDOWN"})
-    self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = invalid_event_mode})
-    self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = BUTTON_NAME, mode = button_press_mode})
-    EXPECT_NOTIFICATION("OnButtonEvent",
-      {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONDOWN"},
-      {buttonName = BUTTON_NAME, buttonPressMode = button_press_mode})
-    :Times(1)
-    EXPECT_NOTIFICATION("OnButtonPress", {buttonName = BUTTON_NAME, buttonPressMode = button_press_mode})
+local function OnButtonEventWithEventModeInvalid(test_case_name)
+  for i=1, #InvalidModes do
+    Test[test_case_name .. InvalidModes[i].name] = function(self)
+      self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = BUTTON_NAME, mode = InvalidModes[i]})
+      EXPECT_NOTIFICATION("OnButtonEvent")
+      :Times(0)
+    end
+  end
+end
+
+local function OnButtonEventWithPressModeInvalid(test_case_name)
+  for i=1, #InvalidModes do
+    Test[test_case_name .. InvalidModes[i].name] = function(self)
+      self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = BUTTON_NAME, mode = InvalidModes[i]})
+      EXPECT_NOTIFICATION("OnButtonEvent")
+      :Times(0)
+    end
   end
 end
 
@@ -81,6 +92,7 @@ common_steps:ActivateApplication("ActivateApplication", MEDIA_APP.appName)
 
 ------------------------------------------Body--------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
+-- Precondition: SubscribleButton(PLAY_PAUSE)
 -- 1. HMI-SDL: Send OnButtonEvent(PLAY_PAUSE) with valid value: buttonPressMode = SHORT
 -- Expected result: SDL must send OnButtonEvent(SUCCESS) to application
 
@@ -95,17 +107,12 @@ common_steps:ActivateApplication("ActivateApplication", MEDIA_APP.appName)
 ------------------------------------------------------------------------------------------------------
 function TestOnButtonEventOnButtonPress()
   common_steps:AddNewTestCasesGroup("TC_OnButton_Event_And_OnButton_Press" )
-  SubcribeButton("SubcribeButton")
-
-  for i=1 ,#BUTTON_PRESS_MODES do
-    OnButtonEventSuccess(BUTTON_NAME .. "_Button_With_Press_Mode_Is_" .. BUTTON_PRESS_MODES[i] .. "_Success ", BUTTON_PRESS_MODES[i])
-  end
-  for i=1 ,#BUTTON_PRESS_MODES do
-    for j=1, #InvalidButtonEventModes do
-      tc_name = BUTTON_NAME .. "_Button_" .. BUTTON_PRESS_MODES[i] .. "_Mode"
-      OnButtonEventWithButtonDownInvalid(tc_name .. "_And_BUTTON_UP_Valid_BUTTON_DOWN_" .. InvalidButtonEventModes[j].name, BUTTON_PRESS_MODES[i], InvalidButtonEventModes[j])
-      OnButtonEventWithButtonUpInvalid(tc_name .. "_And_BUTTON_DOWN_Valid_BUTTON_UP_" .. InvalidButtonEventModes[j].name, BUTTON_PRESS_MODES[i], InvalidButtonEventModes[j])
-    end
-  end
+  -- Precondition
+  SubcribeButton("Precondition_SubcribeButton")
+  -- Body
+  OnButtonEventSuccess(BUTTON_NAME .. "_Button_With_Press_Mode_Is_")
+  OnButtonEventSuccessWithFakeParam(BUTTON_NAME .. "_Button_With_Press_Mode_Is_")
+  OnButtonEventWithEventModeInvalid(BUTTON_NAME .. "_Button_With_Event_Mode_Invalid: ")
+  OnButtonEventWithPressModeInvalid(BUTTON_NAME .. "_Button_With_Press_Mode_Invalid: ")
 end
 TestOnButtonEventOnButtonPress()

@@ -8,9 +8,9 @@ MEDIA_APP.appName = "MEDIA"
 MEDIA_APP.isMediaApplication = true
 MEDIA_APP.appHMIType = {"MEDIA"}
 MEDIA_APP.appID = "1"
-BUTTON_NAME = "PLAY_PAUSE"
-MOBILE_SESSION = "mobileSession"
-BUTTON_PRESS_MODES = {"SHORT", "LONG"}
+local BUTTON_NAME = "PLAY_PAUSE"
+local MOBILE_SESSION = "mobileSession"
+local BUTTON_PRESS_MODES = {"SHORT", "LONG"}
 
 -------------------------------------------Local Functions-----------------------------------
 local function SubcribeButton(test_case_name, subscribe_param, expect_hmi_notification, expect_response)
@@ -49,43 +49,53 @@ common_steps:ActivateApplication("ActivateApplication", MEDIA_APP.appName)
 -------------------------------------------------------------------------------------
 -- 1. MOB-SDL: Send SubscribleButton(PLAY_PAUSE) with valid value
 -- Expected result: SDL must send SubscribleButton(SUCCESS) and OnHashChange() to app
+-- Postcondition: UnsubscribleButton(PLAY_PAUSE)'
 
 -- 2. MOB-SDL: Send SubscribleButton(PLAY_PAUSE) with fake param
 -- Expected result: SDL must send SubscribleButton(SUCCESS) and OnHashChange() to app
+-- Postcondition: UnsubscribleButton(PLAY_PAUSE)
 
 -- 3. MOB-SDL: Send SubscribleButton(PLAY_PAUSE) with fake param from another API
 -- Expected result: SDL must send SubscribleButton(SUCCESS) and OnHashChange() to app
+-- Postcondition: UnsubscribleButton(PLAY_PAUSE)
 -------------------------------------------------------------------------------------
 function TestSubscribeButton()
   common_steps:AddNewTestCasesGroup("TC_Subscribe_Button" )
+
   SubcribeButton("SubcribeButton_" .. BUTTON_NAME .. "_Success")
+  UnSubcribeButton("PostCondition_UnSubcribeButton")
 
-  UnSubcribeButton("UnSubcribeButton")
   SubcribeButton("SubcribeButton_" .. BUTTON_NAME .. "_Fake_Param",{fakeParameter = "fakeParameter", buttonName = BUTTON_NAME})
+  UnSubcribeButton("PostCondition_UnSubcribeButton")
 
-  UnSubcribeButton("UnSubcribeButton")
   SubcribeButton("SubcribeButton_" .. BUTTON_NAME .. "_Parameter_Of_Other_API",{syncFileName = "icon.png",buttonName = BUTTON_NAME})
+  UnSubcribeButton("PostCondition_UnSubcribeButton")
 end
 TestSubscribeButton()
 
 -------------------------------------------------------------------------------------
+-- Precondition: SubscribleButton(PLAY_PAUSE)
 -- 1. MOB-SDL: Send UnsubscribleButton(PLAY_PAUSE) with valid value
 -- Expected result: SDL must send UnsubscribleButton(SUCCESS) and OnHashChange() to app
 
+-- Precondition: SubscribleButton(PLAY_PAUSE)
 -- 2. MOB-SDL: Send UnsubscribleButton(PLAY_PAUSE) with fake param
 -- Expected result: SDL must send UnsubscribleButton(SUCCESS) and OnHashChange() to app
 
+-- Precondition: SubscribleButton(PLAY_PAUSE)
 -- 3. MOB-SDL: Send UnsubscribleButton(PLAY_PAUSE) with fake param from another API
 -- Expected result: SDL must send UnsubscribleButton(SUCCESS) and OnHashChange() to app
 -------------------------------------------------------------------------------------
 function TestUnSubscribeButton()
   common_steps:AddNewTestCasesGroup("TC_UnSubscribe_Button" )
+
+  SubcribeButton("Precondition_SubcribeButton")
   UnSubcribeButton("UnSubcribeButton_" .. BUTTON_NAME .. "_Success")
 
-  SubcribeButton("SubcribeButton")
+  SubcribeButton("Precondition_SubcribeButton")
   UnSubcribeButton("UnSubcribeButton_" .. BUTTON_NAME .. "_Fake_Param",{fakeParameter = "fakeParameter", buttonName = BUTTON_NAME})
 
-  SubcribeButton("SubcribeButton")
+  SubcribeButton("Precondition_SubcribeButton")
   UnSubcribeButton("UnSubcribeButton_" .. BUTTON_NAME .. "_Parameter_Of_Other_API",{syncFileName = "icon.png",buttonName = BUTTON_NAME})
 end
 TestUnSubscribeButton()
