@@ -15,14 +15,24 @@ local tc_number = 1
 local delay_time = 10000
 local mobile_session_name = "mobileSession"
 local apps = {}
-apps[1] = common_functions:CreateRegisterAppParameters({appID = "1", appName = "NAVIGATION", isMediaApplication = false, appHMIType = {"NAVIGATION"}})
-apps[2] = common_functions:CreateRegisterAppParameters({appID = "2", appName = "COMMUNICATION", isMediaApplication = false, appHMIType = {"COMMUNICATION"}})
-apps[3] = common_functions:CreateRegisterAppParameters({appID = "3", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
-apps[4] = common_functions:CreateRegisterAppParameters({appID = "4", appName = "NON_MEDIA", isMediaApplication = false, appHMIType = {"DEFAULT"}})
+apps[1] = common_functions:CreateRegisterAppParameters(
+  {appID = "1", appName = "NAVIGATION", isMediaApplication = false, appHMIType = {"NAVIGATION"}}
+)
+apps[2] = common_functions:CreateRegisterAppParameters(
+  {appID = "2", appName = "COMMUNICATION", isMediaApplication = false, appHMIType = {"COMMUNICATION"}}
+)
+apps[3] = common_functions:CreateRegisterAppParameters(
+  {appID = "3", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}}
+)
+apps[4] = common_functions:CreateRegisterAppParameters(
+  {appID = "4", appName = "NON_MEDIA", isMediaApplication = false, appHMIType = {"DEFAULT"}}
+)
+
 --------------------------------------Preconditions------------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
 common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", 5000)
 common_steps:PreconditionSteps("Precondition", 5)
+
 -----------------------------------------------Body------------------------------------------
 -- Start VR
 -- @param test_case_name: main test name
@@ -32,6 +42,7 @@ local function StartVR(test_case_name)
     self.hmiConnection:SendNotification("VR.Started", {})
   end
 end
+
 ---------------------------------------------------------------------------------------------
 -- Stop VR with delay time
 -- @param test_case_name: main test name
@@ -45,6 +56,7 @@ local function StopVRWithDelayTime(test_case_name, delay_time)
     RUN_AFTER(to_run, delay_time)
   end
 end
+
 ---------------------------------------------------------------------------------------------
 -- Checking application(s) is resumed successful
 -- @param test_case_name: main test name
@@ -73,8 +85,41 @@ local function CheckAppsResumption(test_case_name, expected_hmi_status)
     :Times(count_limited_apps)
   end
 end
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Requirement summary: Resumption for single application (hmiLevel=FULL) is postponed in case IGNITION_CYCLE and VR is active BEFORE application is connected
+
+---------------------------------------------------------------------------------------------
+-- Checking application(s) is not resumed during time
+-- @param test_case_name: main test name
+-- @param expected_hmi_status: expected OnHMIStatus of each mobile session
+---------------------------------------------------------------------------------------------
+local function CheckAppIsNotResumedDuringTime(test_case_name, app_name, checking_time)
+  Test[test_case_name] = function(self)
+    common_functions:DelayedExp(checking_time)
+    EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnResumeAudioSource"):Times(0)
+    local mobile_conenction_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(app_name, self)
+    self[mobile_session_name]:ExpectNotification("OnHMIStatus"):Times(0)
+  end
+end
+
+---------------------------------------------------------------------------------------------
+-- Checking application(s) is not resumed during a period time
+-- @param test_case_name: main test name
+-- @param app_name: application's name
+-- @param checking_time: the period time that applications aren't resumed
+---------------------------------------------------------------------------------------------
+local function CheckAppIsNotResumedDuringTime(test_case_name, app_name, checking_time)
+  Test[test_case_name] = function(self)
+    common_functions:DelayedExp(checking_time)
+    EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnResumeAudioSource"):Times(0)
+    local mobile_conenction_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(app_name, self)
+    self[mobile_session_name]:ExpectNotification("OnHMIStatus"):Times(0)
+  end
+end
+
+---------------------------------------------------------------------------------------------
+-- Requirement summary: Resumption for single application (hmiLevel=FULL) is postponed
+-- in case IGNITION_CYCLE and VR is active BEFORE application is connected
 -- 1.Preconditions:
 -- -- 1.1. Application (NAVIGATION/COMMUNICATION/MEDIA/NON_MEDIA) is FULL
 -- -- 1.2. Ignition Off
@@ -82,9 +127,10 @@ end
 -- 2.Steps:
 -- -- 2.1. Start VR
 -- -- 2.2. Register application
--- -- 2.3. Stop VR
+-- -- 2.3. Check application is not resumed during a period time (10s)
+-- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 local function CheckAppFullIsPostponedWhenVRIsStartedBeforeRegisteredApp()
   for i=1, #apps do
     test_case_name = "TC_" .. tostring(tc_number)
@@ -98,7 +144,8 @@ local function CheckAppFullIsPostponedWhenVRIsStartedBeforeRegisteredApp()
     StartVR(test_case_name .. "_Start_VR")
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
-    StopVRWithDelayTime(test_case_name .. "_Stop_VR", 10000)
+    CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
+    StopVRWithDelayTime(test_case_name .. "_Stop_VR", 1000)
     audioStreamingState = (apps[i].appName == "NON_MEDIA") and "NOT_AUDIBLE" or "AUDIBLE"
     CheckAppsResumption(test_case_name .. "_Verify_Resumption_Success_When_VR_Ended",
       {mobileSession = {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = audioStreamingState}})
@@ -108,8 +155,10 @@ local function CheckAppFullIsPostponedWhenVRIsStartedBeforeRegisteredApp()
   end
 end
 CheckAppFullIsPostponedWhenVRIsStartedBeforeRegisteredApp()
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Requirement summary: Resumption for single application (hmiLevel=FULL) is postponed in case IGNITION_CYCLE and VR is active AFTER application is connected
+
+---------------------------------------------------------------------------------------------
+-- Requirement summary: Resumption for single application (hmiLevel=FULL) is postponed
+-- in case IGNITION_CYCLE and VR is active AFTER application is connected
 -- 1.Preconditions:
 -- -- 1.1. Application (NAVIGATION/COMMUNICATION/MEDIA/NON_MEDIA) is FULL
 -- -- 1.2. Ignition Off
@@ -117,9 +166,10 @@ CheckAppFullIsPostponedWhenVRIsStartedBeforeRegisteredApp()
 -- 2.Steps:
 -- -- 2.1. Register application
 -- -- 2.2. Start VR
--- -- 2.3. Stop VR
+-- -- 2.3. Check application is not resumed during a period time (10s)
+-- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 local function CheckAppFullIsPostponedWhenVRIsStartedAfterRegisteredApp()
   for i=1, #apps do
     test_case_name = "TC_" .. tostring(tc_number)
@@ -133,7 +183,8 @@ local function CheckAppFullIsPostponedWhenVRIsStartedAfterRegisteredApp()
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     StartVR(test_case_name .. "_Start_VR")
-    StopVRWithDelayTime(test_case_name .. "_Stop_VR", delay_time)
+    CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
+    StopVRWithDelayTime(test_case_name .. "_Stop_VR", 1000)
     audioStreamingState = (apps[i].appName == "NON_MEDIA") and "NOT_AUDIBLE" or "AUDIBLE"
     CheckAppsResumption(test_case_name .. "_Verify_Resumption_Success_When_VR_Ended",
       {mobileSession = {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = audioStreamingState}})
@@ -143,8 +194,10 @@ local function CheckAppFullIsPostponedWhenVRIsStartedAfterRegisteredApp()
   end
 end
 CheckAppFullIsPostponedWhenVRIsStartedAfterRegisteredApp()
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Requirement summary: Resumption for single application (hmiLevel=LIMITED) is postponed in case IGNITION_CYCLE and VR is active BEFORE application is connected
+
+---------------------------------------------------------------------------------------------
+-- Requirement summary: Resumption for single application (hmiLevel=LIMITED) is postponed
+-- in case IGNITION_CYCLE and VR is active BEFORE application is connected
 -- 1.Preconditions:
 -- -- 1.1. Application (NAVIGATION/COMMUNICATION/MEDIA/NON_MEDIA) is LIMITED
 -- -- 1.2. Ignition Off
@@ -152,9 +205,10 @@ CheckAppFullIsPostponedWhenVRIsStartedAfterRegisteredApp()
 -- 2.Steps:
 -- -- 2.1. Start VR
 -- -- 2.2. Register application
--- -- 2.3. Stop VR =>
+-- -- 2.3. Check application is not resumed during a period time (10s)
+-- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 local function CheckAppLimitedIsPostponedWhenVRIsStartedBeforerRegisteredApp()
   for i=1, #apps-1 do
     test_case_name = "TC_" .. tostring(tc_number)
@@ -171,7 +225,8 @@ local function CheckAppLimitedIsPostponedWhenVRIsStartedBeforerRegisteredApp()
     StartVR(test_case_name .. "_Start_VR")
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
-    StopVRWithDelayTime(test_case_name .. "_Stop_VR", delay_time)
+    CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
+    StopVRWithDelayTime(test_case_name .. "_Stop_VR", 1000)
     CheckAppsResumption(test_case_name .. "_Verify_Resumption_Success_When_VR_Ended",
       {mobileSession = {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"}})
     --Post condition
@@ -180,8 +235,10 @@ local function CheckAppLimitedIsPostponedWhenVRIsStartedBeforerRegisteredApp()
   end
 end
 CheckAppLimitedIsPostponedWhenVRIsStartedBeforerRegisteredApp()
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Requirement summary: Resumption for single application (hmiLevel=LIMITED) is postponed in case IGNITION_CYCLE and VR is active AFTER application is connected
+
+---------------------------------------------------------------------------------------------
+-- Requirement summary: Resumption for single application (hmiLevel=LIMITED) is postponed
+-- in case IGNITION_CYCLE and VR is active AFTER application is connected
 -- 1.Preconditions:
 -- -- 1.1. Application (NAVIGATION/COMMUNICATION/MEDIA/NON_MEDIA) is LIMITED
 -- -- 1.2. Ignition Off
@@ -189,15 +246,16 @@ CheckAppLimitedIsPostponedWhenVRIsStartedBeforerRegisteredApp()
 -- 2.Steps:
 -- -- 2.1. Register application
 -- -- 2.2. Start VR
--- -- 2.3. Stop VR
+-- -- 2.3. Check application is not resumed during a period time (10s)
+-- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 local function CheckAppLimitedIsPostponedWhenVRIsStartedAfterRegisteredApp()
   for i=1, #apps-1 do
     test_case_name = "TC_" .. tostring(tc_number)
     common_steps:AddNewTestCasesGroup("TC_" .. tostring(tc_number) ..
       "-HMILevel LIMITED: resumption for \"" .. apps[i].appName ..
-      "\" app is postponed in case IGNITION_CYCLE and VR is active BEFORE application is connected")
+      "\" app is postponed in case IGNITION_CYCLE and VR is active AFTER application is connected")
     -- Preconditions
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     common_steps:ActivateApplication(test_case_name .. "_Activate_App", apps[i].appName)
@@ -208,7 +266,8 @@ local function CheckAppLimitedIsPostponedWhenVRIsStartedAfterRegisteredApp()
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     StartVR(test_case_name .. "_Start_VR")
-    StopVRWithDelayTime(test_case_name .. "_Stop_VR", delay_time)
+    CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
+    StopVRWithDelayTime(test_case_name .. "_Stop_VR", 1000)
     CheckAppsResumption(test_case_name .. "_Verify_Resumption_Success_When_VR_Ended",
       {mobileSession = {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"}})
     --Post condition
@@ -217,5 +276,6 @@ local function CheckAppLimitedIsPostponedWhenVRIsStartedAfterRegisteredApp()
   end
 end
 CheckAppLimitedIsPostponedWhenVRIsStartedAfterRegisteredApp()
+
 -------------------------------------------Postcondition-------------------------------------
 common_steps:RestoreIniFile("Restore_Ini_file")
