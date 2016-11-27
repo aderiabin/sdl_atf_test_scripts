@@ -173,16 +173,14 @@ app_name_3 = {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "
 app_name_n = {hmiLevel = "BACKGROUND", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"}
 --}]]
 --------------------------------------------------------------------------------
-function CommonSteps:ActivateApplication(test_case_name, app_name, expected_level, expected_on_hmi_status_for_other_applications)
+function CommonSteps:ActivateApplication(test_case_name, app_name, expected_on_hmi_status_for_other_applications)
   Test[test_case_name] = function(self)
-    expected_level = expected_level or "FULL"
     local hmi_app_id = common_functions:GetHmiAppId(app_name, self)
     local audio_streaming_state = "NOT_AUDIBLE"
     if common_functions:IsMediaApp(app_name, self) then
       audio_streaming_state = "AUDIBLE"
     end
     local mobile_connect_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(app_name, self)
-    -- local cid = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id, level = expected_level})
     local cid = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id})
     EXPECT_HMIRESPONSE(cid)
     :Do(function(_,data)
@@ -195,19 +193,23 @@ function CommonSteps:ActivateApplication(test_case_name, app_name, expected_leve
               self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
             end)
         end
-        self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = expected_level, audioStreamingState = audio_streaming_state, systemContext = "MAIN"})
-        -- Verify OnHMIStatus for other applications
-        if expected_on_hmi_status_for_other_applications then
-          for k_app_name, v in pairs(expected_on_hmi_status_for_other_applications) do
-            local mobile_connection_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(k_app_name, self)
-            self[mobile_session_name]:ExpectNotification("OnHMIStatus", v)
-            :Do(function(_,data)
-                -- Store OnHMIStatus notification to use later
-                common_functions:StoreHmiStatus(app_name, data.payload, self)
-              end)
-          end -- for k_app_name, v
-        end -- if expected_on_hmi_status_for_other_applications then
       end) -- :Do(function(_,data)
+
+    self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = audio_streaming_state, systemContext = "MAIN"})
+    :Do(function(_,data)
+        common_functions:StoreHmiStatus(app_name, data.payload, self)
+      end)
+    -- Verify OnHMIStatus for other applications
+    if expected_on_hmi_status_for_other_applications then
+      for k_app_name, v in pairs(expected_on_hmi_status_for_other_applications) do
+        local mobile_connection_name, other_mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(k_app_name, self)
+        print(" activate , check result on session: " .. other_mobile_session_name)
+        self[other_mobile_session_name]:ExpectNotification("OnHMIStatus", v)
+        :Do(function(_,data)
+            common_functions:StoreHmiStatus(k_app_name, data.payload, self)
+          end)
+      end -- for k_app_name, v
+    end -- if expected_on_hmi_status_for_other_applications then
   end
 end
 --------------------------------------------------------------------------------
