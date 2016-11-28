@@ -17,10 +17,10 @@ apps[1] = common_functions:CreateRegisterAppParameters(
   {appID = "1", appName = "NAVIGATION", isMediaApplication = false, appHMIType = {"NAVIGATION"}}
 )
 apps[2] = common_functions:CreateRegisterAppParameters(
-  {appID = "2", appName = "COMMUNICATION", isMediaApplication = false, appHMIType = {"COMMUNICATION"}}
+  {appID = "2", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}}
 )
 apps[3] = common_functions:CreateRegisterAppParameters(
-  {appID = "3", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}}
+  {appID = "3", appName = "COMMUNICATION", isMediaApplication = false, appHMIType = {"COMMUNICATION"}}
 )
 apps[4] = common_functions:CreateRegisterAppParameters(
   {appID = "4", appName = "NON_MEDIA", isMediaApplication = false, appHMIType = {"DEFAULT"}}
