@@ -137,6 +137,7 @@ function EXPECT_HMICALL(methodName, ...)
 end
 
 function EXPECT_NOTIFICATION(func,...)
+  -- xmlReporter.AddMessage(debug.getinfo(1, "n").name, "EXPECTED_RESULT", ... )
   local args = table.pack(...)
   local args_count = 1
   if #args > 0 then
@@ -153,6 +154,7 @@ function EXPECT_NOTIFICATION(func,...)
     return module.mobileSession:ExpectNotification(func,arguments)
   end
   return module.mobileSession:ExpectNotification(func,args)
+
 end
 
 function EXPECT_ANY_SESSION_NOTIFICATION(funcName, ...)

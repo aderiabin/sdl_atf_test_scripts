@@ -12,7 +12,6 @@
 require('user_modules/all_common_modules')
 ------------------------------------ Common Variables ---------------------------------------
 local tc_number = 1
-local delay_time = 10000
 local mobile_session_name = "mobileSession"
 local apps = {}
 apps[1] = common_functions:CreateRegisterAppParameters(

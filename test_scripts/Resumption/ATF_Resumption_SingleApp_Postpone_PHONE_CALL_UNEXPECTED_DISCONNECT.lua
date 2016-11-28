@@ -260,7 +260,6 @@ local function CheckAppLimitedIsPostponedWhenPhoneCallIsStartedBeforerRegistered
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
-    audioStreamingState = (apps[i].appName == "NON_MEDIA") and "NOT_AUDIBLE" or "AUDIBLE"
     CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Verify_Resumption_SingleApp_Unsucess_When_IsActive_Invalid: ")
     StopPhoneCallWithDelayTime(test_case_name .. "_Stop_Phone_Call", 1000)
     CheckAppsResumptionSuccessful(test_case_name .. "_Verify_Resumption_Success_When_Phone_Call_Ended",

@@ -145,7 +145,7 @@ end
 -- -- 1.3. Ignition On
 -- 2.Steps:
 -- -- 2.1. Start Emergency
--- -- 2.1. Register applications
+-- -- 2.2. Register applications
 -- -- 2.3. Check application is not resumed during a period time (10s)
 -- -- 2.4. Check application is not resumed when isActive invalid
 -- -- 2.5. Stop Emergency

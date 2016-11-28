@@ -120,8 +120,8 @@ end
 -- -- 1.2. Close session
 -- 2.Steps:
 -- -- 2.1. Start VR
--- -- 2.1. Register applications
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.2. Register applications
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ CheckMultipleAppsFullLimitedLimitedBackgroundArePostponedWhenVRIsStartedBeforeRe
 -- 2.Steps:
 -- -- 2.1. Register applications
 -- -- 2.2. Start VR
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------
@@ -191,7 +191,7 @@ local function CheckMultipleAppsFullLimitedLimitedBackgroundArePostponedWhenVRIs
   end
   StartVR(tc_name .. "_Start_VR")
   CheckAppsAreNotResumedDuringTime(tc_name .. "_Verify_MultipleApps_Are_Not_Resumed_During_Time", 10000)
-  StopVRWithDelayTime(tc_name .. "_Stop_VR", 10000)
+  StopVRWithDelayTime(tc_name .. "_Stop_VR", 1000)
   CheckAppsResumption(tc_name .. "_Verify_Resumption_MultipleApps_Sucess_When_IsActive_Valid", expected_hmi_status_3apps)
   -- Post condition
   for i = 1, #apps do
@@ -211,8 +211,8 @@ common_steps:IgnitionOn("Ignition_On")
 -- -- 1.2. Close session
 -- 2.Steps:
 -- -- 2.1. Start VR
--- -- 2.1. Register applications
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.2. Register applications
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------
@@ -238,7 +238,7 @@ local function CheckMultipleAppsFullLimitedLimitedLimitedArePostponedWhenVRIsSta
     common_steps:RegisterApplication(tc_name .. "_Register_App_" .. apps[i].appName, MOBILE_SESSION[i], apps[i])
   end
   CheckAppsAreNotResumedDuringTime(tc_name .. "_Verify_MultipleApps_Are_Not_Resumed_During_Time", 10000)
-  StopVRWithDelayTime(tc_name .. "_Stop_VR", 10000)
+  StopVRWithDelayTime(tc_name .. "_Stop_VR", 1000)
   CheckAppsResumption(tc_name .. "_Verify_Resumption_MultipleApps_Sucess_When_IsActive_Valid", expected_hmi_status_4apps)
   -- Post condition
   for i = 1, #apps do
@@ -256,7 +256,7 @@ CheckMultipleAppsFullLimitedLimitedLimitedArePostponedWhenVRIsStartedBeforeRegis
 -- 2.Steps:
 -- -- 2.1. Register applications
 -- -- 2.2. Start VR
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------

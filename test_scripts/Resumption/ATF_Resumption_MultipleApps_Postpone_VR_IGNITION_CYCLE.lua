@@ -122,8 +122,8 @@ end
 -- -- 1.3. Ignition On
 -- 2.Steps:
 -- -- 2.1. Start VR
--- -- 2.1. Register applications
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.2. Register applications
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ CheckMultipleAppsFullLimitedLimitedBackgroundArePostponedWhenVRIsStartedBeforeRe
 -- 2.Steps:
 -- -- 2.1. Register applications
 -- -- 2.2. Start VR
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------
@@ -210,8 +210,8 @@ CheckMultipleAppsFullLimitedLimitedBackgroundArePostponedWhenVRIsStartedAfterReg
 -- -- 1.3. Ignition On
 -- 2.Steps:
 -- -- 2.1. Start VR
--- -- 2.1. Register applications
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.2. Register applications
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------
@@ -255,7 +255,7 @@ CheckMultipleAppsFullLimitedLimitedLimitedArePostponedWhenVRIsStartedBeforeRegis
 -- 2.Steps:
 -- -- 2.1. Register applications
 -- -- 2.2. Start VR
--- -- 2.3: Check applications are not resumed in during time
+-- -- 2.3. Check applications are not resumed in during time
 -- -- 2.4. Stop VR
 -- 3.Expected Result: Resumption success when VR ended
 ---------------------------------------------------------------------------------------------

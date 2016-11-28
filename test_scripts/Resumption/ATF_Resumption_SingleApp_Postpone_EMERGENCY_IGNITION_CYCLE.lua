@@ -151,7 +151,7 @@ local function CheckAppFullIsPostponedWhenEmergencyIsStartedBeforeRegisteredApp(
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
-    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsucess_When_IsActive_Invalid: ")
+    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsuccess_When_IsActive_Invalid: ")
     StopEmergencyWithDelayTime(test_case_name .. "_Stop_Emergency", 1000)
     audioStreamingState = (apps[i].appName == "NON_MEDIA") and "NOT_AUDIBLE" or "AUDIBLE"
     CheckAppsResumptionSuccessful(test_case_name .. "_Verify_Resumption_Success_When_Emergency_Ended",
@@ -193,7 +193,7 @@ local function CheckAppFullIsPostponedWhenEmergencyIsStartedAfterRegisteredApp()
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     StartEmergency(test_case_name .. "_Start_Emergency")
     CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
-    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsucess_When_IsActive_Invalid: ")
+    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsuccess_When_IsActive_Invalid: ")
     StopEmergencyWithDelayTime(test_case_name .. "_Stop_Emergency", 1000)
     audioStreamingState = (apps[i].appName == "NON_MEDIA") and "NOT_AUDIBLE" or "AUDIBLE"
     CheckAppsResumptionSuccessful(test_case_name .. "_Verify_Resumption_Success_When_Emergency_Ended",
@@ -241,7 +241,7 @@ local function CheckAppLimitedIsPostponedWhenEmergencyIsStartedBeforerRegistered
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
-    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsucess_When_IsActive_Invalid: ")
+    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsuccess_When_IsActive_Invalid: ")
     StopEmergencyWithDelayTime(test_case_name .. "_Stop_Emergency", 1000)
     CheckAppsResumptionSuccessful(test_case_name .. "_Verify_Resumption_Success_When_Emergency_Ended",
       {mobileSession = {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"}})
@@ -284,7 +284,7 @@ local function CheckAppLimitedIsPostponedWhenEmergencyIsStartedAfterRegisteredAp
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     StartEmergency(test_case_name .. "_Start_Emergency")
     CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
-    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsucess_When_IsActive_Invalid: ")
+    CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Resumption_SingleApp_Unsuccess_When_IsActive_Invalid: ")
     StopEmergencyWithDelayTime(test_case_name .. "_Stop_Emergency", 1000)
     CheckAppsResumptionSuccessful(test_case_name .. "_Verify_Resumption_Success_When_Emergency_Ended",
       {mobileSession = {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"}})

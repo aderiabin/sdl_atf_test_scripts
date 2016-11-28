@@ -156,7 +156,7 @@ end
 -- -- 1.2. Close session
 -- 2.Steps:
 -- -- 2.1. Start PHONE_CALL
--- -- 2.1. Register applications
+-- -- 2.2. Register applications
 -- -- 2.3. With App is NON_MEDIA: Check application is resumed without waiting ended phone call
 -- -- 2.4. With Apps aren't NON_MEDIA - Check applications aren't resumed during a period time (10s)
 -- -- 2.5. With Apps aren't NON_MEDIA - Check applications aren't resumed when isActive invalid
@@ -255,7 +255,7 @@ common_steps:IgnitionOn("Ignition_On")
 -- -- 1.2. Close session
 -- 2.Steps:
 -- -- 2.1. Start PHONE_CALL
--- -- 2.1. Register applications
+-- -- 2.2. Register applications
 -- -- 2.3. With App is NON_MEDIA: Check application is resumed without waiting ended phone call
 -- -- 2.4. With Apps aren't NON_MEDIA - Check applications aren't resumed during a period time (10s)
 -- -- 2.5. With Apps aren't NON_MEDIA - Check applications aren't resumed when isActive invalid
