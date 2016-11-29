@@ -525,168 +525,169 @@ commonFunctions:newTestCasesGroup("****************************** Begin Test sui
     :Times(0)
   end  -- 3. Verify OnWayPointChange with FakeParams
   ----------------------------------------------------------------------------------------------
-  function Test:OnWayPointChange_FakeParams()
-    local notification_with_fake_parameters = 
-    {
-      wayPoints=
-      {
-        {
-          coordinate={
-            longitudeDegrees = -180.0,
-            latitudeDegrees = -90.0,
-            fake="a"
-          },
-          locationName="Ho Chi Minh",
-          addressLines={"182 Le Dai Hanh"},
-          locationDescription="Toa nha Flemington",
-          phoneNumber="1231414",
-          locationImage={
-            value = storage_path .."icon.png",
-            imageType = "DYNAMIC",
-            fake="a"
-          },
-          searchAddress={
-            countryName="aaa",
-            countryCode="084",
-            postalCode="test",
-            administrativeArea="aa",
-            subAdministrativeArea="a",
-            locality="a",
-            subLocality="a",
-            thoroughfare="a",
-            subThoroughfare="a",
-            fake="a"
-          },
-          fake="fakeparam"
-        }
-      }
-    }    local notification_expectedresult_on_mobile_without_fake_parameters = 
-    {
-      wayPoints=
-      {
-        {
-          coordinate={
-            longitudeDegrees = -180.0,
-            latitudeDegrees = -90.0
-          },
-          locationName="Ho Chi Minh",
-          addressLines={"182 Le Dai Hanh"},
-          locationDescription="Toa nha Flemington",
-          phoneNumber="1231414",
-          locationImage={
-            value = storage_path .."icon.png",
-            imageType = "DYNAMIC"
-          },
-          searchAddress={
-            countryName="aaa",
-            countryCode="084",
-            postalCode="test",
-            administrativeArea="aa",
-            subAdministrativeArea="a",
-            locality="a",
-            subLocality="a",
-            thoroughfare="a",
-            subThoroughfare="a"
-          }
-        }
-      }
-    }    -- hmi side: sending OnWayPointChange notification			
-    self.hmiConnection:SendNotification("Navigation.OnWayPointChange", notification_with_fake_parameters)    -- mobile side: expected OnWayPointChange Notification
-    EXPECT_NOTIFICATION("OnWayPointChange", notification_expectedresult_on_mobile_without_fake_parameters)	
-    :ValidIf (function(_,data)
-      if data.payload.fake or
-      data.payload.coordinate.fake or				
-      data.payload.searchAddress.fake or
-      data.payload.locationImage.fake	
-      then
-        commonFunctions:printError(" SDL resends fake parameter to mobile app ")
-        return false
-      else 
-        return true
-      end
-    end)		
-  end  -- 4. Verify OnWayPointChange with FakeParameterIsFromAnotherAPI	
-  function Test:OnWayPointChange_FakeParameterIsFromAnotherAPI()
-    local notification_with_fake_parameters = 
-    {
-      wayPoints=
-      {
-        {
-          coordinate={
-            longitudeDegrees = -180.0,
-            latitudeDegrees = -90.0,
-            sliderPosition=4
-          },
-          locationName="Ho Chi Minh",
-          addressLines={"182 Le Dai Hanh"},
-          locationDescription="Flemington building",
-          phoneNumber="1231414",
-          locationImage={
-            value = storage_path .."icon.png",
-            imageType = "DYNAMIC",
-            sliderPosition=4
-          },
-          searchAddress={
-            countryName="aaa",
-            countryCode="084",
-            postalCode="test",
-            administrativeArea="aa",
-            subAdministrativeArea="a",
-            locality="a",
-            subLocality="a",
-            thoroughfare="a",
-            subThoroughfare="a",
-            sliderPosition=4
-          },
-          sliderPosition=4
-        }
-      }
-    }    local notification_expectedresult_on_mobile_without_fake_parameters = 
-    {
-      wayPoints=
-      {
-        {
-          coordinate={
-            longitudeDegrees = -180.0,
-            latitudeDegrees = -90.0
-          },
-          locationName="Ho Chi Minh",
-          addressLines={"182 Le Dai Hanh"},
-          locationDescription="Toa nha Flemington",
-          phoneNumber="1231414",
-          locationImage={
-            value = storage_path .."icon.png",
-            imageType = "DYNAMIC"
-          },
-          searchAddress={
-            countryName="aaa",
-            countryCode="084",
-            postalCode="test",
-            administrativeArea="aa",
-            subAdministrativeArea="a",
-            locality="a",
-            subLocality="a",
-            thoroughfare="a",
-            subThoroughfare="a"
-          }
-        }
-      }
-    }    -- hmi side: sending OnWayPointChange notification			
-    self.hmiConnection:SendNotification("Navigation.OnWayPointChange", notification_with_fake_parameters)    -- mobile side: expected OnWayPointChange Notification
-    EXPECT_NOTIFICATION("OnWayPointChange", notification_expectedresult_on_mobile_without_fake_parameters)	
-    :ValidIf (function(_,data)
-      if data.payload.sliderPosition or
-      data.payload.coordinate.sliderPosition or				
-      data.payload.searchAddress.sliderPosition or
-      data.payload.locationImage.sliderPosition			
-      then
-        commonFunctions:printError(" SDL resends sliderPosition to mobile app ")
-        return false
-      else 
-        return true
-      end
-    end)		
-  end  -- 5. Verify OnWayPointChange with SeveralNotifications_WithTheSameValues
+  -- TODO: this Test should be uncomment after APPLINK-14765 is DONE
+  -- function Test:OnWayPointChange_FakeParams()
+    -- local notification_with_fake_parameters = 
+    -- {
+      -- wayPoints=
+      -- {
+        -- {
+          -- coordinate={
+            -- longitudeDegrees = -180.0,
+            -- latitudeDegrees = -90.0,
+            -- fake="a"
+          -- },
+          -- locationName="Ho Chi Minh",
+          -- addressLines={"182 Le Dai Hanh"},
+          -- locationDescription="Toa nha Flemington",
+          -- phoneNumber="1231414",
+          -- locationImage={
+            -- value = storage_path .."icon.png",
+            -- imageType = "DYNAMIC",
+            -- fake="a"
+          -- },
+          -- searchAddress={
+            -- countryName="aaa",
+            -- countryCode="084",
+            -- postalCode="test",
+            -- administrativeArea="aa",
+            -- subAdministrativeArea="a",
+            -- locality="a",
+            -- subLocality="a",
+            -- thoroughfare="a",
+            -- subThoroughfare="a",
+            -- fake="a"
+          -- },
+          -- fake="fakeparam"
+        -- }
+      -- }
+    -- }    -- local notification_expectedresult_on_mobile_without_fake_parameters = 
+    -- {
+      -- wayPoints=
+      -- {
+        -- {
+          -- coordinate={
+            -- longitudeDegrees = -180.0,
+            -- latitudeDegrees = -90.0
+          -- },
+          -- locationName="Ho Chi Minh",
+          -- addressLines={"182 Le Dai Hanh"},
+          -- locationDescription="Toa nha Flemington",
+          -- phoneNumber="1231414",
+          -- locationImage={
+            -- value = storage_path .."icon.png",
+            -- imageType = "DYNAMIC"
+          -- },
+          -- searchAddress={
+            -- countryName="aaa",
+            -- countryCode="084",
+            -- postalCode="test",
+            -- administrativeArea="aa",
+            -- subAdministrativeArea="a",
+            -- locality="a",
+            -- subLocality="a",
+            -- thoroughfare="a",
+            -- subThoroughfare="a"
+          -- }
+        -- }
+      -- }
+    -- }    -- -- hmi side: sending OnWayPointChange notification			
+    -- self.hmiConnection:SendNotification("Navigation.OnWayPointChange", notification_with_fake_parameters)    -- -- mobile side: expected OnWayPointChange Notification
+    -- EXPECT_NOTIFICATION("OnWayPointChange", notification_expectedresult_on_mobile_without_fake_parameters)	
+    -- :ValidIf (function(_,data)
+      -- if data.payload.fake or
+      -- data.payload.coordinate.fake or				
+      -- data.payload.searchAddress.fake or
+      -- data.payload.locationImage.fake	
+      -- then
+        -- commonFunctions:printError(" SDL resends fake parameter to mobile app ")
+        -- return false
+      -- else 
+        -- return true
+      -- end
+    -- end)		
+  -- end  -- 4. Verify OnWayPointChange with FakeParameterIsFromAnotherAPI	
+  -- function Test:OnWayPointChange_FakeParameterIsFromAnotherAPI()
+    -- local notification_with_fake_parameters = 
+    -- {
+      -- wayPoints=
+      -- {
+        -- {
+          -- coordinate={
+            -- longitudeDegrees = -180.0,
+            -- latitudeDegrees = -90.0,
+            -- sliderPosition=4
+          -- },
+          -- locationName="Ho Chi Minh",
+          -- addressLines={"182 Le Dai Hanh"},
+          -- locationDescription="Flemington building",
+          -- phoneNumber="1231414",
+          -- locationImage={
+            -- value = storage_path .."icon.png",
+            -- imageType = "DYNAMIC",
+            -- sliderPosition=4
+          -- },
+          -- searchAddress={
+            -- countryName="aaa",
+            -- countryCode="084",
+            -- postalCode="test",
+            -- administrativeArea="aa",
+            -- subAdministrativeArea="a",
+            -- locality="a",
+            -- subLocality="a",
+            -- thoroughfare="a",
+            -- subThoroughfare="a",
+            -- sliderPosition=4
+          -- },
+          -- sliderPosition=4
+        -- }
+      -- }
+    -- }    -- local notification_expectedresult_on_mobile_without_fake_parameters = 
+    -- {
+      -- wayPoints=
+      -- {
+        -- {
+          -- coordinate={
+            -- longitudeDegrees = -180.0,
+            -- latitudeDegrees = -90.0
+          -- },
+          -- locationName="Ho Chi Minh",
+          -- addressLines={"182 Le Dai Hanh"},
+          -- locationDescription="Toa nha Flemington",
+          -- phoneNumber="1231414",
+          -- locationImage={
+            -- value = storage_path .."icon.png",
+            -- imageType = "DYNAMIC"
+          -- },
+          -- searchAddress={
+            -- countryName="aaa",
+            -- countryCode="084",
+            -- postalCode="test",
+            -- administrativeArea="aa",
+            -- subAdministrativeArea="a",
+            -- locality="a",
+            -- subLocality="a",
+            -- thoroughfare="a",
+            -- subThoroughfare="a"
+          -- }
+        -- }
+      -- }
+    -- }    -- -- hmi side: sending OnWayPointChange notification			
+    -- self.hmiConnection:SendNotification("Navigation.OnWayPointChange", notification_with_fake_parameters)    -- -- mobile side: expected OnWayPointChange Notification
+    -- EXPECT_NOTIFICATION("OnWayPointChange", notification_expectedresult_on_mobile_without_fake_parameters)	
+    -- :ValidIf (function(_,data)
+      -- if data.payload.sliderPosition or
+      -- data.payload.coordinate.sliderPosition or				
+      -- data.payload.searchAddress.sliderPosition or
+      -- data.payload.locationImage.sliderPosition			
+      -- then
+        -- commonFunctions:printError(" SDL resends sliderPosition to mobile app ")
+        -- return false
+      -- else 
+        -- return true
+      -- end
+    -- end)		
+  -- end  -- 5. Verify OnWayPointChange with SeveralNotifications_WithTheSameValues
   ----------------------------------------------------------------------------------------------
   function Test:OnWayPointChange_SeveralNotifications_WithTheSameValues()
     -- hmi side: sending OnWayPointChange notification			
@@ -710,7 +711,7 @@ commonFunctions:newTestCasesGroup("****************************** Begin Test sui
     {wayPoints={{locationDescription="Toa nha Flemington"}}})
     :Times(2)
   end
-end-- special_notification_checks()	commonFunctions:newTestCasesGroup("****************************** End Test suite IV: SpecialHMIResponseCheck ******************************")	
+endspecial_notification_checks()	commonFunctions:newTestCasesGroup("****************************** End Test suite IV: SpecialHMIResponseCheck ******************************")	
 --------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK V---------------------------------------
 --------------------------------------Check All Result Codes--------------------------------

@@ -1629,7 +1629,7 @@ endcommonFunctions:newTestCasesGroup("End Test suit for coverage of CRQ APPLINK
 -----------------------------------------------------------------------------------------------local function special_request_checks()  -- Begin Test case NegativeRequestCheck
   -- Description: Check negative request  -- Print new line to separate new test cases group
   commonFunctions:newTestCasesGroup(self, "TestCaseGroupForAbnormal")  -- Begin Test case NegativeRequestCheck.1
-  -- Description: Invalid JSON  function Test:SendLocation_InvalidJSON()    self.mobileSession.correlationId = self.mobileSession.correlationId + 1    local msg = 
+  -- Description: Invalid JSON  function Test:SendLocation_InvalidJSON()    self.mobileSession.correlationId = self.mobileSession.correlationId    local msg = 
     {
       serviceType = 7,
       frameInfo = 0,
@@ -1667,9 +1667,13 @@ endcommonFunctions:newTestCasesGroup("End Test suit for coverage of CRQ APPLINK
       -- hmi side: sending Navigation.SendLocation response
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-    :Times(2)    -- response on mobile side
-    EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-    :Times(2)			
+    :Times(2)
+        -- response on mobile side
+    EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"}):Times(1)
+      
+    -- Expected result should be changed as below after crq about same <correlationID> is implemented
+    -- EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"},{ success = false, resultCode = "INVALID_DATA"})
+    -- :Times(2)	
   end
   -- End Test case NegativeRequestCheck.2  -- ---------------------------------------------------------------------------------------  -- Begin Test case NegativeRequestCheck.3
   -- Description: Fake parameters check  -- Begin Test case NegativeRequestCheck.3.1

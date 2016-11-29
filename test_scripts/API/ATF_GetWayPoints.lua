@@ -257,36 +257,7 @@ local Request = {wayPointType = "ALL"}enumerationParameter:verify_Enum_String_P
   -- End Test case NegativeRequestCheck.1
   -----------------------------------------------------------------------------------------  -- Begin Test case NegativeRequestCheck.2
   -- Description: Check CorrelationId duplicate value
-  -- TODO: Expected result of this TC should be update when APPLINK-19834 is implementation  function Test:GetWayPoints_CorrelationIdIsDuplicated()
-    -- mobile side: sending GetWayPoints request
-    local cid = self.mobileSession:SendRPC("GetWayPoints",
-    {
-      wayPointType = "ALL"
-    })    -- request from mobile side
-    local msg =
-    {
-      serviceType = 7,
-      frameInfo = 0,
-      rpcType = 0,
-      rpcFunctionId = 41,
-      rpcCorrelationId = cid,
-      payload = '{"wayPointType": "ALL"}'
-    }    -- hmi side: expect Navigation.GetWayPoints request
-    EXPECT_HMICALL("Navigation.GetWayPoints",
-    {
-      wayPointType = "ALL"
-    })
-    :Do(function(exp,data)
-      if exp.occurences == 1 then
-        self.mobileSession:Send(msg)
-      end
-      -- hmi side: sending Navigation.GetWayPoints response
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-    :Times(2)    -- response on mobile side
-    EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-    :Times(2)
-  end
+  -- TODO: Expected result of this TC should be update when APPLINK-19834 is implementation  function Test:GetWayPoints_CorrelationIdIsDuplicated()    -- mobile side: sending GetWayPoints request    local cid = self.mobileSession:SendRPC("GetWayPoints",    {      wayPointType = "ALL"    })    -- request from mobile side    local msg =    {      serviceType = 7,      frameInfo = 0,      rpcType = 0,      rpcFunctionId = 41,      rpcCorrelationId = cid,      payload = '{"wayPointType": "ALL"}'    }    -- hmi side: expect Navigation.GetWayPoints request    EXPECT_HMICALL("Navigation.GetWayPoints",    {      wayPointType = "ALL"    })    :Do(function(exp,data)      if exp.occurences == 1 then        self.mobileSession:Send(msg)      end      -- hmi side: sending Navigation.GetWayPoints response      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})    end)    :Times(1)    -- response on mobile side    EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"},{ success = false, resultCode = "INVALID_DATA"})    :Times(2)      end
   -- End Test case NegativeRequestCheck.2
   -----------------------------------------------------------------------------------------  -- Begin Test case NegativeRequestCheck.3
   -- Description: Fake parameters check  -- Begin Test case NegativeRequestCheck.3.1
