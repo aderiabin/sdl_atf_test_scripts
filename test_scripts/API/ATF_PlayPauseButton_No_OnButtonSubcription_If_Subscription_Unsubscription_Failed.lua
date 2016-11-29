@@ -86,7 +86,7 @@ TestSubscribleButton_IGNORED()
 -- Expected result: No OnButtonSubscription is sent to HMI and SDL responds "IGNORED" to app
 ---------------------------------------------------------------------------------------------
 function TestUnsubscribleButton_IGNORED()
-  common_steps:AddNewTestCasesGroup("TC_SubscribleButton_IGNORED")
+  common_steps:AddNewTestCasesGroup("TC_UnsubscribleButton_IGNORED")
   UnsubscribeButtonIgnored("Verify_UnsubscribleButton_PLAY_PAUSE_Ignored")
 end
 TestUnsubscribleButton_IGNORED()
