@@ -2,7 +2,6 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local iTimeout = 5000
 MEDIA_APP = config.application1.registerAppInterfaceParams
 MEDIA_APP.appName = "MEDIA"
 MEDIA_APP.isMediaApplication = true
@@ -21,7 +20,6 @@ local function SubcribeButton(test_case_name, subscribe_param, expect_hmi_notifi
     EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", expect_hmi_notification)
     expect_response = expect_response or {success = true, resultCode = "SUCCESS"}
     EXPECT_RESPONSE(cid, expect_response)
-    :Timeout(iTimeout)
     EXPECT_NOTIFICATION("OnHashChange")
   end
 end
@@ -32,10 +30,8 @@ local function UnSubcribeButton(test_case_name, unsubscribe_param, expect_hmi_no
     local cid = self[MOBILE_SESSION]:SendRPC("UnsubscribeButton",unsubscribe_param)
     expect_hmi_notification = expect_hmi_notification or {appID = self.applications[MEDIA_APP.appName], isSubscribed = false, name = BUTTON_NAME}
     EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", expect_hmi_notification)
-    :Timeout(iTimeout)
     expect_response = expect_response or {success = true, resultCode = "SUCCESS"}
     EXPECT_RESPONSE(cid, expect_response)
-    :Timeout(iTimeout)
     EXPECT_NOTIFICATION("OnHashChange")
   end
 end

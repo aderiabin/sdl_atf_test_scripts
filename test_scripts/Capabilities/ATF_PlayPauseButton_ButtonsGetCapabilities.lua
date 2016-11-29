@@ -12,7 +12,6 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 require('user_modules/AppTypes')
 
 --------------------------------------- Common functions ------------------------------------
-
 local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
   return
   {
