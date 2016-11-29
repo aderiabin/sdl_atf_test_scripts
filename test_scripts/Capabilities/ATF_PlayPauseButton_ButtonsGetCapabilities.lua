@@ -23,7 +23,6 @@ local function button_capability(name, shortPressAvailable, longPressAvailable, 
   }
 end
 
----------------------------------------- Common steps ---------------------------------------
 function stopSDL()
   Test["StopSDL"] = function(self)
     StopSDL()
@@ -315,8 +314,8 @@ end
 -------------------------------------------Preconditions-------------------------------------
 stopSDL()
 ------------------------------------------Body--------------------------------------------------------
--- 1. HMI-SDL: Send Buttons.GetCapabilities with some button names
--- Expected result: SDL sends the list of button names to mobile app
+-- 1. HMI-SDL: Send Buttons.GetCapabilities with some button names including Play_Pause button
+-- Expected result: SDL sends the list of button names including Play_Pause in RegisterApp's response to app
 ------------------------------------------------------------------------------------------------------
 local function TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
   commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names")
@@ -333,18 +332,16 @@ local function TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
     button_capability("SEEKLEFT"),
     button_capability("SEEKRIGHT")
   }
-  --Execute success case
   SuccessTestCase("Verify_HMI_sends_Buttons_GetCapabilities_with_some_button_names", capabilities)
 end
 TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
 
 ------------------------------------------------------------------------------------------------------
 -- 1. HMI-SDL: Send Buttons.GetCapabilities with only "PLAY_PAUSE" button
--- Expected result: SDL sends "PLAY_PAUSE" button name to mobile app
+-- Expected result: SDL sends only "PLAY_PAUSE" button name in RegisterApp's response to app
 ------------------------------------------------------------------------------------------------------
 local function TestHMISendButtonGetCapabilitiesWithOnlyPlayPauseButton()
   commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with only PLAY_PAUSE button")
-  --Execute success case
   SuccessTestCase("Verify_HMI_sends_Buttons_GetCapabilities_with_only_PLAY_PAUSE_button", {"PLAY_PAUSE"})
 end
 TestHMISendButtonGetCapabilitiesWithOnlyPlayPauseButton()

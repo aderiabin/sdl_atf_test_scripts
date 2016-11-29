@@ -40,8 +40,7 @@ local function OnButtonEventSuccess(test_case_name)
       self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = BUTTON_NAME, mode = BUTTON_PRESS_MODES[i]})
       EXPECT_NOTIFICATION("OnButtonEvent",
         {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONDOWN"},
-        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONUP"},
-        {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
+        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONUP"})
       :Times(2)
       EXPECT_NOTIFICATION("OnButtonPress", {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
     end
@@ -57,8 +56,7 @@ local function OnButtonEventSuccessWithFakeParam(test_case_name)
       self.hmiConnection:SendNotification("Buttons.OnButtonPress",{fakeParameter = "fakeParameter", name = BUTTON_NAME, mode = BUTTON_PRESS_MODES[i]})
       EXPECT_NOTIFICATION("OnButtonEvent",
         {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONDOWN"},
-        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONUP"},
-        {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
+        {buttonName = BUTTON_NAME, buttonEventMode = "BUTTONUP"})
       :Times(2)
       EXPECT_NOTIFICATION("OnButtonPress", {buttonName = BUTTON_NAME, buttonPressMode = BUTTON_PRESS_MODES[i]})
     end
@@ -75,7 +73,7 @@ local function OnButtonEventWithEventModeInvalid(test_case_name)
   end
 end
 
-local function OnButtonEventWithPressModeInvalid(test_case_name)
+local function OnButtonPressWithPressModeInvalid(test_case_name)
   for i=1, #InvalidModes do
     Test[test_case_name .. InvalidModes[i].name] = function(self)
       self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = BUTTON_NAME, mode = InvalidModes[i]})
@@ -113,6 +111,6 @@ function TestOnButtonEventOnButtonPress()
   OnButtonEventSuccess(BUTTON_NAME .. "_Button_With_Press_Mode_Is_")
   OnButtonEventSuccessWithFakeParam(BUTTON_NAME .. "_Button_With_Press_Mode_Is_")
   OnButtonEventWithEventModeInvalid(BUTTON_NAME .. "_Button_With_Event_Mode_Invalid: ")
-  OnButtonEventWithPressModeInvalid(BUTTON_NAME .. "_Button_With_Press_Mode_Invalid: ")
+  OnButtonPressWithPressModeInvalid(BUTTON_NAME .. "_Button_With_Press_Mode_Invalid: ")
 end
 TestOnButtonEventOnButtonPress()
