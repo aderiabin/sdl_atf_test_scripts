@@ -1,6 +1,14 @@
 require('user_modules/all_common_modules')
 -------------------------------------- Variables --------------------------------------------
--- n/a
+local parent_item = {"policy_table", "functional_groupings", "Location-1"}
+local valid_entity_type_cases = {
+	{description = "LowerBound", value = 0},
+	{description = "UpperBound", value = 128}
+}
+local valid_entity_id_cases = {
+	{description = "LowerBound", value = 0},
+	{description = "UpperBound", value = 128}
+}
 
 ------------------------------------ Common functions ---------------------------------------
 local function AddNewParamIntoJSonFile(json_file, parent_item, testing_value, test_case_name)
@@ -36,16 +44,16 @@ local function AddNewParamIntoJSonFile(json_file, parent_item, testing_value, te
 		file:close()	
 	end
 end
-local function UpdatePolicy(PTName, test_case_name)
-	Test["PTUSuccessWithValidEntitiesOn_"..test_case_name] = function (self)
+
+local function UpdatePolicy(test_case_name, PTName, appName)
+ mobile_session_name = mobile_session_name or "mobileSession"
+	Test[test_case_name .. "_PTUSuccessWithoutEntitiesOn"] = function (self)
+  local appID = common_functions:GetHmiAppId(appName, self)
 		--hmi side: sending SDL.GetURLS request
-		local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-		
+    	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 		--hmi side: expect SDL.GetURLS response from HMI
 		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
 		:Do(function(_,data)
-			--print("SDL.GetURLS response is received")
-			--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
 			self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
 			{
 				requestType = "PROPRIETARY",
@@ -59,7 +67,8 @@ local function UpdatePolicy(PTName, test_case_name)
 				local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
 				{
 					fileName = "PolicyTableUpdate",
-					requestType = "PROPRIETARY"
+					requestType = "PROPRIETARY",
+          appID = appID
 				},
 				PTName)
 				
@@ -129,36 +138,33 @@ end
 local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 	Test["VerifyEntityOnInLPTAfterPTUSuccess_"..test_case_name] = function (self)
 		-- Look for policy.sqlite file
-		print(sql_query)
 		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 		local policy_file2 = config.pathToSDL .. "policy.sqlite"
 		local policy_file
-		if common_steps:FileExisted(policy_file1) then
+		if common_functions:IsFileExist(policy_file1) then
 			policy_file = policy_file1
-		elseif common_steps:FileExisted(policy_file2) then
+		elseif common_functions:IsFileExist(policy_file2) then
 			policy_file = policy_file2
 		else
 			common_functions:PrintError("policy.sqlite file is not exist")
 		end
 		if policy_file then
-			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-      print(ful_sql_query)
+			local ful_sql_query = "/usr/bin/sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 			local handler = io.popen(ful_sql_query, 'r')
 			os.execute("sleep 1")
-			local result = handler:read( '*l' )
+			local result = handler:read( '*a' )
 			handler:close()
-			common_functions:PrintTable(result)
-			if(result ~= nil) then
-				print ( " \27[31m disallowed_by_ccs_entities_on is updated in LPT \27[0m " )
-				return true
-				
-			else
-				self:FailTestCase("disallowed_by_ccs_entities_on on parameter is not updated in LPT")
+			if(result == nil) then
+        self:FailTestCase("disallowed_by_ccs_entities_on on parameter is not updated in LPT")
 				return false
+			else
+        print ( " \27[31m disallowed_by_ccs_entities_on is updated in LPT \27[0m " )
+				return true
 			end
 		end
 	end
 end
+
 -------------------------------------- Preconditions --------------------------
 common_functions:BackupFile("sdl_preloaded_pt.json")
 
@@ -170,17 +176,6 @@ common_functions:BackupFile("sdl_preloaded_pt.json")
 -- 1. SDL considers PTU as valid
 -- 2. PTU success
 -- 3. Saves valid entityType/entityID in entities table in LPT
-
-local parent_item = {"policy_table", "functional_groupings", "Location-1"}
-local valid_entity_type_cases = {
-	{description = "LowerBound", value = 0},
-	-- {description = "UpperBound", value = 128}
-}
-local valid_entity_id_cases = {
-	{description = "LowerBound", value = 0},
-	-- {description = "UpperBound", value = 128}
-}
-
 for i=1,#valid_entity_type_cases do
 	for j=1, #valid_entity_id_cases do
 		local testing_value = {
@@ -194,29 +189,25 @@ for i=1,#valid_entity_type_cases do
 		local test_case_id = "TC_entityType_" .. tostring(i).."_".."_entityTID_" .. tostring(j)
 		local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. valid_entity_type_cases[i].description .."_".. valid_entity_id_cases[j].description
 		
-		Test[test_case_name .. "_Precondition_StopSDL"] = function(self)
-			StopSDL()
-		end	
-		-- Precondition
 		common_steps:AddNewTestCasesGroup(test_case_name)	
-		Test[test_case_name .. "_Precondition_ChangedPreloadedPt"] = function (self)
+    common_steps:StopSDL("StopSDL")
+    Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
+      common_functions:DeletePolicyTable()
+    end
+
+    common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
+    
+		Test[test_case_name .. "_Precondition_Created_PTU"] = function (self)
 			os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
 		end 
 		
-		-- Add valid entityType and entityID into PTU 
 		AddNewParamIntoJSonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, testing_value, "InPTU")
-		
-		common_steps:IgnitionOn("StartSDL")
-		
-		common_steps:AddMobileSession("AddMobileSession")
-		
-		common_steps:RegisterApplication("RegisterApp")
-		
-		common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
-		
-		UpdatePolicy(config.pathToSDL .. "update_sdl_preloaded_pt.json", test_case_name)
-		
-		local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " ".. "and".. " ".. "entities.entity_id="..valid_entity_id_cases[j].value
+		common_steps:IgnitionOn(test_case_name)
+		common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
+		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
+    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. "and entities.entity_id="..valid_entity_id_cases[j].value
 		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 	end
 end
@@ -240,19 +231,19 @@ for i=1,#valid_entity_type_cases do
 				}
 			}
 		}
-		local test_case_id = "TC_entityType_" .. tostring(i).."_".."_entityTID_" .. tostring(j)
-		local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. valid_entity_type_cases[i].description .."_".. valid_entity_id_cases[j].description
-		common_steps:AddNewTestCasesGroup(test_case_name)	
-		Test[test_case_name .. "_Precondition_StopSDL"] = function(self)
-			StopSDL()
-		end	
 		
-		Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+		local test_case_name = "TC_entityType_" .. tostring(i).."_".. valid_entity_type_cases[i].description .."_entityTID_" .. tostring(j).."_".. valid_entity_id_cases[j].description
+		common_steps:AddNewTestCasesGroup(test_case_name)	
+
+		common_steps:StopSDL("StopSDL")
+    
+		Test[test_case_name .. "_Precondition_RemovedExistedLPT"] = function (self)
 			common_functions:DeletePolicyTable()
 		end
-		-- Precondition
 		
-		Test[test_case_name .. "_Precondition_ChangedPreloadedPt"] = function (self)
+    common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
+		
+		Test[test_case_name .. "_Precondition_Create_PTU_File"] = function (self)
 			os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
 		end 
 		
@@ -269,18 +260,12 @@ for i=1,#valid_entity_type_cases do
 			}
 		}
 		AddNewParamIntoJSonFile(config.pathToSDL .. "sdl_preloaded_pt.json", parent_item, testing_value_in_preloaded, "InPreloadedPT")
-		
-		common_steps:IgnitionOn("StartSDL")
-		
-		common_steps:AddMobileSession("AddMobileSession")
-		
-		common_steps:RegisterApplication("RegisterApp")
-		
-		common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
-		
-		UpdatePolicy(config.pathToSDL .. "update_sdl_preloaded_pt.json", test_case_name)
-		
-		local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " ".. "and".. " ".. "entities.entity_id="..valid_entity_id_cases[j].value
+		common_steps:IgnitionOn(test_case_name)
+		common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
+		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
+    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. "and entities.entity_id="..valid_entity_id_cases[j].value
 		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 	end
 end

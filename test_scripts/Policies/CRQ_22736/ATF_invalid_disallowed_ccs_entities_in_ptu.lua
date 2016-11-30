@@ -1,13 +1,13 @@
 require('user_modules/all_common_modules')
+
 -------------------------------------- Variables --------------------------------------------
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
-local group_name = "Location-1"
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and functional_group = " ..group_name
-local error_message = "invalid entity type is updated in LPT"
+local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and functional_group = " .."Location-1"
+
 ------------------------------------ Common functions ---------------------------------------
 local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items)
   local match_result = "null"
-local temp_replace_value = "\"Thi123456789\""
+  local temp_replace_value = "\"Thi123456789\""
 	local file = io.open(json_file, "r")
 	local json_data = file:read("*all")
 	file:close()
@@ -100,15 +100,15 @@ end
 end
 
 -- Verify new parameter is not saved in LPT
-local function VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query, error_message)
+local function VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
 	Test[test_case_name] = function (self)
 		-- Look for policy.sqlite file
 		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 		local policy_file2 = config.pathToSDL .. "policy.sqlite"
 		local policy_file
-		if old_common_steps:file_exists(policy_file1) then
+		if common_steps:FileExisted(policy_file1) then
 			policy_file = policy_file1
-		elseif old_common_steps:file_exists(policy_file2) then
+		elseif common_steps:FileExisted(policy_file2) then
 			policy_file = policy_file2
 		else
 			common_functions:PrintError("policy.sqlite file is not exist")
@@ -122,7 +122,7 @@ local function VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query, err
 			if(result==nil) then
 				return true
 			else
-				self:FailTestCase("Invalid paramter is updated in LPT")
+				self:FailTestCase("Invalid parameter is updated in LPT")
 				return false
 			end
 		end
@@ -158,24 +158,26 @@ for i=1,#invalid_entity_type_cases do
     }
   }
   local test_case_id = "TC_entityType_" .. tostring(i)
-  local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. invalid_entity_type_cases[i].description
+  local test_case_name = test_case_id .."_".. invalid_entity_type_cases[i].description.."_entityID_50"
   
   common_steps:AddNewTestCasesGroup(test_case_name)	
 
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
-    os.execute(" cp " .. config.pathToSDL .. "origin_sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_policy_table.json")
+    os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
 	end  
   
   Test[test_case_name .. "_UpdatePolicyTableJSONFile"] = function (self)
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
-
-  Test["PTUFailedWith_"..test_case_name] = function (self)
-    AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
-  end  
+  
+  common_steps:StopSDL("StopSDL")
+  common_steps:IgnitionOn("StartSDL")
+  common_steps:AddMobileSession("AddMobileSession")
+  common_steps:RegisterApplication("RegisterApp")
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name) 
 
   Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query, error_message)
+    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
   end  
 end
 
@@ -204,24 +206,26 @@ for i=1,#invalid_entity_id_cases do
     }
   }
   local test_case_id = "TC_entityID_" .. tostring(i)
-  local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityID" .. invalid_entity_id_cases[i].description
+  local test_case_name = test_case_id.."_" .. invalid_entity_id_cases[i].description.."_entityType_128"
   
   common_steps:AddNewTestCasesGroup(test_case_name)	
 
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
-    os.execute(" cp " .. config.pathToSDL .. "origin_sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_policy_table.json")
+    os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
 	end  
   
   Test[test_case_name .. "_UpdatePolicyTableJSONFile"] = function (self)
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
-
-  Test["PTUFailedWith_"..test_case_name] = function (self)
-    AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
-  end  
+  
+  common_steps:StopSDL("StopSDL")
+  common_steps:IgnitionOn("StartSDL")
+  common_steps:AddMobileSession("AddMobileSession")
+  common_steps:RegisterApplication("RegisterApp")
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name)  
 
   Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query, error_message)
+    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
   end  
 end
 
@@ -241,14 +245,7 @@ for i=1,#invalid_entity_type_cases do
     }
   }
   local test_case_id = "TC_entityType_" .. tostring(i)
-  local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. invalid_entity_type_cases[i].description
-  Test[tostring(test_case_name) .. "_Precondition_StopSDL"] = function(self)
-		StopSDL()
-	end
-	
-	Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
-		common_functions:DeletePolicyTable()
-	end 
+  local test_case_name = test_case_id .."_".. invalid_entity_type_cases[i].description.."_entityID_50"
 	
 	Test[test_case_name .. "_AddedValidEntityOnIntoPreloadedPt"] = function (self)
     local parent_item_in_preloadedpt = {"policy_table", "functional_groupings", "DrivingCharacteristics-3"}
@@ -262,10 +259,6 @@ for i=1,#invalid_entity_type_cases do
     }
 		AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item_in_preloadedpt, valid_testing_value_preloadedpt)
 	end 
-	
-	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
-		StartSDL(config.pathToSDL, config.ExitOnCrash)
-	end
 
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
     os.execute(" cp " .. config.pathToSDL .. "origin_sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_policy_table.json")
@@ -274,13 +267,20 @@ for i=1,#invalid_entity_type_cases do
   Test[test_case_name .. "_AddedInvalidEntityOnIntoPTU"] = function (self)
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
-
-  Test["PTUFailedWith_"..test_case_name] = function (self)
-    AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
-  end  
+  
+  common_steps:StopSDL("StopSDL")
+  
+	Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+		common_functions:DeletePolicyTable()
+	end 
+  
+  common_steps:IgnitionOn("StartSDL")
+  common_steps:AddMobileSession("AddMobileSession")
+  common_steps:RegisterApplication("RegisterApp")
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name)  
 
   Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query, error_message)
+    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
   end  
 end
 
@@ -299,15 +299,8 @@ for i=1,#invalid_entity_id_cases do
       }
     }
   }
-  local test_case_id = "TC_entityType_" .. tostring(i)
-  local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. invalid_entity_id_cases[i].description
-  Test[tostring(test_case_name) .. "_Precondition_StopSDL"] = function(self)
-		StopSDL()
-	end
-	
-	Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
-		common_functions:DeletePolicyTable()
-	end 
+  local test_case_id = "TC_entityID_" .. tostring(i)
+  local test_case_name = test_case_id .."_".. invalid_entity_id_cases[i].description.."_entityType_128"
 	
 	Test[test_case_name .. "_AddedValidEntityOnIntoPreloadedPt"] = function (self)
     local parent_item_in_preloadedpt = {"policy_table", "functional_groupings", "DrivingCharacteristics-3"}
@@ -322,24 +315,27 @@ for i=1,#invalid_entity_id_cases do
 		AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item_in_preloadedpt, valid_testing_value_preloadedpt)
 	end 
 	
-	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
-		StartSDL(config.pathToSDL, config.ExitOnCrash)
-	end
-
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
-    os.execute(" cp " .. config.pathToSDL .. "origin_sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_policy_table.json")
+    os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
 	end  
   
   Test[test_case_name .. "_AddedInvalidEntityOnIntoPTU"] = function (self)
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
+  
+  common_steps:StopSDL("StopSDL")
+	
+	Test[test_case_name .. "_Removed_Existed_LPT"] = function (self)
+		common_functions:DeletePolicyTable()
+	end 
 
-  Test["PTUFailedWith_"..test_case_name] = function (self)
-    AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
-  end  
+  common_steps:IgnitionOn("StartSDL")
+  common_steps:AddMobileSession("AddMobileSession")
+  common_steps:RegisterApplication("RegisterApp")
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name)    
 
   Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query, error_message)
+    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
   end  
 end
 

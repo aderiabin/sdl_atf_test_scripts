@@ -27,20 +27,18 @@ local testing_value = {
 	}}
 }
 
-common_steps:StopSDL(test_case_name .. "_Precondition_StopSDL") 
-
-Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+Test["Precondition_RemoveExistedLPT_"..test_case_name ] = function (self)
 	common_functions:DeletePolicyTable()
 end 
 
-Test[test_case_name .. "_AddNewItemIntoPreloadedPT"] = function (self) 
+Test["AddNewItemIntoPreloadedPT_"..test_case_name] = function (self) 
 	local json_file = config.pathToSDL .. "sdl_preloaded_pt.json"
 	local parent_item = {"policy_table", "functional_groupings", "Location-1"}
 	local testing_value = {
 		{
 			disallowed_by_ccs_entities_on = {
 				{
-					entityType = 150,
+					entityType = 128,
 					entityID = 70
 				}
 			}
@@ -78,48 +76,34 @@ Test[test_case_name .. "_AddNewItemIntoPreloadedPT"] = function (self)
 end
 
 common_steps:IgnitionOn("StartSDL")
-
 common_steps:AddMobileSession("AddMobileSession")
-
 common_steps:RegisterApplication("RegisterApp")
-
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
-
-function DelayedExp(time)
-	local event = events.Event()
-	event.matches = function(self, e) return self == e end
-	EXPECT_EVENT(event, "Delayed event")
-	:Timeout(time+1000)
-	RUN_AFTER(function()
-		RAISE_EVENT(event, event)
-	end, time)
-end
 
 function Test:Precondition_TriggerSDLSnapshotCreation_UpdateSDL()
 	local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
 	--hmi side: expect SDL.UpdateSDL response from HMI
 	EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
-	DelayedExp(2000)
 end
 
-function Test:VerifyNewParamInSnapShot()
-	local file_name = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"
+function Test:VerifyDisallowedByCcsEntitiesOnInSnapShot()
+	local ivsu_cache_folder = common_functions:GetValueFromIniFile("SystemFilesPath")
+  local file_name = ivsu_cache_folder.."/".."sdl_snapshot.json"
 	local new_param = "disallowed_by_ccs_entities_on"
 	local file_json = io.open(file_name, "r")
-	local json_snap_shot = file_json:read("*all") -- may be abbreviated to "*a";
-	if type(new_item) == "table" then
-		new_item = json.encode(new_item)
+	local json_snap_shot = file_json:read("*all")
+	if type(new_param) == "table" then
+		new_param = json.encode(new_param)
 	end
 	-- Add new items as child items of parent item.
 	item = json_snap_shot:match(new_param)
 	
 	if item == nil then
-		print ( " \27[31m disallowed_by_ccs_entities_on is not found in SnapShot \27[0m " )
+    self:FailTestCase("disallowed_by_ccs_entities_on is not found in SnapShot although is existed in PreloadedPT file")
 		return false
 	else
 		print ( " \27[31m disallowed_by_ccs_entities_on is found in SnapShot \27[0m " )
 		return true
-		
 	end
 	file_json:close()
 end

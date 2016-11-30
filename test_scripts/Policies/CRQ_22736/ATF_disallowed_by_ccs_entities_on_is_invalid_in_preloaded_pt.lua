@@ -2,7 +2,7 @@ require('user_modules/all_common_modules')
 --------------------------------- Variables -----------------------------------
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
 local sql_query = "select * from entities, functional_group where entities.group_id = functional_group.id"
-local error_message = "SDL does not shut down when existed invalid parameters in PreloadedPT."
+local error_message = "SDL saved disallowed_by_ccs_entities_on although existed invalid parameters in PreloadedPT."
 ------------------------------- Common functions -------------------------------
 local match_result = "null"
 local temp_replace_value = "\"Thi123456789\""
@@ -67,6 +67,22 @@ local function CheckPolicyTable(test_case_name, sql_query, error_message)
 	end
 end
 
+-- Verify processID of SDL not existed because SDL shut down.
+local function VerifySDLShutDownWithInvalidParamInPreloadedPT(test_case_name)
+  Test["SDLShutDownWith_"..test_case_name] = function (self)
+    os.execute(" sleep 2 ")
+
+    local GetPIDsmartDeviceLinkCore = assert(io.popen("pidof smartDeviceLinkCore"))
+
+    local Result = GetPIDsmartDeviceLinkCore:read( '*l' )
+
+    if 
+      Result and
+      Result ~= "" then
+      self:FailTestCase(" smartDeviceLinkCore process is not stopped ")
+    end 
+  end
+end
 ------------------------------- Preconditions ---------------------------------
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
 
@@ -86,15 +102,17 @@ local invalid_entity_type_cases = {
 for i=1,#invalid_entity_type_cases do
 	local test_case_id = "TC_entityType_" .. tostring(i)
 	local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. invalid_entity_type_cases[i].description
-  -- Precondition
+  
 	common_steps:AddNewTestCasesGroup(test_case_name)	
-	Test[tostring(test_case_name) .. "_Precondition_StopSDL"] = function(self)
+  
+	Test[test_case_name .. "_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end	
+  
 	Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
 		common_functions:DeletePolicyTable()
 	end 	
-  -- Body  
+  
 	Test[test_case_name .. "_UpdatePreloadedPt"] = function (self)
     local testing_value = {
       disallowed_by_ccs_entities_on = {
@@ -106,13 +124,18 @@ for i=1,#invalid_entity_type_cases do
     }    
 		AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
 	end	
+  
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end	
+  
 	Test[test_case_name .. "_CheckPolicyTable"] = function(self)
 		CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
 	end
+  
+  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_on.entityType_".. invalid_entity_type_cases[i].description)
 end
+
 
 -- Precondition: invalid entityID parameter existed in PreloadedPT 
 -- Verification criteria: SDL considers PreloadedPT as invalid and shut SDL down
@@ -160,6 +183,8 @@ for i=1,#invalid_entity_id_cases do
 	Test[test_case_name .. "_CheckPolicyTable"] = function(self)
 		CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
 	end
+  
+  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_on.entityId_" .. invalid_entity_id_cases[i].description)
 	
 end
 

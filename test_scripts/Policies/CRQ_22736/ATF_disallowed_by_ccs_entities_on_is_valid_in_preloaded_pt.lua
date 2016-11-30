@@ -1,9 +1,10 @@
 require('user_modules/all_common_modules')
 
 -------------------------------------- Variables --------------------------------------------
+--n/a
 
 ------------------------------------ Common functions ---------------------------------------
-
+--n/a
 
 -------------------------------------- Preconditions ----------------------------------------
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
@@ -34,13 +35,10 @@ for i=1,#valid_entity_type_cases do
 				}
 			}
 		}
-		local test_case_id = "TC_entityType_" .. tostring(i).."_".."_entityTID_" .. tostring(j)
-		local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. valid_entity_type_cases[i].description .."_".. valid_entity_id_cases[j].description
+		local test_case_id = "TC_disallowed_by_ccs_entities_on_"
+		local test_case_name = test_case_id .. "_EntityType_" .. valid_entity_type_cases[i].description .."_".."_EntityID_"..valid_entity_id_cases[j].description
 		
 		common_steps:AddNewTestCasesGroup(test_case_name)
-		
-		-- Precondition
-		common_steps:AddNewTestCasesGroup(test_case_name)	
 		
 		Test[tostring(test_case_name) .. "_Precondition_StopSDL"] = function(self)
 			StopSDL()
@@ -54,7 +52,6 @@ for i=1,#valid_entity_type_cases do
 		Test[test_case_name .. "_AddNewItemIntoPreloadedPt"] = function (self)
 			local match_result = "null"
 			local temp_replace_value = "\"Thi123456789\""
-			
 			local json_file = config.pathToSDL .. 'sdl_preloaded_pt.json'
 			local file = io.open(json_file, "r")
 			local json_data = file:read("*all")
@@ -79,21 +76,20 @@ for i=1,#valid_entity_type_cases do
 			end
 			
 			data = json.encode(data)	
-			data_revert = string.gsub(data, temp_replace_value, match_result)
+			local data_revert = string.gsub(data, temp_replace_value, match_result)
 			file = io.open(json_file, "w")
 			file:write(data_revert)
 			file:close()	
 		end
 		
-		Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
+		Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
 			StartSDL(config.pathToSDL, config.ExitOnCrash)
 		end	
 		
 		-- Verify valid entityType and entityID are inserted into entities table in LPT
 		Test["VerifySDLSavedValidParamInLPT"..test_case_name] = function(self)
 			-- Look for policy.sqlite file
-			local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " ".. "and".. " ".. "entities.entity_id="..valid_entity_id_cases[j].value
-			print(sql_query)
+      local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.." and ".."entities.entity_id="..valid_entity_id_cases[j].value
 			local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 			local policy_file2 = config.pathToSDL .. "policy.sqlite"
 			local policy_file
@@ -113,9 +109,8 @@ for i=1,#valid_entity_type_cases do
 				if(result ~= nil) then
 					return true
 				else
-					self:FailTestCase("entities value in DB is not saved in local policy table although valid param existed in PreloadedPT file")
+					self:FailTestCase("entities valueis not saved in LPT although valid param existed in PreloadedPT file")
 					return false
-					
 				end
 			end
 		end
