@@ -1,6 +1,5 @@
 --------------------------------------------------------------------------------
 -- This script covers requirement[HMILevel resumption] [Ford-Specific]: Media app (navi, voice-com) is registered during active VR session
---------------------------------------------------------------------------------
 --In case
 -- the media app (or navi, voice-com) satisfies the conditions of successful HMILevel resumption (unexpected disconnect, next ignition cycle, short ignition cycle, low voltage)
 -- and SDL receives VR.Started notification
