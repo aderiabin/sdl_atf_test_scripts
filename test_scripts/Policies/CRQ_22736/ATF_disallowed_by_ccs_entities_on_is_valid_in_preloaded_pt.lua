@@ -10,7 +10,6 @@ require('user_modules/all_common_modules')
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
 
 ------------------------------------------- BODY ---------------------------------------------
-
 -- Precondition: valid entityType and entityID parameter existed in PreloadedPT 
 -- Verification criteria: 
 -- 1. SDL considers PreloadedPT as valid
@@ -36,7 +35,7 @@ for i=1,#valid_entity_type_cases do
 			}
 		}
 		local test_case_id = "TC_disallowed_by_ccs_entities_on_"
-		local test_case_name = test_case_id .. "_EntityType_" .. valid_entity_type_cases[i].description .."_".."_EntityID_"..valid_entity_id_cases[j].description
+		local test_case_name = test_case_id .. "_EntityType_" .. valid_entity_type_cases[i].description .."_EntityID_"..valid_entity_id_cases[j].description
 		
 		common_steps:AddNewTestCasesGroup(test_case_name)
 		
@@ -44,7 +43,7 @@ for i=1,#valid_entity_type_cases do
 			StopSDL()
 		end	
 		
-		Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+		Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
 			common_functions:DeletePolicyTable()
 		end
 		
@@ -98,7 +97,7 @@ for i=1,#valid_entity_type_cases do
 			elseif common_steps:FileExisted(policy_file2) then
 				policy_file = policy_file2
 			else
-				common_functions:PrintError("policy.sqlite file is not exist")
+				common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
 			end
 			if policy_file then
 				local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
@@ -109,7 +108,7 @@ for i=1,#valid_entity_type_cases do
 				if(result ~= nil) then
 					return true
 				else
-					self:FailTestCase("entities valueis not saved in LPT although valid param existed in PreloadedPT file")
+					self:FailTestCase("entities value is not saved in LPT although valid param existed in PreloadedPT file")
 					return false
 				end
 			end

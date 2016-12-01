@@ -49,7 +49,7 @@ local function CheckPolicyTable(test_case_name, sql_query, error_message)
 		elseif common_steps:FileExisted(policy_file2) then
 			policy_file = policy_file2
 		else
-			common_functions:PrintError("policy.sqlite file is not exist")
+			common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
 		end
 		if policy_file then
 			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
@@ -109,7 +109,7 @@ for i=1,#invalid_entity_type_cases do
 		StopSDL()
 	end	
   
-	Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+	Test[test_case_name .. "_RemoveExistedLPT"] = function (self)
 		common_functions:DeletePolicyTable()
 	end 	
   
@@ -129,13 +129,10 @@ for i=1,#invalid_entity_type_cases do
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end	
   
-	Test[test_case_name .. "_CheckPolicyTable"] = function(self)
-		CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
-	end
+  CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
   
   VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_on.entityType_".. invalid_entity_type_cases[i].description)
 end
-
 
 -- Precondition: invalid entityID parameter existed in PreloadedPT 
 -- Verification criteria: SDL considers PreloadedPT as invalid and shut SDL down
@@ -180,10 +177,7 @@ for i=1,#invalid_entity_id_cases do
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 	
-	Test[test_case_name .. "_CheckPolicyTable"] = function(self)
-		CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
-	end
-  
+  CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
   VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_on.entityId_" .. invalid_entity_id_cases[i].description)
 	
 end
