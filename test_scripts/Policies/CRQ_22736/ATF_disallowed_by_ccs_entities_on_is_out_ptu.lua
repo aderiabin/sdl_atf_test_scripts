@@ -1,7 +1,7 @@
 require('user_modules/all_common_modules')
 -------------------------------------- Variables --------------------------------------------
 local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
+
 ------------------------------------ Common functions ---------------------------------------
 local function UpdatePolicy(test_case_name, PTName, appName)
 	Test[test_case_name .. "_PTUSuccessWithoutEntitiesOn"] = function (self)
@@ -123,6 +123,11 @@ end
 
 -------------------------------------- Preconditions ----------------------------------------
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
+-- Change temp_sdl_preloaded_pt_without_entity_on.json to sdl_preloaded_pt.json
+-- To make sure it does not contain dissallowed_ccs_entity_on param
+Test["Precondition_ChangedPreloadedPt"] = function (self)
+	os.execute(" cp " .. "files/temp_sdl_preloaded_pt_without_entity_on.json".. " " .. config.pathToSDL .. "sdl_preloaded_pt.json")
+end 
 
 ------------------------------------------- BODY ---------------------------------------------
 ------------------------------------------- TC_01 ---------------------------------------------
@@ -137,12 +142,6 @@ local test_case_name = test_case_id .. "_PTUSuccessWithoutDisallowedCcsEntityOnL
 Test["Precondition_RemoveExistedLPT"] = function (self)
   common_functions:DeletePolicyTable()
 end
-
--- Change temp_sdl_preloaded_pt_without_entity_on.json to sdl_preloaded_pt.json
--- To make sure it does not contain dissallowed_ccs_entity_on param
-Test["Precondition_ChangedPreloadedPt"] = function (self)
-	os.execute(" cp " .. "files/temp_sdl_preloaded_pt_without_entity_on.json".. " " .. config.pathToSDL .. "sdl_preloaded_pt.json")
-end 
 
 common_steps:AddNewTestCasesGroup(test_case_name)
 common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
