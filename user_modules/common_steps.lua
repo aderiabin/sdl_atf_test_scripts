@@ -365,7 +365,7 @@ function CommonSteps:PreconditionSteps(test_case_name, number_of_precondition_st
   local mobile_session_name = "mobileSession"
   local app = config.application1.registerAppInterfaceParams
 
-  CommonSteps:KillAllSdlProcesses(test_case_name .. "_KillAllSDLProcesses")
+  common_functions:KillAllSdlProcesses()
 
   if number_of_precondition_steps >= 1 then
     CommonSteps:StartSDL(test_case_name .. "_StartSDL")
