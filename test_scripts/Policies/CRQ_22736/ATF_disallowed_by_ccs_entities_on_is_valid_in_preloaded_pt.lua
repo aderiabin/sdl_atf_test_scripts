@@ -34,7 +34,7 @@ for i=1,#valid_entity_type_cases do
 				}
 			}
 		}
-		local test_case_id = "TC_disallowed_by_ccs_entities_on_"
+		local test_case_id = "TC_disallowed_by_ccs_entities_on"
 		local test_case_name = test_case_id .. "_EntityType_" .. valid_entity_type_cases[i].description .."_EntityID_"..valid_entity_id_cases[j].description
 		
 		common_steps:AddNewTestCasesGroup(test_case_name)
