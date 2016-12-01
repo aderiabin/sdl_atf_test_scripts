@@ -2,7 +2,7 @@ require('user_modules/all_common_modules')
 
 -------------------------------------- Variables --------------------------------------------
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and functional_group = " .."Location-1"
+local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and functional_group .id =\"Location-1\""
 
 ------------------------------------ Common functions ---------------------------------------
 local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items)
@@ -38,64 +38,41 @@ local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items)
 end
 
 -- Verify PTU failed when invalid parameter existed in PTU file
- local function VerifyPTUFailedWithInvalidData(test_case_name, ptu_file, mobile_session_name)
-  mobile_session_name = mobile_session_name or "mobileSession"
-  Test[test_case_name .. "_VerifyPTUFailedWithInvalidData"] = function (self)
-  
-  local CorIdSystemRequest = self[mobile_session_name]:SendRPC("SystemRequest",
+local function VerifyPTUFailedWithInvalidData(test_case_name, ptu_file)
+  Test["VerifyPTUFailedWithExistedCcsConsentGroup"] = function (self)
+    local appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+    local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
     {
       fileName = "PolicyTableUpdate",
-      requestType = "PROPRIETARY"
+      requestType = "PROPRIETARY",
+      appID = appID
     },
-  ptu_file)
-  
-  local systemRequestId
-  
-  --hmi side: expect SystemRequest request
-  EXPECT_HMICALL("BasicCommunication.SystemRequest")
-  :Do(function(_,data)
-    systemRequestId = data.id
-
-    --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-    self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+    config.pathToSDL .. "update_sdl_preloaded_pt.json")
+    
+    local systemRequestId
+    
+    --hmi side: expect SystemRequest request
+    EXPECT_HMICALL("BasicCommunication.SystemRequest")
+    :Do(function(_,data)
+      systemRequestId = data.id
+      --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
+      self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
       {
         policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
       }
-    )
-    function to_run()
-      --hmi side: sending SystemRequest response
-      self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-    end
-
-    RUN_AFTER(to_run, 500)
-  end)
-  --Todo:
-  --hmi side: expect SDL.OnStatusUpdate
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  :ValidIf(function(exp,data)
-      if 
-        exp.occurences == 1 and
-        data.params.status == "UPDATE_NEEDED" then
-          print ("\27[31m SDL.OnStatusUpdate came with wrong values. PTU file validation failed. Exchange wasn't successful")
-          return true
-      elseif
-        exp.occurences == 1 and
-        data.params.status == "UP_TO_DATE" then
-            print ("\27[31m SDL.OnStatusUpdate came with wrong values. Exchange should not be successful.Expected in first occurrences status 'UPDATE_NEEDED', got '" .. tostring(data.params.status) .. "' \27[0m")
-          return false
-      elseif
-        exp.occurences == 3 and
-        data.params.status == "UPDATING" then
-        print ("\27[31m SDL.OnStatusUpdate came with wrong values. Exchange should not be successful.Expected in second occurrences status 'UPDATE_NEEDED', got '" .. tostring(data.params.status) .. "' \27[0m")
-          return true
+      )
+      function to_run()
+        --hmi side: sending SystemRequest response
+        self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
       end
-
+      
+      RUN_AFTER(to_run, 500)
     end)
-    :Times(Between(1,2))
-
-  --mobile side: expect SystemRequest response
-  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-  :Times(0)
+    --hmi side: expect SDL.OnStatusUpdate
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+    :Times(0)
+    --mobile side: expect SystemRequest response
+    EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
   end
 end
 
@@ -128,7 +105,6 @@ local function VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
 		end
 	end
 end
-
 -------------------------------------- Preconditions ----------------------------------------
 common_functions:BackupFile("sdl_preloaded_pt.json")
 
@@ -170,15 +146,12 @@ for i=1,#invalid_entity_type_cases do
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
   
-  common_steps:StopSDL("StopSDL")
-  common_steps:IgnitionOn("StartSDL")
-  common_steps:AddMobileSession("AddMobileSession")
-  common_steps:RegisterApplication("RegisterApp")
-  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name) 
-
-  Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
-  end  
+  common_steps:StopSDL(test_case_name)
+  common_steps:IgnitionOn(test_case_name)
+  common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+  common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json') 
+  VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
 end
 
 -- Precondition: 
@@ -218,15 +191,12 @@ for i=1,#invalid_entity_id_cases do
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
   
-  common_steps:StopSDL("StopSDL")
-  common_steps:IgnitionOn("StartSDL")
-  common_steps:AddMobileSession("AddMobileSession")
-  common_steps:RegisterApplication("RegisterApp")
-  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name)  
-
-  Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
-  end  
+  common_steps:StopSDL(test_case_name)
+  common_steps:IgnitionOn(test_case_name)
+  common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+  common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')  
+  VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
 end
 
 -- Precondition: 
@@ -252,8 +222,8 @@ for i=1,#invalid_entity_type_cases do
     local valid_testing_value_preloadedpt = {
     disallowed_by_ccs_entities_on = {
       {
-        entityType = 150,
-        entityID = 50
+        entityType = 0,
+        entityID = 128
       }
     }
     }
@@ -268,20 +238,17 @@ for i=1,#invalid_entity_type_cases do
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
   
-  common_steps:StopSDL("StopSDL")
+  common_steps:StopSDL("StopSDL_"..test_case_name)
   
-	Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+	Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
 		common_functions:DeletePolicyTable()
 	end 
   
-  common_steps:IgnitionOn("StartSDL")
-  common_steps:AddMobileSession("AddMobileSession")
-  common_steps:RegisterApplication("RegisterApp")
-  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name)  
-
-  Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
-  end  
+  common_steps:IgnitionOn(test_case_name)
+  common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+  common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')  
+  VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query) 
 end
 
 -- Precondition: 
@@ -307,7 +274,7 @@ for i=1,#invalid_entity_id_cases do
     local valid_testing_value_preloadedpt = {
     disallowed_by_ccs_entities_on = {
       {
-        entityType = 150,
+        entityType = 128,
         entityID = 50
       }
     }
@@ -323,20 +290,17 @@ for i=1,#invalid_entity_id_cases do
     AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value)
   end 
   
-  common_steps:StopSDL("StopSDL")
+  common_steps:StopSDL(test_case_name)
 	
 	Test[test_case_name .. "_Removed_Existed_LPT"] = function (self)
 		common_functions:DeletePolicyTable()
 	end 
 
-  common_steps:IgnitionOn("StartSDL")
-  common_steps:AddMobileSession("AddMobileSession")
-  common_steps:RegisterApplication("RegisterApp")
-  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json', mobile_session_name)    
-
-  Test["VerifyInvalidEntityOnNotSavedInLPT"..test_case_name] = function (self)
-    VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
-  end  
+  common_steps:IgnitionOn(test_case_name)
+  common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+  common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')    
+  VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
 end
 
 ------------------------------------ Postconditions ----------------------------------------

@@ -46,7 +46,6 @@ local function AddNewParamIntoJSonFile(json_file, parent_item, testing_value, te
 end
 
 local function UpdatePolicy(test_case_name, PTName, appName)
- mobile_session_name = mobile_session_name or "mobileSession"
 	Test[test_case_name .. "_PTUSuccessWithoutEntitiesOn"] = function (self)
   local appID = common_functions:GetHmiAppId(appName, self)
 		--hmi side: sending SDL.GetURLS request

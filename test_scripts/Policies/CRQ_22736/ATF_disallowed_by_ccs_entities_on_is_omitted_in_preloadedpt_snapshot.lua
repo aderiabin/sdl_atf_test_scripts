@@ -3,7 +3,7 @@ require('user_modules/all_common_modules')
 -- n/a
 
 ------------------------------------ Common functions ---------------------------------------
--- n/a
+os.execute( "rm -f /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" )
 
 -------------------------------------- Preconditions ----------------------------------------
 common_functions:BackupFile("sdl_preloaded_pt.json")
@@ -51,7 +51,7 @@ Test["VerifyDisallowedCcsEntityOnNotSavedInLPT"..test_case_name] = function(self
 		local result = handler:read( '*l' )
 		handler:close()
 		if(result == nil) then
-			print ( " \27[31m disallowed_by_ccs_entities_on is not found in LPT \27[0m " )
+			print ( " \27[32m disallowed_by_ccs_entities_on is not found in LPT \27[0m " )
 			return true
 		else
 			self:FailTestCase("entities value in DB is not saved in local policy table although valid param existed in PreloadedPT file")
@@ -64,12 +64,7 @@ common_steps:AddMobileSession("AddMobileSession")
 common_steps:RegisterApplication("RegisterApp")
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
 
-function Test:Precondition_TriggerSDLSnapshotCreation_UpdateSDL()
-	local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
-	--hmi side: expect SDL.UpdateSDL response from HMI
-	EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
-  common_functions:DelayedExp(2000)
-end
+common_steps:Sleep("WaitingSDLCreateSnapshot", 2)
 
 -- Verify disallowed_by_ccs_entities_on is not included in Snapshot
 function Test:VerifyDisallowedByCcsEntityIsNotInSnapShot()
