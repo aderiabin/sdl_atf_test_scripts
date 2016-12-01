@@ -1,10 +1,9 @@
 require('user_modules/all_common_modules')
 -------------------------------------- Variables --------------------------------------------
--- n/a
-
+local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
+local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
 ------------------------------------ Common functions ---------------------------------------
 local function UpdatePolicy(test_case_name, PTName, appName)
- mobile_session_name = mobile_session_name or "mobileSession"
 	Test[test_case_name .. "_PTUSuccessWithoutEntitiesOn"] = function (self)
   local appID = common_functions:GetHmiAppId(appName, self)
 		--hmi side: sending SDL.GetURLS request
@@ -99,12 +98,12 @@ local function VerifyEntityOnNotExistedInLPTAfterPTUSuccess(test_case_name, sql_
 	local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 	local policy_file2 = config.pathToSDL .. "policy.sqlite"
 	local policy_file
-	if common_steps:FileExisted(policy_file1) then
+	if common_functions:IsFileExist(policy_file1) then
 		policy_file = policy_file1
-	elseif common_steps:FileExisted(policy_file2) then
+	elseif common_functions:IsFileExist(policy_file2) then
 		policy_file = policy_file2
 	else
-		common_functions:PrintError("policy.sqlite file is not exist")
+		common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
 	end
 	if policy_file then
 		local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
@@ -134,15 +133,24 @@ common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.jso
 -- 1. SDL considers this PTU as valid
 -- 2. Does not saved disallowed_by_ccs_entities_on in LocalPT
 local test_case_id = "TC_1"
-local test_case_name = test_case_id .. ": PTUSuccessWithoutDisallowedCcsEntityOnLPT"
+local test_case_name = test_case_id .. "_PTUSuccessWithoutDisallowedCcsEntityOnLPT"
+Test["Precondition_RemoveExistedLPT"] = function (self)
+  common_functions:DeletePolicyTable()
+end
+
+-- Change temp_sdl_preloaded_pt_without_entity_on.json to sdl_preloaded_pt.json
+-- To make sure it does not contain dissallowed_ccs_entity_on param
+Test["Precondition_ChangedPreloadedPt"] = function (self)
+	os.execute(" cp " .. "files/temp_sdl_preloaded_pt_without_entity_on.json".. " " .. config.pathToSDL .. "sdl_preloaded_pt.json")
+end 
+
 common_steps:AddNewTestCasesGroup(test_case_name)
-common_steps:IgnitionOn(test_case_name)
+common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
 common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApplication_"..test_case_name)
 common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, "files/ptu_without_dissallowed_ccs_entity_on.json", config.application1.registerAppInterfaceParams.appName)
-local sql_query_not_saved_in_lpt = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
-VerifyEntityOnNotExistedInLPTAfterPTUSuccess("VerifyEntityOnNotUpdatedInLPT", sql_query_not_saved_in_lpt)
+VerifyEntityOnNotExistedInLPTAfterPTUSuccess("VerifyEntityOnNotUpdatedInLPT", sql_query)
 
 ------------------------------------------- TC_02 ------------------------------
 -- Precondition: 
@@ -153,7 +161,7 @@ VerifyEntityOnNotExistedInLPTAfterPTUSuccess("VerifyEntityOnNotUpdatedInLPT", sq
 -- 2. Does not merge disallowed_by_ccs_entities_on from PTU to LocalPT
 
 local test_case_id = "TC_2"
-local test_case_name = test_case_id .. ": PTUSuccessWithDisallowedCcsEntityOnExistedLPT"
+local test_case_name = test_case_id .. "_PTUSuccessWithDisallowedCcsEntityOnExistedLPT"
 common_steps:AddNewTestCasesGroup(test_case_name) 
 common_steps:StopSDL("StopSDL")
 Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
@@ -202,12 +210,11 @@ function Test:AddItemsIntoJsonFile()
 	file:close()	
 end
 
-common_steps:IgnitionOn(test_case_name)
+common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
 common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApplication_"..test_case_name)
 common_steps:ActivateApplication("ActivateApplication_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, "files/ptu_without_dissallowed_ccs_entity_on.json", config.application1.registerAppInterfaceParams.appName)
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
 VerifyEntityOnNotExistedInLPTAfterPTUSuccess("VerifyEntityOnNotExistedInLPTAfterPTUSuccess", sql_query)
 
 -------------------------------------- Postconditions ----------------------------------------
