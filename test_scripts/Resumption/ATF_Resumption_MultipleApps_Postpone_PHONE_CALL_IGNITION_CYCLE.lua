@@ -1,6 +1,5 @@
 --------------------------------------------------------------------------------
 -- This script covers requirement[HMILevel resumption] [Ford-Specific]: The media app (or navi, voice-com) is registered and SDL receives OnEventChanged (PHONE_CALL, isActive=true) notification from HMI
---------------------------------------------------------------------------------
 --In case the media app (or navi, voice-com) satisfies the conditions of successful HMILevel resumption (unexpected disconnect, next ignition cycle, short ignition cycle, low voltage) and SDL receives PHONE_CALL.Started notification
 -- SDL must:
 -- postpone resuming HMILevel of media app till PHONE_CALL.Stopped notification

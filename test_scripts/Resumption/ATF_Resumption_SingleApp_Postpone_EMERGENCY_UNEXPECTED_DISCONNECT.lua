@@ -1,6 +1,5 @@
 --------------------------------------------------------------------------------
 -- This script covers requirement[HMILevel resumption] [Ford-Specific]: Media app (or navi, voice-com) is registered during OnEventChanged (EMERGENCY_EVENT, isActive=true)
---------------------------------------------------------------------------------
 --In case
 -- the media app (or navi, voice-com) satisfies the conditions of successful HMILevel resumption (unexpected disconnect, next ignition cycle, short ignition cycle, low voltage)
 -- and SDL receives OnEventChanged (EMERGENCY_EVENT, isActive=true)) notification
