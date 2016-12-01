@@ -9,6 +9,10 @@ require('user_modules/all_common_modules')
 common_functions:BackupFile("sdl_preloaded_pt.json")
 
 ------------------------------------------- BODY ------------------------------
+Test["Precondition_RemoveExistedLPT"] = function (self)
+  common_functions:DeletePolicyTable()
+end
+
 -- Change temp_sdl_preloaded_pt_with_ccs_consent_group.json to sdl_preloaded_pt.json
 -- To make sure it does not contain Ccs_consent_group param
 Test["Precondition_ChangedPreloadedPt"] = function (self)
@@ -22,11 +26,8 @@ end
 -- Verify processID of SDL not existed because SDL shut down.
 Test["VerifySDLShutDownWithExistedCcsConsentGroupInPreloadedPT"] = function (self)
   os.execute(" sleep 2 ")
-
   local GetPIDsmartDeviceLinkCore = assert(io.popen("pidof smartDeviceLinkCore"))
-
   local Result = GetPIDsmartDeviceLinkCore:read( '*l' )
-
   if 
     Result and
     Result ~= "" then
@@ -45,7 +46,7 @@ Test["VerifyCcsConsentGroupNotSavedInPreloadedPT"] = function(self)
 		elseif common_steps:FileExisted(policy_file2) then
 			policy_file = policy_file2
 		else
-			common_functions:PrintError("policy.sqlite file is not exist")
+			 common_functions:PrintError(" \27[32m policy.sqlite file is not exist because SDL failed \27[0m ")
 		end
 		if policy_file then
 			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
