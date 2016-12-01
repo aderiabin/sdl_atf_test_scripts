@@ -1,9 +1,9 @@
 require('user_modules/all_common_modules')
 -------------------------------------- Variables --------------------------------------------
-
+-- n/a
 
 ------------------------------------ Common functions ---------------------------------------
--- n/a
+os.execute( "rm -f /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" )
 
 -------------------------------------- Preconditions ----------------------------------------
 common_functions:BackupFile("sdl_preloaded_pt.json")
@@ -48,12 +48,12 @@ Test["VerifyCcsConsentGroupNotSavedInPreloadedPT"] = function(self)
 		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 		local policy_file2 = config.pathToSDL .. "policy.sqlite"
 		local policy_file
-		if common_steps:FileExisted(policy_file1) then
+		if common_functions:IsFileExist(policy_file1) then
 			policy_file = policy_file1
-		elseif common_steps:FileExisted(policy_file2) then
+		elseif common_functions:IsFileExist(policy_file2) then
 			policy_file = policy_file2
 		else
-			common_functions:PrintError("policy.sqlite file is not exist")
+			common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
 		end
 		if policy_file then
 			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
@@ -74,11 +74,7 @@ common_steps:AddMobileSession("AddMobileSession")
 common_steps:RegisterApplication("RegisterApp")
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
 
-function Test:Precondition_TriggerSDLSnapshotCreation_UpdateSDL()
-	local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
-	--hmi side: expect SDL.UpdateSDL response from HMI
-	EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
-end
+common_steps:Sleep("WaitingSDLCreateSnapshot", 2)
 
 Test["CheckCcsConsentGroupNotIncludedInSnapshot"] = function (self)
   local ivsu_cache_folder = common_functions:GetValueFromIniFile("SystemFilesPath")
@@ -87,7 +83,7 @@ Test["CheckCcsConsentGroupNotIncludedInSnapshot"] = function (self)
   local json_snap_shot = file_snap_shot:read("*all") 
   entities = json_snap_shot:match("ccs_consent_groups")
   if entities == nil then
-    print ( " \27[31m ccs_consent_group is not found in SnapShot \27[0m " )
+    print ( " \27[32m ccs_consent_group is not found in SnapShot \27[0m " )
     return true
   else
     self:FailTestCase("ccs_consent_group is found in SnapShot")
