@@ -1,7 +1,6 @@
 require('user_modules/all_common_modules')
 -------------------------------------- Variables --------------------------------------------
 -- n/a
-
 ------------------------------------ Common functions ---------------------------------------
 -- n/a
 -------------------------------------- Preconditions ----------------------------------------
@@ -14,46 +13,28 @@ common_functions:BackupFile("sdl_preloaded_pt.json")
 -- Verification criteria: 
 -- 1. SDL considers this PTU as valid
 -- 2. Does not saved ccs_consent_group in LocalPT
-
-local test_case_id = "TC_"
-local test_case_name = test_case_id .. ": PTUSuccessWithDisallowedCcsEntityOnExistedLPT"
-common_steps:AddNewTestCasesGroup(test_case_name) 
-
-Test[test_case_name .. "_Precondition_StopSDL"] = function(self)
-	StopSDL()
-end
-
-Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+Test["Precondition_RestoreDefaultPreloadedPt"] = function (self)
 	common_functions:DeletePolicyTable()
 end 
 
--- Remove sdl_preloaded_pt.json from current build
-Test[test_case_name .. "_Precondition_Remove_DefaultPreloadedPt"] = function (self)
-	os.execute(" rm " .. config.pathToSDL .. "sdl_preloaded_pt.json")
-end 
 -- Change temp_sdl_preloaded_pt_without_ccs_consent_group.json to sdl_preloaded_pt.json
 -- To make sure it does not contain Ccs_consent_group param
-Test[test_case_name .. "_Precondition_ChangedPreloadedPt"] = function (self)
-	os.execute(" cp " .. "files/temp_sdl_preloaded_pt_without_ccs_consent_group.json".. " " .. config.pathToSDL .. "sdl_preloaded_pt.json")
+Test["Precondition_ChangedPreloadedPt"] = function (self)
+	os.execute(" cp files/temp_sdl_preloaded_pt_without_ccs_consent_group.json ".. config.pathToSDL .. "sdl_preloaded_pt.json")
 end 
 
-common_steps:IgnitionOn(test_case_name)
-
+common_steps:IgnitionOn("IgnitionOn")
 common_steps:AddMobileSession("AddMobileSession")
-
 common_steps:RegisterApplication("RegisterApp")
-
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
 
-
-Test[test_case_name .. "_PTUSuccessWithoutCcsConsentGroup"] = function (self)
+Test["PTUSuccessWithoutCcsConsentGroup"] = function (self)
 	--hmi side: sending SDL.GetURLS request
 	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 	
 	--hmi side: expect SDL.GetURLS response from HMI
 	EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
 	:Do(function(_,data)
-		--print("SDL.GetURLS response is received")
 		--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
 		self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
 		{
@@ -128,7 +109,6 @@ Test[test_case_name .. "_PTUSuccessWithoutCcsConsentGroup"] = function (self)
 				--hmi side: expect SDL.GetUserFriendlyMessage response
 				EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage", messages = {{line1 = "Up-To-Date", messageCode = "StatusUpToDate", textBody = "Up-To-Date"}}}})
 			end)
-			
 		end)
 	end)		
 end
