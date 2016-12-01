@@ -379,15 +379,32 @@ end
 -- Get mobile connection name and mobile session name of an application,
 -- @param app_name: name of application to get mobile session name
 --------------------------------------------------------------------------------
+-- function CommonFunctions:GetMobileConnectionNameAndSessionName(app_name, self)
+  -- for k_mobile_connection_name, v_mobile_connection_data in pairs(self.mobile_connections) do
+    -- for k_mobile_session_name, v_mobile_session_data in pairs(v_mobile_connection_data) do
+      -- for k_application_name, v_application_data in pairs(v_mobile_session_data) do
+        -- if k_application_name == app_name then
+          -- return k_mobile_connection_name, k_mobile_session_name
+        -- end
+      -- end
+    -- end
+  -- end
+  -- CommonFunctions:PrintError("'" .. app_name .. "' application is not exist so that mobile session is not found.")
+  -- return nil
+-- end
 function CommonFunctions:GetMobileConnectionNameAndSessionName(app_name, self)
-  for k_mobile_connection_name, v_mobile_connection_data in pairs(self.mobile_connections) do
-    for k_mobile_session_name, v_mobile_session_data in pairs(v_mobile_connection_data) do
-      for k_application_name, v_application_data in pairs(v_mobile_session_data) do
-        if k_application_name == app_name then
-          return k_mobile_connection_name, k_mobile_session_name
+  for i = 1, 10 do
+    for k_mobile_connection_name, v_mobile_connection_data in pairs(self.mobile_connections) do
+      for k_mobile_session_name, v_mobile_session_data in pairs(v_mobile_connection_data) do
+        for k_application_name, v_application_data in pairs(v_mobile_session_data) do
+          if k_application_name == app_name then
+            return k_mobile_connection_name, k_mobile_session_name
+          end
         end
       end
     end
+    -- sleep 1 second to wait for ATF stores application info and check again
+    os.execute("sleep 1")
   end
   CommonFunctions:PrintError("'" .. app_name .. "' application is not exist so that mobile session is not found.")
   return nil
@@ -623,7 +640,7 @@ function CommonFunctions:ConvertTableToString(tbl, i)
           strReturn = strReturn .. "\n"
         end
       end
-      strReturn = strReturn .. CommonFunctions:convertTableToString(v, i+1)
+      strReturn = strReturn .. CommonFunctions:ConvertTableToString(v, i+1)
     end
     strReturn = strReturn .. "\n"
     strReturn = strReturn .. strIndex .. "}"

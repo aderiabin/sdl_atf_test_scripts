@@ -475,4 +475,10 @@ function CommonSteps:FileExisted(name)
    	end
 end
 
+
+function CommonSteps:Sleep(test_case_name, sec)
+   Test[test_case_name] = function(self)
+    os.execute("sleep " .. sec)
+  end
+end
 return CommonSteps
