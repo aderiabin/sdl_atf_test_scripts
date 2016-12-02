@@ -17,32 +17,32 @@ common_functions:BackupFile("sdl_preloaded_pt.json")
 -- 2. Start successfully
 -- 3. Does not saved disallowed_by_ccs_entities_on in LPT
 
-local test_case_name = "disallowed_by_ccs_entities_on is omitted in PreloadedPT"
+local test_case_name = "disallowed_by_ccs_entities_on_is_omitted_in PreloadedPT"
 
-Test["Precondition_RestoreDefaultPreloadedPt_"..test_case_name] = function (self)
+Test["Precondition_RemoveExistedLPT"] = function (self)
 	common_functions:DeletePolicyTable()
 end
 
 -- Change temp_sdl_preloaded_pt_without_entity_on.json to sdl_preloaded_pt.json
-Test["Precondition_Prepare_PreloadedPT_Without_DisallowedCcsEntityOn_"..test_case_name ] = function (self)
+Test["Precondition_Prepare_PreloadedPT_Without_DisallowedCcsEntityOn"] = function (self)
 	os.execute(" cp " .. "files/temp_sdl_preloaded_pt_without_entity_on.json".. " " .. config.pathToSDL .. "sdl_preloaded_pt.json")
 end 
 
 common_steps:IgnitionOn("StartSDL")
 
 -- Verify valid entityType and entityID are inserted into entities table in LPT
-Test["VerifyDisallowedCcsEntityOnNotSavedInLPT"..test_case_name] = function(self)
+Test["VerifyDisallowedCcsEntityOnNotSavedInLPT"] = function(self)
 	-- Look for policy.sqlite file
 	local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
 	local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 	local policy_file2 = config.pathToSDL .. "policy.sqlite"
 	local policy_file
-	if common_steps:FileExisted(policy_file1) then
+	if common_functions:IsFileExist(policy_file1) then
 		policy_file = policy_file1
-	elseif common_steps:FileExisted(policy_file2) then
+	elseif common_functions:IsFileExist(policy_file2) then
 		policy_file = policy_file2
 	else
-		common_functions:PrintError("policy.sqlite file is not exist")
+		common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
 	end
 	if policy_file then
 		local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
@@ -80,7 +80,7 @@ function Test:VerifyDisallowedByCcsEntityIsNotInSnapShot()
 	item = json_snap_shot:match(new_param)
 	
 	if item == nil then
-    print ( " \27[31m disallowed_by_ccs_entities_on is not found in SnapShot \27[0m " )
+    print ( " \27[32m disallowed_by_ccs_entities_on is not found in SnapShot \27[0m " )
 		return true
 	else
     print ( " \27[31m disallowed_by_ccs_entities_on is found in SnapShot \27[0m " )

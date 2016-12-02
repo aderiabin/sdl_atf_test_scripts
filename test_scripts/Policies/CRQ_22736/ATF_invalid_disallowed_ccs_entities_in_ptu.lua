@@ -41,13 +41,14 @@ end
 local function VerifyPTUFailedWithInvalidData(test_case_name, ptu_file)
   Test["VerifyPTUFailedWithExistedCcsConsentGroup"] = function (self)
     local appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+    local ptu_file = config.pathToSDL .. "update_sdl_preloaded_pt.json"
     local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
     {
       fileName = "PolicyTableUpdate",
       requestType = "PROPRIETARY",
       appID = appID
     },
-    config.pathToSDL .. "update_sdl_preloaded_pt.json")
+    ptu_file)
     
     local systemRequestId
     
@@ -83,12 +84,12 @@ local function VerifyInvalidEntityOnNotSavedInLPT(test_case_name, sql_query)
 		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 		local policy_file2 = config.pathToSDL .. "policy.sqlite"
 		local policy_file
-		if common_steps:FileExisted(policy_file1) then
+		if common_functions:IsFileExist(policy_file1) then
 			policy_file = policy_file1
-		elseif common_steps:FileExisted(policy_file2) then
+		elseif common_functions:IsFileExist(policy_file2) then
 			policy_file = policy_file2
 		else
-			common_functions:PrintError("policy.sqlite file is not exist")
+			common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
 		end
 		if policy_file then
 			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
@@ -231,7 +232,7 @@ for i=1,#invalid_entity_type_cases do
 	end 
 
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
-    os.execute(" cp " .. config.pathToSDL .. "origin_sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_policy_table.json")
+    os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
 	end  
   
   Test[test_case_name .. "_AddedInvalidEntityOnIntoPTU"] = function (self)
