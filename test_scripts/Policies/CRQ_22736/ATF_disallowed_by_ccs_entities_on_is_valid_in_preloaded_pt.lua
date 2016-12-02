@@ -103,7 +103,7 @@ for i=1,#valid_entity_type_cases do
 				local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 				local handler = io.popen(ful_sql_query, 'r')
 				os.execute("sleep 1")
-				local result = handler:read( '*l' )
+				local result = handler:read( '*a' )
 				handler:close()
 				if(result ~= nil) then
 					return true
