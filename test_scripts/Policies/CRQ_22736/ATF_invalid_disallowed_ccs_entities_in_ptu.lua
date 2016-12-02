@@ -41,7 +41,7 @@ end
 local function VerifyPTUFailedWithInvalidData(test_case_name, ptu_file)
   Test["VerifyPTUFailedWithExistedCcsConsentGroup"] = function (self)
     local appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-    local ptu_file = config.pathToSDL .. "update_sdl_preloaded_pt.json"
+    local ptu_file = config.pathToSDL .. "update_policy_table.json"
     local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
     {
       fileName = "PolicyTableUpdate",
@@ -71,7 +71,6 @@ local function VerifyPTUFailedWithInvalidData(test_case_name, ptu_file)
     end)
     --hmi side: expect SDL.OnStatusUpdate
     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-    :Times(0)
     --mobile side: expect SystemRequest response
     EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
   end
