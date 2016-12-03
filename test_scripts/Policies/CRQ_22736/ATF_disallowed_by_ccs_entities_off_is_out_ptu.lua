@@ -92,10 +92,9 @@ local function UpdatePolicy(test_case_name, PTName, appName)
 end
 
 -- Verify new parameter is in LPT after PTU success
-local function VerifyEntityOnNotExistedInLPTAfterPTUSuccess(test_case_name, sql_query)
-  Test[test_case_name .. "VerifyEntityOnNotExistedInLPTAfterPTUSuccess"] = function (self)
+local function VerifyEntityOffNotExistedInLPTAfterPTUSuccess(test_case_name, sql_query)
+  Test[test_case_name .. "VerifyEntityOffNotExistedInLPTAfterPTUSuccess"] = function (self)
 	-- Look for policy.sqlite file
-  os.execute(" sleep 1 ")
 	local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 	local policy_file2 = config.pathToSDL .. "policy.sqlite"
 	local policy_file
@@ -111,8 +110,9 @@ local function VerifyEntityOnNotExistedInLPTAfterPTUSuccess(test_case_name, sql_
 		local handler = io.popen(ful_sql_query, 'r')
 		os.execute("sleep 1")
 		local result = handler:read( '*l' )
+    common_functions:PrintTable(result)
 		handler:close()
-		if(result==nil) then
+		if(result == nil) then
 			return true
 		else
 			self:FailTestCase("Entities on parameter is updated in LPT")
@@ -128,11 +128,11 @@ common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.jso
 ------------------------------------------- BODY ---------------------------------------------
 ------------------------------------------- TC_01 ---------------------------------------------
 -- Precondition: 
--- 1.SDL starts without disallowed_by_ccs_entities_on in PreloadedPT 
--- 2.disallowed_by_ccs_entities_on is omitted in PTU 
+-- 1.SDL starts without disallowed_by_ccs_entities_off in PreloadedPT 
+-- 2.disallowed_by_ccs_entities_off is omitted in PTU 
 -- Verification criteria: 
 -- 1. SDL considers this PTU as valid
--- 2. Does not saved disallowed_by_ccs_entities_on in LocalPT
+-- 2. Does not saved disallowed_by_ccs_entities_off in LocalPT
 local test_case_id = "TC_1"
 local test_case_name = test_case_id .. "_PTUSuccessWithoutDisallowedCcsEntityOnLPT"
 Test["Precondition_RemoveExistedLPT"] = function (self)
@@ -151,15 +151,15 @@ common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApplication_"..test_case_name)
 common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, "files/ptu_without_dissallowed_ccs_entity_on.json", config.application1.registerAppInterfaceParams.appName)
-VerifyEntityOnNotExistedInLPTAfterPTUSuccess("VerifyEntityOnNotUpdatedInLPT", sql_query)
+VerifyEntityOffNotExistedInLPTAfterPTUSuccess("VerifyEntityOffNotUpdatedInLPT", sql_query)
 
 ------------------------------------------- TC_02 ------------------------------
 -- Precondition: 
--- 1.SDL starts with disallowed_by_ccs_entities_on in PreloadedPT 
--- 2.disallowed_by_ccs_entities_on is omitted in PTU 
+-- 1.SDL starts with disallowed_by_ccs_entities_off in PreloadedPT 
+-- 2.disallowed_by_ccs_entities_off is omitted in PTU 
 -- Verification criteria: 
 -- 1. SDL considers this PTU as valid
--- 2. Does not merge disallowed_by_ccs_entities_on from PTU to LocalPT
+-- 2. Does not merge disallowed_by_ccs_entities_off from PTU to LocalPT
 
 local test_case_id = "TC_2"
 local test_case_name = test_case_id .. "_PTUSuccessWithDisallowedCcsEntityOnExistedLPT"
@@ -172,7 +172,7 @@ end
 function Test:AddItemsIntoJsonFile()
   local parent_item = {"policy_table", "functional_groupings", "Location-1"}
   local testing_value = {
-    disallowed_by_ccs_entities_on = {
+    disallowed_by_ccs_entities_off = {
       {
         entityType = 120,
         entityID = 70
@@ -216,7 +216,7 @@ common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApplication_"..test_case_name)
 common_steps:ActivateApplication("ActivateApplication_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, "files/ptu_without_dissallowed_ccs_entity_on.json", config.application1.registerAppInterfaceParams.appName)
-VerifyEntityOnNotExistedInLPTAfterPTUSuccess("VerifyEntityOnNotExistedInLPTAfterPTUSuccess", sql_query)
+VerifyEntityOffNotExistedInLPTAfterPTUSuccess("VerifyEntityOffNotExistedInLPTAfterPTUSuccess", sql_query)
 
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

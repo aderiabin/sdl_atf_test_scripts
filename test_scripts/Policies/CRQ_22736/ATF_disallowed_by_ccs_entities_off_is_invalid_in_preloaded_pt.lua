@@ -2,7 +2,7 @@ require('user_modules/all_common_modules')
 --------------------------------- Variables -----------------------------------
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
 local sql_query = "select * from entities, functional_group where entities.group_id = functional_group.id"
-local error_message = "SDL saved disallowed_by_ccs_entities_on although existed invalid parameters in PreloadedPT."
+local error_message = "SDL saved disallowed_by_ccs_entities_off although existed invalid parameters in PreloadedPT."
 ------------------------------- Common functions -------------------------------
 local match_result = "null"
 local temp_replace_value = "\"Thi123456789\""
@@ -44,9 +44,9 @@ local function CheckPolicyTable(test_case_name, sql_query, error_message)
 		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 		local policy_file2 = config.pathToSDL .. "policy.sqlite"
 		local policy_file
-		if common_steps:FileExisted(policy_file1) then
+		if common_functions:IsFileExist(policy_file1) then
 			policy_file = policy_file1
-		elseif common_steps:FileExisted(policy_file2) then
+		elseif common_functions:IsFileExist(policy_file2) then
 			policy_file = policy_file2
 		else
 			common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
@@ -82,6 +82,7 @@ local function VerifySDLShutDownWithInvalidParamInPreloadedPT(test_case_name)
     return true
  end
  end
+
 ------------------------------- Preconditions ---------------------------------
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
 
@@ -100,7 +101,7 @@ local invalid_entity_type_cases = {
 
 for i=1,#invalid_entity_type_cases do
 	local test_case_id = "TC_entityType_" .. tostring(i)
-	local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. invalid_entity_type_cases[i].description
+	local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_off.entityType_" .. invalid_entity_type_cases[i].description
   
 	common_steps:AddNewTestCasesGroup(test_case_name)	
   
@@ -114,7 +115,7 @@ for i=1,#invalid_entity_type_cases do
   
 	Test[test_case_name .. "_UpdatePreloadedPt"] = function (self)
     local testing_value = {
-      disallowed_by_ccs_entities_on = {
+      disallowed_by_ccs_entities_off= {
         {
           entityType = invalid_entity_type_cases[i].value,
           entityID = 50
@@ -125,12 +126,12 @@ for i=1,#invalid_entity_type_cases do
 	end	
   
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
-		StartSDL(config.pathToSDL, config.ExitOnCrash)
+    sdl.exitOnCrash = false
+    StartSDL(config.pathToSDL, false)
 	end	
   
-  CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
-  
-  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_on.entityType_".. invalid_entity_type_cases[i].description)
+  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_off.entityType_".. invalid_entity_type_cases[i].description)
+  CheckPolicyTable("CheckPolicyTable_"..test_case_name, sql_query, error_message)
 end
 
 -- Precondition: invalid entityID parameter existed in PreloadedPT 
@@ -148,7 +149,7 @@ local invalid_entity_id_cases = {
 for i=1,#invalid_entity_id_cases do
 	
 	local test_case_id = "TC_entityID_" .. tostring(i) 
-	local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityId_" .. invalid_entity_id_cases[i].description
+	local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_off.entityId_" .. invalid_entity_id_cases[i].description
 	
 	common_steps:AddNewTestCasesGroup(test_case_name)
 	
@@ -156,13 +157,13 @@ for i=1,#invalid_entity_id_cases do
 		StopSDL()
 	end
 	
-	Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function (self)
+	Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
 		common_functions:DeletePolicyTable()
 	end 
 	
 	Test[test_case_name .. "_UpdatePreloadedPt"] = function (self)
     local testing_value = {
-			disallowed_by_ccs_entities_on = {
+			disallowed_by_ccs_entities_off= {
         {
           entityType = 100, 
           entityID = invalid_entity_id_cases[i].value
@@ -173,13 +174,11 @@ for i=1,#invalid_entity_id_cases do
 	end 
 	
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
-		sdl.exitOnCrash = false
-    StartSDL(config.pathToSDL, false)
+		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 	
-  CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
-  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_on.entityId_" .. invalid_entity_id_cases[i].description)
-	
+  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_off.entityId_" .. invalid_entity_id_cases[i].description)
+	CheckPolicyTable("CheckPolicyTable_"..test_case_name, sql_query, error_message)
 end
 
 -------------------------------------- Postconditions ----------------------------------------
