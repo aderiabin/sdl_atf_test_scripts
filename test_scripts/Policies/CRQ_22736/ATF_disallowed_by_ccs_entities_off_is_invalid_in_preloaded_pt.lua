@@ -112,19 +112,17 @@ for i=1,#invalid_entity_type_cases do
 	Test[test_case_name .. "_RemoveExistedLPT"] = function (self)
 		common_functions:DeletePolicyTable()
 	end 	
-  
-	Test[test_case_name .. "_UpdatePreloadedPt"] = function (self)
-    local testing_value = {
-      disallowed_by_ccs_entities_off= {
-        {
-          entityType = invalid_entity_type_cases[i].value,
-          entityID = 50
-        }
+	
+  local testing_value = {
+    disallowed_by_ccs_entities_off= {
+      {
+        entityType = invalid_entity_type_cases[i].value,
+        entityID = 50
       }
-    }    
-		AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
-	end	
-  
+    }
+  }    
+  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
+	
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
     sdl.exitOnCrash = false
     StartSDL(config.pathToSDL, false)
@@ -161,18 +159,16 @@ for i=1,#invalid_entity_id_cases do
 		common_functions:DeletePolicyTable()
 	end 
 	
-	Test[test_case_name .. "_UpdatePreloadedPt"] = function (self)
-    local testing_value = {
-			disallowed_by_ccs_entities_off= {
-        {
-          entityType = 100, 
-          entityID = invalid_entity_id_cases[i].value
-        }
+  local testing_value = {
+    disallowed_by_ccs_entities_off= {
+      {
+        entityType = 100, 
+        entityID = invalid_entity_id_cases[i].value
       }
     }
-		AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
-	end 
-	
+  }
+  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
+
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
