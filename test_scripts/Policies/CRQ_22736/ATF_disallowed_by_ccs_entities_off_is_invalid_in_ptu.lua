@@ -127,44 +127,44 @@ local invalid_entity_type_cases = {
       {description = "WrongType_Table", value = {entityType = 1, entityID = 1}},
       {description = "Missed", value = nil}
     }
--- for i=1,#invalid_entity_type_cases do
-  -- local testing_value = {
-    -- disallowed_by_ccs_entities_off = {
-      -- {
-        -- entityType = invalid_entity_type_cases[i].value,
-        -- entityID = 50
-      -- }
-    -- }
-  -- }
-  -- local test_case_id = "TC_entityType_" .. tostring(i)
-  -- local test_case_name = test_case_id .."_".. invalid_entity_type_cases[i].description.."_entityID_50"
+for i=1,#invalid_entity_type_cases do
+  local testing_value = {
+    disallowed_by_ccs_entities_off = {
+      {
+        entityType = invalid_entity_type_cases[i].value,
+        entityID = 50
+      }
+    }
+  }
+  local test_case_id = "TC_entityType_" .. tostring(i)
+  local test_case_name = test_case_id .."_".. invalid_entity_type_cases[i].description.."_entityID_50"
   
-  -- common_steps:AddNewTestCasesGroup(test_case_name)	
+  common_steps:AddNewTestCasesGroup(test_case_name)	
 
-  -- Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
-    -- os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
-	-- end  
+  Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
+    os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
+	end  
   
-  -- AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
-  -- common_steps:StopSDL(test_case_name)
+  AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
+  common_steps:StopSDL(test_case_name)
   
-  -- Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
-		-- common_functions:DeletePolicyTable()
-	-- end 
+  Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
+		common_functions:DeletePolicyTable()
+	end 
   
-  -- common_steps:IgnitionOn(test_case_name)
-  -- common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
-  -- common_steps:RegisterApplication("RegisterApp_"..test_case_name)
-  -- VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json') 
-  -- VerifyInvalidEntityOffNotSavedInLPT(test_case_name, sql_query)
--- end
+  common_steps:IgnitionOn(test_case_name)
+  common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+  common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json') 
+  VerifyInvalidEntityOffNotSavedInLPT(test_case_name, sql_query)
+end
 
--- -- Precondition: 
-  -- -- 1.SDL starts without disallowed_by_ccs_entities_off in PreloadedPT  
-  -- -- 2.Invalid entityID existed in PTU file
--- -- Verification criteria: 
-  -- -- 1. SDL considers this PTU as invalid
-  -- -- 2. Does not merge this invalid PTU to LocalPT
+-- Precondition: 
+  -- 1.SDL starts without disallowed_by_ccs_entities_off in PreloadedPT  
+  -- 2.Invalid entityID existed in PTU file
+-- Verification criteria: 
+  -- 1. SDL considers this PTU as invalid
+  -- 2. Does not merge this invalid PTU to LocalPT
 local invalid_entity_id_cases = {
       {description = "WrongType_String", value = "1"},
       {description = "OutUpperBound", value = 129},
@@ -174,37 +174,37 @@ local invalid_entity_id_cases = {
       {description = "WrongType_Table", value = {entityType = 1, entityID = 1}},
       {description = "Missed", value = nil}
     }
--- for i=1,#invalid_entity_id_cases do
-  -- local testing_value = {
-    -- disallowed_by_ccs_entities_off = {
-      -- {
-        -- entityType = 128,
-        -- entityID = invalid_entity_id_cases[i].value
-      -- }
-    -- }
-  -- }
-  -- local test_case_id = "TC_entityID_" .. tostring(i)
-  -- local test_case_name = test_case_id.."_" .. invalid_entity_id_cases[i].description.."_entityType_128"
+for i=1,#invalid_entity_id_cases do
+  local testing_value = {
+    disallowed_by_ccs_entities_off = {
+      {
+        entityType = 128,
+        entityID = invalid_entity_id_cases[i].value
+      }
+    }
+  }
+  local test_case_id = "TC_entityID_" .. tostring(i)
+  local test_case_name = test_case_id.."_" .. invalid_entity_id_cases[i].description.."_entityType_128"
   
-  -- common_steps:AddNewTestCasesGroup(test_case_name)	
+  common_steps:AddNewTestCasesGroup(test_case_name)	
 
-  -- Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
-    -- os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
-	-- end  
+  Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function (self)
+    os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
+	end  
   
-  -- AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
-  -- common_steps:StopSDL(test_case_name)
+  AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
+  common_steps:StopSDL(test_case_name)
   
-  -- Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
-		-- common_functions:DeletePolicyTable()
-	-- end 
+  Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
+		common_functions:DeletePolicyTable()
+	end 
   
-  -- common_steps:IgnitionOn(test_case_name)
-  -- common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
-  -- common_steps:RegisterApplication("RegisterApp_"..test_case_name)
-  -- VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')  
-  -- VerifyInvalidEntityOffNotSavedInLPT(test_case_name, sql_query)
--- end
+  common_steps:IgnitionOn(test_case_name)
+  common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+  common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')  
+  VerifyInvalidEntityOffNotSavedInLPT(test_case_name, sql_query)
+end
 
 -- Precondition: 
   -- 1.SDL starts with disallowed_by_ccs_entities_off in PreloadedPT  
