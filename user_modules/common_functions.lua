@@ -806,5 +806,9 @@ function CommonFunctions:RemoveItemsOnTable(json_table, parent_item, removed_ite
   end -- if #parent_item == 0 then
 end
   
+function CommonFunctions:StoreHmiAppId(app_name, hmi_app_id, self)
+  local mobile_connection_name, mobile_session_name = CommonFunctions:GetMobileConnectionNameAndSessionName(app_name, self)
+  self.mobile_connections[mobile_connection_name][mobile_session_name][app_name].hmi_app_id = hmi_app_id
+end 
 
 return CommonFunctions
