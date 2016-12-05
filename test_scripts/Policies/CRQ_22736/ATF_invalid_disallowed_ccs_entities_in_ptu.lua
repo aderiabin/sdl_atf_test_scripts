@@ -147,6 +147,11 @@ for i=1,#invalid_entity_type_cases do
   AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
   
   common_steps:StopSDL(test_case_name)
+  
+  Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
+		common_functions:DeletePolicyTable()
+	end 
+  
   common_steps:IgnitionOn(test_case_name)
   common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
   common_steps:RegisterApplication("RegisterApp_"..test_case_name)
@@ -189,6 +194,7 @@ for i=1,#invalid_entity_id_cases do
   
   AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
   common_steps:StopSDL(test_case_name)
+  
   Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
     common_functions:DeletePolicyTable()
   end
@@ -235,11 +241,11 @@ for i=1,#invalid_entity_type_cases do
   
   AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
   
+  common_steps:StopSDL("StopSDL_"..test_case_name)
+  
   Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
     common_functions:DeletePolicyTable()
   end
-  
-  common_steps:StopSDL("StopSDL_"..test_case_name)
   
 	Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
 		common_functions:DeletePolicyTable()
