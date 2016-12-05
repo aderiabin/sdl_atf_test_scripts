@@ -1,8 +1,7 @@
 require('user_modules/all_common_modules')
 
 -------------------------------------- Variables --------------------------------------------
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
-
+--n/a
 ------------------------------------ Common functions ---------------------------------------
 local function AddNewParamIntoJSonFile(json_file, parent_item, testing_value, test_case_name)
 	Test["AddNewParamIntoJSonFile_"..test_case_name] = function (self)
@@ -122,12 +121,13 @@ local function UpdatePolicy(test_case_name, PTName, appName)
 				end)
 				
 			end)
-		end)		
+		end)
+      common_functions:DelayedExp(5000)
 	end
 end
 
 -- Verify new parameter is in LPT after PTU success
-local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+local function VerifyEntityOnInLPTAfterPTUSuccess(test_case_name, sql_query)
 	Test["VerifyEntityOnInLPTAfterPTUSuccess_"..test_case_name] = function (self)
 		-- Look for policy.sqlite file
 		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
@@ -141,7 +141,7 @@ local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 			common_functions:PrintError("policy.sqlite file is not exist")
 		end
 		if policy_file then
-			local ful_sql_query = "/usr/bin/sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
+      local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 			local handler = io.popen(ful_sql_query, 'r')
 			os.execute("sleep 1")
 			local result = handler:read( '*a' )
@@ -150,7 +150,7 @@ local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 				self:FailTestCase("disallowed_by_ccs_entities_off on parameter is not updated in LPT")
 				return false
 			else
-				print ( " \27[31m disallowed_by_ccs_entities_off is updated in LPT \27[0m " )
+				print ( " \27[32m disallowed_by_ccs_entities_off is updated in LPT \27[0m " )
 				return true
 			end
 		end
@@ -185,10 +185,7 @@ for i = 1, 100 do
 	}
 	)
 end
-
-
-local test_case_name = "TC1_Existed_100_Entities_In_Ccs_On_Off_"
-
+local test_case_name = "TC1_Existed_100_Entities_In_Ccs_On_Off"
 common_steps:AddNewTestCasesGroup(test_case_name)	
 common_steps:StopSDL("StopSDL")
 Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
@@ -207,8 +204,9 @@ common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
-VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+local sql_query_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 200"
+VerifyEntityOnInLPTAfterPTUSuccess(test_case_name, sql_query_upper_bound)
+
 ------------------------------------------- TC_2 ---------------------------------------------
 -- Precondition:
 -- 1. SDL start without ccs in PreloadedPT
@@ -232,8 +230,6 @@ local testing_value = {
 		}
 	}
 }
-
-
 local test_case_name = "TC2_Existed_Ccs_On_Off_In_The_Same_Group"
 
 common_steps:AddNewTestCasesGroup(test_case_name)	
@@ -254,8 +250,8 @@ common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-
-VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+local sql_query_lower_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 2"
+VerifyEntityOnInLPTAfterPTUSuccess(test_case_name, sql_query_lower_bound)
 
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

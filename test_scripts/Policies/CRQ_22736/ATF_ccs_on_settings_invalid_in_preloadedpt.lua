@@ -81,7 +81,7 @@ local function VerifySDLShutDownWithInvalidParamInPreloadedPT(test_case_name)
 			self:FailTestCase(" smartDeviceLinkCore process is not stopped ")
 			return false
 		end
-		common_functions:PrintError(" \27[32m SDL has already stoped.")
+		common_functions:PrintError(" \27[32m SDL has already stopped.")
 		return true
 	end
 end

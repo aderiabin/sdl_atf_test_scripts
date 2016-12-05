@@ -55,7 +55,7 @@ local function VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query)
 			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 			local handler = io.popen(ful_sql_query, 'r')
 			os.execute("sleep 1")
-			local result = handler:read( '*a' )
+			local result = handler:read('*l')
 			handler:close()
 			if(result ~= nil) then
 				common_functions:PrintError(" \27[32m Entities have ready save in LPT \27[0m ")
@@ -95,7 +95,7 @@ for i = 1, 100 do
 	)
 end
 
-local test_case_name = "TC1_SDLStarts_With_UpperBoundForEnitiesOff"
+local test_case_name = "TC1_SDLStarts_With_UpperBoundForEnitiesOnOff"
 
 common_steps:AddNewTestCasesGroup(test_case_name)
 
@@ -112,8 +112,10 @@ AddNewItemIntoPreloadedPt (test_case_name, parent_item_entities, testing_value_e
 
 Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
 	StartSDL(config.pathToSDL, config.ExitOnCrash)
+  common_functions:DelayedExp(5000)
 end	
-local sql_query_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 100"
+
+local sql_query_upper_bound = "SELECT count(*) as number FROM entities, functional_group WHERE entities.group_id = functional_group.id group by group_id having number = 200;"
 VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_upper_bound)
 
 ------------------------------------------- TC_2 ---------------------------------------------
@@ -153,9 +155,10 @@ AddNewItemIntoPreloadedPt (test_case_name, parent_item_entities_on, testing_valu
 
 Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
 	StartSDL(config.pathToSDL, config.ExitOnCrash)
+  common_functions:DelayedExp(5000)
 end	
 
-local sql_query_ccs_on_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 100"
+local sql_query_ccs_on_upper_bound = "select count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 100;"
 VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_ccs_on_upper_bound)
 
 ------------------------------------------- TC_3 ---------------------------------------------
@@ -199,9 +202,10 @@ AddNewItemIntoPreloadedPt (test_case_name, parent_item, testing_value)
 
 Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
 	StartSDL(config.pathToSDL, config.ExitOnCrash)
+  common_functions:DelayedExp(5000)
 end	
 
-local sql_query_lower_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 2"
+local sql_query_lower_bound = "select count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 2;"
 VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_lower_bound)
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
