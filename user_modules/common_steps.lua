@@ -128,25 +128,6 @@ end
 -- @param expected_response: expected response for RegisterAppIterface request.
 -- If expected_response parameter is omitted, this function will check default response {success = true, resultCode = "SUCCESS"}
 --------------------------------------------------------------------------------
--- function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, application_parameters, expected_response, expected_on_hmi_status)
-  -- Test[test_case_name] = function(self)
-    -- mobile_session_name = mobile_session_name or "mobileSession"
-    -- application_parameters = application_parameters or config.application1.registerAppInterfaceParams
-    -- local app_name = application_parameters.appName
-    -- local CorIdRAI = self[mobile_session_name]:SendRPC("RegisterAppInterface", application_parameters)
-    -- EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = {appName = app_name}})
-    -- :Do(function(_,data)
-        -- common_functions:StoreApplicationData(mobile_session_name, app_name, application_parameters, data.params.application.appID, self)
-      -- end)
-    -- expected_response = expected_response or {success = true, resultCode = "SUCCESS"}
-    -- self[mobile_session_name]:ExpectResponse(CorIdRAI, expected_response)
-    -- expected_on_hmi_status = expected_on_hmi_status or {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}
-    -- self[mobile_session_name]:ExpectNotification("OnHMIStatus", expected_on_hmi_status)
-    -- :Do(function(_,data)
-        -- common_functions:StoreHmiStatus(app_name, data.payload, self)
-      -- end)
-  -- end
--- end
 function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, application_parameters, expected_response, expected_on_hmi_status)
   Test[test_case_name] = function(self)
     mobile_session_name = mobile_session_name or "mobileSession"
@@ -157,7 +138,6 @@ function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, ap
     local CorIdRAI = self[mobile_session_name]:SendRPC("RegisterAppInterface", application_parameters)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = {appName = app_name}})
     :Do(function(_,data)
-        -- common_functions:StoreApplicationData(mobile_session_name, app_name, application_parameters, data.params.application.appID, self)
         common_functions:StoreHmiAppId(app_name, data.params.application.appID, self)
       end)
     expected_response = expected_response or {success = true, resultCode = "SUCCESS"}
@@ -295,7 +275,6 @@ end
 --------------------------------------------------------------------------------
 function CommonSteps:IgnitionOff(test_case_name)
   Test[test_case_name] = function(self)
-    print("HELLLLLLLLLLLLLLLLL")
     local hmi_app_ids = common_functions:GetHmiAppIds(self)
     self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")

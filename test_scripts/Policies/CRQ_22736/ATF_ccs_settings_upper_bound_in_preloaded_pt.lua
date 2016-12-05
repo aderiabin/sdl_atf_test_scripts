@@ -1,7 +1,7 @@
 require('user_modules/all_common_modules')
 
 -------------------------------------- Variables --------------------------------------------
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
+--n/a
 
 ------------------------------------ Common functions ---------------------------------------
 local function AddNewItemIntoPreloadedPt(test_case_name, parent_item, testing_value)
@@ -113,8 +113,8 @@ AddNewItemIntoPreloadedPt (test_case_name, parent_item_entities, testing_value_e
 Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
 	StartSDL(config.pathToSDL, config.ExitOnCrash)
 end	
-local sql_query_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id, on_off having number = 100"
-VerifySDLSavedUpperBoundEntitiesInLPT(sql_query_upper_bound, test_case_name)
+local sql_query_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 100"
+VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_upper_bound)
 
 ------------------------------------------- TC_2 ---------------------------------------------
 -- Precondition: disallowed_by_ccs_entities_on contains 100 entityType and entityID parameter existed in PreloadedPT 
@@ -155,7 +155,8 @@ Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(se
 	StartSDL(config.pathToSDL, config.ExitOnCrash)
 end	
 
-VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query)
+local sql_query_ccs_on_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 100"
+VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_ccs_on_upper_bound)
 
 ------------------------------------------- TC_3 ---------------------------------------------
 -- Precondition: disallowed_by_ccs_entities_on and disallowed_by_ccs_entities_off are existed in the same group in PreloadedPT 
@@ -200,6 +201,7 @@ Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(se
 	StartSDL(config.pathToSDL, config.ExitOnCrash)
 end	
 
-VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query)
+local sql_query_lower_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 2"
+VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_lower_bound)
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

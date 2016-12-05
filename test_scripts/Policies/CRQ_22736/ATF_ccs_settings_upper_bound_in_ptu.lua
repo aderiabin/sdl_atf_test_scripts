@@ -126,7 +126,7 @@ local function UpdatePolicy(test_case_name, PTName, appName)
 end
 
 -- Verify new parameter is in LPT after PTU success
-local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+local function VerifyEntityOnInLPTAfterPTUSuccess(test_case_name, sql_query)
 	Test["VerifyEntityOnInLPTAfterPTUSuccess_"..test_case_name] = function (self)
 		-- Look for policy.sqlite file
 		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
@@ -204,8 +204,8 @@ common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
 
-local sql_query_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id, on_off having number = 100"
-VerifyEntityOnInLPTAfterPTUSuccess(sql_query_upper_bound, test_case_name)
+local sql_query_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 200"
+VerifyEntityOnInLPTAfterPTUSuccess(test_case_name, sql_query_upper_bound)
 
 ------------------------------------------- TC_2 ---------------------------------------------
 -- Precondition:
@@ -250,8 +250,8 @@ common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
-VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+local sql_query_lower_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 2"
+VerifyEntityOnInLPTAfterPTUSuccess(test_case_name, sql_query_lower_bound)
 
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
