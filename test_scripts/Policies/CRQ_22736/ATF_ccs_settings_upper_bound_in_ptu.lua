@@ -140,7 +140,7 @@ local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 			common_functions:PrintError("policy.sqlite file is not exist")
 		end
 		if policy_file then
-			local ful_sql_query = "/usr/bin/sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
+      local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 			local handler = io.popen(ful_sql_query, 'r')
 			os.execute("sleep 1")
 			local result = handler:read( '*a' )
@@ -184,8 +184,7 @@ for i = 1, 100 do
 	}
 	)
 end
-local test_case_name = "TC1_Existed_100_Entities_In_Ccs_On_Off_"
-
+local test_case_name = "TC1_Existed_100_Entities_In_Ccs_On_Off"
 common_steps:AddNewTestCasesGroup(test_case_name)	
 common_steps:StopSDL("StopSDL")
 Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
@@ -206,7 +205,6 @@ common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.applicat
 UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
 
 local sql_query_upper_bound = "select *, count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id, on_off having number = 100"
-
 VerifyEntityOnInLPTAfterPTUSuccess(sql_query_upper_bound, test_case_name)
 
 ------------------------------------------- TC_2 ---------------------------------------------
