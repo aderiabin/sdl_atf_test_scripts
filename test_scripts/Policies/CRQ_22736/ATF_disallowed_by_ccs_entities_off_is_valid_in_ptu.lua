@@ -3,11 +3,11 @@ require('user_modules/all_common_modules')
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
 local valid_entity_type_cases = {
 	{description = "LowerBound", value = 0},
-	-- {description = "UpperBound", value = 128}
+	{description = "UpperBound", value = 128}
 }
 local valid_entity_id_cases = {
 	{description = "LowerBound", value = 0},
-	-- {description = "UpperBound", value = 128}
+	{description = "UpperBound", value = 128}
 }
 
 ------------------------------------ Common functions ---------------------------------------
