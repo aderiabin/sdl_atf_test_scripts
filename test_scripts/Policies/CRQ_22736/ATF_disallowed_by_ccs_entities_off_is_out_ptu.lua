@@ -112,7 +112,7 @@ local function VerifyEntityOffNotExistedInLPTAfterPTUSuccess(test_case_name, sql
 			local result = handler:read( '*l' )
 			common_functions:PrintTable(result)
 			handler:close()
-			if(result == nil or result ~= "") then
+			if(result == nil or result == "") then
 				return true
 			else
 				self:FailTestCase("Entities on parameter is updated in LPT")
