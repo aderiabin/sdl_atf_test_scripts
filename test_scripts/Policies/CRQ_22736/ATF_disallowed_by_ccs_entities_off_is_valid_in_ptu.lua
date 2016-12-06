@@ -3,11 +3,11 @@ require('user_modules/all_common_modules')
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
 local valid_entity_type_cases = {
 	{description = "LowerBound", value = 0},
-	{description = "UpperBound", value = 128}
+	-- {description = "UpperBound", value = 128}
 }
 local valid_entity_id_cases = {
 	{description = "LowerBound", value = 0},
-	{description = "UpperBound", value = 128}
+	-- {description = "UpperBound", value = 128}
 }
 
 ------------------------------------ Common functions ---------------------------------------
@@ -129,7 +129,8 @@ local function UpdatePolicy(test_case_name, PTName, appName)
 				end)
 				
 			end)
-		end)		
+		end)
+    common_functions:DelayedExp(5000)  
 	end
 end
 
@@ -148,17 +149,17 @@ local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 			common_functions:PrintError("policy.sqlite file is not exist")
 		end
 		if policy_file then
-			local ful_sql_query = "/usr/bin/sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
+			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 			local handler = io.popen(ful_sql_query, 'r')
 			os.execute("sleep 1")
-			local result = handler:read( '*a' )
+			local result = handler:read( '*l' )
 			handler:close()
-			if(result == nil) then
+			if(result ~= nil and result ~= "") then
+         print ( " \27[32m disallowed_by_ccs_entities_off is updated in LPT \27[0m " )
+				return true
+			else
         self:FailTestCase("disallowed_by_ccs_entities_off on parameter is not updated in LPT")
 				return false
-			else
-        print ( " \27[31m disallowed_by_ccs_entities_off is updated in LPT \27[0m " )
-				return true
 			end
 		end
 	end
@@ -175,41 +176,41 @@ common_functions:BackupFile("sdl_preloaded_pt.json")
 -- 1. SDL considers PTU as valid
 -- 2. PTU success
 -- 3. Saves valid entityType/entityID in entities table in LPT
--- for i=1,#valid_entity_type_cases do
-	-- for j=1, #valid_entity_id_cases do
-		-- local testing_value = {
-			-- disallowed_by_ccs_entities_off = {
-				-- {
-					-- entityType = valid_entity_type_cases[i].value,
-					-- entityID = valid_entity_id_cases[j].value
-				-- }
-			-- }
-		-- }
-		-- local test_case_id = "TC_entityType_" .. tostring(i).."_".."_entityTID_" .. tostring(j)
-		-- local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_off.entityType_" .. valid_entity_type_cases[i].description .."_".. valid_entity_id_cases[j].description
+for i=1,#valid_entity_type_cases do
+	for j=1, #valid_entity_id_cases do
+		local testing_value = {
+			disallowed_by_ccs_entities_off = {
+				{
+					entityType = valid_entity_type_cases[i].value,
+					entityID = valid_entity_id_cases[j].value
+				}
+			}
+		}
+		local test_case_id = "TC_entityType_" .. tostring(i).."_".."_entityTID_" .. tostring(j)
+		local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_off.entityType_" .. valid_entity_type_cases[i].description .."_".. valid_entity_id_cases[j].description
 		
-		-- common_steps:AddNewTestCasesGroup(test_case_name)	
-    -- common_steps:StopSDL("StopSDL")
-    -- Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
-      -- common_functions:DeletePolicyTable()
-    -- end
+		common_steps:AddNewTestCasesGroup(test_case_name)	
+    common_steps:StopSDL("StopSDL")
+    Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
+      common_functions:DeletePolicyTable()
+    end
 
-    -- common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
+    common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
     
-		-- Test[test_case_name .. "_Precondition_Created_PTU"] = function (self)
-			-- os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
-		-- end 
+		Test[test_case_name .. "_Precondition_Created_PTU"] = function (self)
+			os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
+		end 
 		
-		-- AddNewParamIntoJSonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, testing_value, "InPTU")
-		-- common_steps:IgnitionOn(test_case_name)
-		-- common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
-		-- common_steps:RegisterApplication("RegisterApp_"..test_case_name)
-		-- common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
-		-- UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-    -- local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. "and entities.entity_id="..valid_entity_id_cases[j].value
-		-- VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
-	-- end
--- end
+		AddNewParamIntoJSonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, testing_value, "InPTU")
+		common_steps:IgnitionOn(test_case_name)
+		common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
+		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
+    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
+		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+	end
+end
 ------------------------------------------- Body II ----------------------------
 -- Precondition: 
 -- 1. entityType and entityID parameters are existed in "Location-1" group in PreloadedPT 
@@ -264,7 +265,7 @@ for i=1,#valid_entity_type_cases do
 		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. "and entities.entity_id="..valid_entity_id_cases[j].value
+    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
 		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 	end
 end

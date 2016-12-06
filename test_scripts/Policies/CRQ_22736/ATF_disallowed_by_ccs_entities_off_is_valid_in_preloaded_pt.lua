@@ -46,6 +46,8 @@ for i=1,#valid_entity_type_cases do
 		Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function (self)
 			common_functions:DeletePolicyTable()
 		end
+    
+    common_steps:RestoreIniFile("PostCondition_Restore_PreloadedPT", "sdl_preloaded_pt.json")
 		
 		-- Add valid entityType and entityID into PreloadedPT 
 		Test[test_case_name .. "_AddNewItemIntoPreloadedPt"] = function (self)
@@ -83,6 +85,7 @@ for i=1,#valid_entity_type_cases do
 		
 		Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
 			StartSDL(config.pathToSDL, config.ExitOnCrash)
+      common_functions:DelayedExp(5000) 
 		end	
 		
 		-- Verify valid entityType and entityID are inserted into entities table in LPT
@@ -97,15 +100,16 @@ for i=1,#valid_entity_type_cases do
 			elseif common_steps:FileExisted(policy_file2) then
 				policy_file = policy_file2
 			else
-				common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
+				common_functions:PrintError(" \27[31m policy.sqlite file is not exist \27[0m ")
 			end
 			if policy_file then
 				local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 				local handler = io.popen(ful_sql_query, 'r')
 				os.execute("sleep 1")
-				local result = handler:read( '*a' )
+				local result = handler:read( '*l' )
 				handler:close()
-				if(result ~= nil) then
+				if(result ~= nil and result ~= "") then
+          common_functions:PrintError(" \27[32m Entity is ready saved in LPT \27[0m ")
 					return true
 				else
 					self:FailTestCase("entities value is not saved in LPT although valid param existed in PreloadedPT file")

@@ -58,7 +58,7 @@ end
       os.execute("sleep 1")
       local result = handler:read( '*a' )
       handler:close()
-      if(result ~= nil) then
+      if(result ~= nil or result ~= "") then
         common_functions:PrintError(" \27[32m Entities have ready save in LPT \27[0m ")
         return true
       else

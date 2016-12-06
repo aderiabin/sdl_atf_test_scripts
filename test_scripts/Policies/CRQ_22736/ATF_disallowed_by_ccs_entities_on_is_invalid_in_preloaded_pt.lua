@@ -57,7 +57,7 @@ local function CheckPolicyTable(test_case_name, sql_query, error_message)
 			os.execute("sleep 1")
 			local result = handler:read( '*l' )
 			handler:close()
-			if(result==nil) then
+			if(result==nil or result == "") then
 				return true
 			else
 				self:FailTestCase("entities value in DB is also saved in local policy table although invalid param existed in PreloadedPT file")

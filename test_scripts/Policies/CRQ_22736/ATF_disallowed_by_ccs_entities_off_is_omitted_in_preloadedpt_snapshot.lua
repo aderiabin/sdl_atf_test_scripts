@@ -50,7 +50,7 @@ Test["VerifyDisallowedCcsEntityOnNotSavedInLPT"] = function(self)
 		os.execute("sleep 1")
 		local result = handler:read( '*l' )
 		handler:close()
-		if(result == nil) then
+		if(result == nil or result == "") then
 			print ( " \27[32m disallowed_by_ccs_entities_off is not found in LPT \27[0m " )
 			return true
 		else
@@ -73,9 +73,6 @@ function Test:VerifyDisallowedByCcsEntityIsNotInSnapShot()
 	local new_param = "disallowed_by_ccs_entities_off"
 	local file_json = io.open(file_name, "r")
 	local json_snap_shot = file_json:read("*all") 
-	if type(new_item) == "table" then
-		new_item = json.encode(new_item)
-	end
 	-- Add new items as child items of parent item.
 	item = json_snap_shot:match(new_param)
 	
