@@ -110,40 +110,40 @@ common_steps:ActivateApplication("ActivateApp", config.application1.registerAppI
 
 -- Verify PTU failed when ccs_consent_param existed in PTU file
 Test["VerifyPTUFailedWithExistedCcsConsentGroup"] = function (self)
-  local appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-  {
-    fileName = "PolicyTableUpdate",
-    requestType = "PROPRIETARY",
-    appID = appID
-  },
-  config.pathToSDL .. "update_sdl_preloaded_pt.json")
-  
-  local systemRequestId
-  
-  --hmi side: expect SystemRequest request
-  EXPECT_HMICALL("BasicCommunication.SystemRequest")
-  :Do(function(_,data)
-    systemRequestId = data.id
-    --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-    self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-    {
-      policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-    }
-    )
-    function to_run()
-      --hmi side: sending SystemRequest response
-      self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-    end
-    
-    RUN_AFTER(to_run, 500)
-  end)
-  --hmi side: expect SDL.OnStatusUpdate
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-  :Times(0)
-  
-  --mobile side: expect SystemRequest response
-  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+	local appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+	local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+	{
+		fileName = "PolicyTableUpdate",
+		requestType = "PROPRIETARY",
+		appID = appID
+	},
+	config.pathToSDL .. "update_sdl_preloaded_pt.json")
+	
+	local systemRequestId
+	
+	--hmi side: expect SystemRequest request
+	EXPECT_HMICALL("BasicCommunication.SystemRequest")
+	:Do(function(_,data)
+		systemRequestId = data.id
+		--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
+		self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+		{
+			policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+		}
+		)
+		function to_run()
+			--hmi side: sending SystemRequest response
+			self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+		end
+		
+		RUN_AFTER(to_run, 500)
+	end)
+	--hmi side: expect SDL.OnStatusUpdate
+	EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+	:Times(0)
+	
+	--mobile side: expect SystemRequest response
+	EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
 end
 
 -- Verify ccs_consent_group is not saved in LPT after PTU failed
@@ -166,7 +166,7 @@ Test["VerifyCcsConsentGroupNotSavedInLPTWhenPTUFailed"] = function (self)
 		os.execute("sleep 1")
 		local result = handler:read( '*l' )
 		handler:close()
-		if(result == nil) then
+		if(result == nil or result == "") then
 			print ( " \27[32m ccs_consent_group is not updated in LPT \27[0m " )
 			return true
 		else

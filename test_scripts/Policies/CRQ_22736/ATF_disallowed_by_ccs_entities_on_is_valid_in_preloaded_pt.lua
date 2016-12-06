@@ -83,12 +83,13 @@ for i=1,#valid_entity_type_cases do
 		
 		Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
 			StartSDL(config.pathToSDL, config.ExitOnCrash)
+			common_functions:DelayedExp(5000)
 		end	
 		
 		-- Verify valid entityType and entityID are inserted into entities table in LPT
 		Test["VerifySDLSavedValidParamInLPT"..test_case_name] = function(self)
 			-- Look for policy.sqlite file
-      local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.." and ".."entities.entity_id="..valid_entity_id_cases[j].value
+			local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.." and ".."entities.entity_id="..valid_entity_id_cases[j].value
 			local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
 			local policy_file2 = config.pathToSDL .. "policy.sqlite"
 			local policy_file
@@ -103,9 +104,10 @@ for i=1,#valid_entity_type_cases do
 				local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 				local handler = io.popen(ful_sql_query, 'r')
 				os.execute("sleep 1")
-				local result = handler:read( '*a' )
+				local result = handler:read( '*l' )
 				handler:close()
-				if(result ~= nil) then
+				if(result ~= nil and result ~= "") then
+					common_functions:PrintError(" \27[32m entities value is ready saved in LPT \27[0m ")
 					return true
 				else
 					self:FailTestCase("entities value is not saved in LPT although valid param existed in PreloadedPT file")
@@ -113,8 +115,7 @@ for i=1,#valid_entity_type_cases do
 				end
 			end
 		end
+		-------------------------------------- Postconditions ----------------------------------------
+		common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 	end
 end
-
--------------------------------------- Postconditions ----------------------------------------
-common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

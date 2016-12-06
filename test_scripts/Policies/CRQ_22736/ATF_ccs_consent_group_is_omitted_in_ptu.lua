@@ -133,7 +133,8 @@ function Test:VerifyCcsConsentGroupNotSaveInLPT()
 		os.execute("sleep 1")
 		local result = handler:read( '*l' )
 		handler:close()
-		if(result==nil) then
+		if(result==nil or result == "") then
+			print ( " \27[32m ccs_consent_group is not updated in LPT \27[0m " )
 			return true
 		else
 			self:FailTestCase("Entities on parameter is updated in LPT")

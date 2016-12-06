@@ -5,9 +5,9 @@ local sql_query = "select entity_type, entity_id from entities, functional_group
 ------------------------------------ Common functions ---------------------------------------
 local function UpdatePolicy(test_case_name, PTName, appName)
 	Test[test_case_name .. "_PTUSuccessWithoutEntitiesOn"] = function (self)
-  local appID = common_functions:GetHmiAppId(appName, self)
+		local appID = common_functions:GetHmiAppId(appName, self)
 		--hmi side: sending SDL.GetURLS request
-    	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+		local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 		--hmi side: expect SDL.GetURLS response from HMI
 		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
 		:Do(function(_,data)
@@ -25,7 +25,7 @@ local function UpdatePolicy(test_case_name, PTName, appName)
 				{
 					fileName = "PolicyTableUpdate",
 					requestType = "PROPRIETARY",
-          appID = appID
+					appID = appID
 				},
 				PTName)
 				
@@ -93,33 +93,33 @@ end
 
 -- Verify new parameter is in LPT after PTU success
 local function VerifyEntityOnNotExistedInLPTAfterPTUSuccess(test_case_name, sql_query)
-  Test[test_case_name .. "VerifyEntityOnNotExistedInLPTAfterPTUSuccess"] = function (self)
-	-- Look for policy.sqlite file
-  os.execute(" sleep 1 ")
-	local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-	local policy_file2 = config.pathToSDL .. "policy.sqlite"
-	local policy_file
-	if common_functions:IsFileExist(policy_file1) then
-		policy_file = policy_file1
-	elseif common_functions:IsFileExist(policy_file2) then
-		policy_file = policy_file2
-	else
-		common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
-	end
-	if policy_file then
-		local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-		local handler = io.popen(ful_sql_query, 'r')
-		os.execute("sleep 1")
-		local result = handler:read( '*l' )
-		handler:close()
-		if(result==nil) then
-			return true
+	Test[test_case_name .. "VerifyEntityOnNotExistedInLPTAfterPTUSuccess"] = function (self)
+		-- Look for policy.sqlite file
+		os.execute(" sleep 1 ")
+		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
+		local policy_file2 = config.pathToSDL .. "policy.sqlite"
+		local policy_file
+		if common_functions:IsFileExist(policy_file1) then
+			policy_file = policy_file1
+		elseif common_functions:IsFileExist(policy_file2) then
+			policy_file = policy_file2
 		else
-			self:FailTestCase("Entities on parameter is updated in LPT")
-			return false
+			common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
+		end
+		if policy_file then
+			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
+			local handler = io.popen(ful_sql_query, 'r')
+			os.execute("sleep 1")
+			local result = handler:read( '*l' )
+			handler:close()
+			if(result==nil) then
+				return true
+			else
+				self:FailTestCase("Entities on parameter is updated in LPT")
+				return false
+			end
 		end
 	end
-end
 end
 
 -------------------------------------- Preconditions ----------------------------------------
@@ -136,7 +136,7 @@ common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.jso
 local test_case_id = "TC_1"
 local test_case_name = test_case_id .. "_PTUSuccessWithoutDisallowedCcsEntityOnLPT"
 Test["Precondition_RemoveExistedLPT"] = function (self)
-  common_functions:DeletePolicyTable()
+	common_functions:DeletePolicyTable()
 end
 
 -- Change temp_sdl_preloaded_pt_without_entity_on.json to sdl_preloaded_pt.json
@@ -170,15 +170,15 @@ Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
 end 
 
 function Test:AddItemsIntoJsonFile()
-  local parent_item = {"policy_table", "functional_groupings", "Location-1"}
-  local testing_value = {
-    disallowed_by_ccs_entities_on = {
-      {
-        entityType = 120,
-        entityID = 70
-      }
-    }
-  }
+	local parent_item = {"policy_table", "functional_groupings", "Location-1"}
+	local testing_value = {
+		disallowed_by_ccs_entities_on = {
+			{
+				entityType = 120,
+				entityID = 70
+			}
+		}
+	}
 	local json_file = config.pathToSDL .. "sdl_preloaded_pt.json"
 	local match_result = "null"
 	local temp_replace_value = "\"Thi123456789\""

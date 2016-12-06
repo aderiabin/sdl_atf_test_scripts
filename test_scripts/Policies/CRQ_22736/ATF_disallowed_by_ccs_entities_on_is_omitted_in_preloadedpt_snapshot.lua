@@ -63,14 +63,18 @@ end
 common_steps:AddMobileSession("AddMobileSession")
 common_steps:RegisterApplication("RegisterApp")
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
-
 common_steps:Sleep("WaitingSDLCreateSnapshot", 2)
 
 -- Verify disallowed_by_ccs_entities_on is not included in Snapshot
 function Test:VerifyDisallowedByCcsEntityIsNotInSnapShot()
-  local ivsu_cache_folder = common_functions:GetValueFromIniFile("SystemFilesPath")
-  local file_name = ivsu_cache_folder.."/".."sdl_snapshot.json"
+	local ivsu_cache_folder = common_functions:GetValueFromIniFile("SystemFilesPath")
+	local file_name = ivsu_cache_folder.."/".."sdl_snapshot.json"
 	local new_param = "disallowed_by_ccs_entities_on"
+	if common_functions:IsFileExist(file_name) then
+		file_name = file_name
+	else
+		common_functions:PrintError("Snapshot file is not exist")
+	end
 	local file_json = io.open(file_name, "r")
 	local json_snap_shot = file_json:read("*all") 
 	if type(new_item) == "table" then
@@ -80,10 +84,10 @@ function Test:VerifyDisallowedByCcsEntityIsNotInSnapShot()
 	item = json_snap_shot:match(new_param)
 	
 	if item == nil then
-    print ( " \27[32m disallowed_by_ccs_entities_on is not found in SnapShot \27[0m " )
+		print ( " \27[32m disallowed_by_ccs_entities_on is not found in SnapShot \27[0m " )
 		return true
 	else
-    print ( " \27[31m disallowed_by_ccs_entities_on is found in SnapShot \27[0m " )
+		print ( " \27[31m disallowed_by_ccs_entities_on is found in SnapShot \27[0m " )
 		return false
 	end
 	file_json:close()

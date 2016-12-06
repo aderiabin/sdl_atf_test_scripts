@@ -47,9 +47,9 @@ end
 
 local function UpdatePolicy(test_case_name, PTName, appName)
 	Test[test_case_name .. "_PTUSuccessWithoutEntitiesOn"] = function (self)
-  local appID = common_functions:GetHmiAppId(appName, self)
+		local appID = common_functions:GetHmiAppId(appName, self)
 		--hmi side: sending SDL.GetURLS request
-    	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+		local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 		--hmi side: expect SDL.GetURLS response from HMI
 		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
 		:Do(function(_,data)
@@ -67,7 +67,7 @@ local function UpdatePolicy(test_case_name, PTName, appName)
 				{
 					fileName = "PolicyTableUpdate",
 					requestType = "PROPRIETARY",
-          appID = appID
+					appID = appID
 				},
 				PTName)
 				
@@ -127,9 +127,9 @@ local function UpdatePolicy(test_case_name, PTName, appName)
 					--hmi side: expect SDL.GetUserFriendlyMessage response
 					EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage", messages = {{line1 = "Up-To-Date", messageCode = "StatusUpToDate", textBody = "Up-To-Date"}}}})
 				end)
-				
 			end)
-		end)		
+		end)
+		common_functions:DelayedExp(5000)
 	end
 end
 
@@ -148,16 +148,16 @@ local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
 			common_functions:PrintError("policy.sqlite file is not exist")
 		end
 		if policy_file then
-			local ful_sql_query = "/usr/bin/sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
+			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
 			local handler = io.popen(ful_sql_query, 'r')
 			os.execute("sleep 1")
-			local result = handler:read( '*a' )
+			local result = handler:read( '*l' )
 			handler:close()
-			if(result == nil) then
-        self:FailTestCase("disallowed_by_ccs_entities_on on parameter is not updated in LPT")
+			if(result == nil or result == "") then
+				self:FailTestCase("disallowed_by_ccs_entities_on on parameter is not updated in LPT")
 				return false
 			else
-        print ( " \27[31m disallowed_by_ccs_entities_on is updated in LPT \27[0m " )
+				print ( " \27[32m disallowed_by_ccs_entities_on is updated in LPT \27[0m " )
 				return true
 			end
 		end
@@ -189,13 +189,11 @@ for i=1,#valid_entity_type_cases do
 		local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_on.entityType_" .. valid_entity_type_cases[i].description .."_".. valid_entity_id_cases[j].description
 		
 		common_steps:AddNewTestCasesGroup(test_case_name)	
-    common_steps:StopSDL("StopSDL")
-    Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
-      common_functions:DeletePolicyTable()
-    end
-
-    common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
-    
+		common_steps:StopSDL("StopSDL")
+		Test[test_case_name .. "_Remove_Existed_LPT"] = function (self)
+			common_functions:DeletePolicyTable()
+		end
+		
 		Test[test_case_name .. "_Precondition_Created_PTU"] = function (self)
 			os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
 		end 
@@ -206,8 +204,10 @@ for i=1,#valid_entity_type_cases do
 		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. "and entities.entity_id="..valid_entity_id_cases[j].value
+		local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
 		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+		-------------------------------------- Postconditions -------------------------
+		common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 	end
 end
 ------------------------------------------- Body II ----------------------------
@@ -233,14 +233,12 @@ for i=1,#valid_entity_type_cases do
 		
 		local test_case_name = "TC_entityType_" .. tostring(i).."_".. valid_entity_type_cases[i].description .."_entityTID_" .. tostring(j).."_".. valid_entity_id_cases[j].description
 		common_steps:AddNewTestCasesGroup(test_case_name)	
-
+		
 		common_steps:StopSDL("StopSDL")
-    
+		
 		Test[test_case_name .. "_Precondition_RemovedExistedLPT"] = function (self)
 			common_functions:DeletePolicyTable()
 		end
-		
-    common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 		
 		Test[test_case_name .. "_Precondition_Create_PTU_File"] = function (self)
 			os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
@@ -264,10 +262,10 @@ for i=1,#valid_entity_type_cases do
 		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. "and entities.entity_id="..valid_entity_id_cases[j].value
+		local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
 		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+		
+		-------------------------------------- Postconditions -------------------------
+		common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 	end
 end
-
--------------------------------------- Postconditions -------------------------
-common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

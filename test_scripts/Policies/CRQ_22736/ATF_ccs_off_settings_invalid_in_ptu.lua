@@ -99,7 +99,7 @@ local function VerifyInvalidCcsOnNotSavedInLPT(test_case_name, sql_query)
 			os.execute("sleep 1")
 			local result = handler:read( '*l' )
 			handler:close()
-			if(result==nil) then
+			if(result==nil or result == "") then
 				common_functions:PrintError(" \27[32m SDL does not merge invalid PTU to LPT \27[0m ")
 				return true
 			else

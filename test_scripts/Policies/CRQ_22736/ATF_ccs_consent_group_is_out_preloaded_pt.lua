@@ -43,53 +43,58 @@ end
 common_steps:IgnitionOn("StartSDL")
 
 Test["VerifyCcsConsentGroupNotSavedInPreloadedPT"] = function(self)
-    sql_query = "select * from ccs_consent_group"
-		-- Look for policy.sqlite file
-		local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-		local policy_file2 = config.pathToSDL .. "policy.sqlite"
-		local policy_file
-		if common_functions:IsFileExist(policy_file1) then
-			policy_file = policy_file1
-		elseif common_functions:IsFileExist(policy_file2) then
-			policy_file = policy_file2
+	sql_query = "select * from ccs_consent_group"
+	-- Look for policy.sqlite file
+	local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
+	local policy_file2 = config.pathToSDL .. "policy.sqlite"
+	local policy_file
+	if common_functions:IsFileExist(policy_file1) then
+		policy_file = policy_file1
+	elseif common_functions:IsFileExist(policy_file2) then
+		policy_file = policy_file2
+	else
+		common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
+	end
+	if policy_file then
+		local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
+		local handler = io.popen(ful_sql_query, 'r')
+		os.execute("sleep 1")
+		local result = handler:read( '*l' )
+		handler:close()
+		if(result==nil or result == "") then
+			common_functions:PrintError(" \27[32m ccs_consent_group is not saved in LPT \27[0m ")
+			return true
 		else
-			common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
+			self:FailTestCase("ccs_consent_group is still saved in local policy table although SDL can not start.")
+			return false
 		end
-		if policy_file then
-			local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-			local handler = io.popen(ful_sql_query, 'r')
-			os.execute("sleep 1")
-			local result = handler:read( '*l' )
-			handler:close()
-			if(result==nil) then
-				return true
-			else
-				self:FailTestCase("ccs_consent_group is still saved in local policy table although SDL can not start.")
-				return false
-			end
-		end
+	end
 end
 
 common_steps:AddMobileSession("AddMobileSession")
 common_steps:RegisterApplication("RegisterApp")
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
-
 common_steps:Sleep("WaitingSDLCreateSnapshot", 2)
 
 Test["CheckCcsConsentGroupNotIncludedInSnapshot"] = function (self)
-  local ivsu_cache_folder = common_functions:GetValueFromIniFile("SystemFilesPath")
-  local file_name = ivsu_cache_folder.."/".."sdl_snapshot.json"
-  local file_snap_shot = io.open(file_name, "r")
-  local json_snap_shot = file_snap_shot:read("*all") 
-  entities = json_snap_shot:match("ccs_consent_groups")
-  if entities == nil then
-    print ( " \27[32m ccs_consent_group is not found in SnapShot \27[0m " )
-    return true
-  else
-    self:FailTestCase("ccs_consent_group is found in SnapShot")
-    return false
-  end
-  file_snap_shot:close()
+	local ivsu_cache_folder = common_functions:GetValueFromIniFile("SystemFilesPath")
+	local file_name = ivsu_cache_folder.."/".."sdl_snapshot.json"
+	if common_functions:IsFileExist(file_name) then
+		file_name = file_name
+	else
+		common_functions:PrintError(" \27[32m Snapshot is not existed. \27[0m ")
+	end
+	local file_snap_shot = io.open(file_name, "r")
+	local json_snap_shot = file_snap_shot:read("*all") 
+	entities = json_snap_shot:match("ccs_consent_groups")
+	if entities == nil then
+		print ( " \27[32m ccs_consent_group is not found in SnapShot \27[0m " )
+		return true
+	else
+		self:FailTestCase("ccs_consent_group is found in SnapShot")
+		return false
+	end
+	file_snap_shot:close()
 end
 
 -------------------------------------- Postconditions ----------------------------------------

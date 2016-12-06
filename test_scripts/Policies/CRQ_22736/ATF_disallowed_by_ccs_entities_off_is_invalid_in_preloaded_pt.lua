@@ -57,7 +57,8 @@ local function CheckPolicyTable(test_case_name, sql_query, error_message)
 			os.execute("sleep 1")
 			local result = handler:read( '*l' )
 			handler:close()
-			if(result==nil) then
+			if(result == nil or result == "") then
+				common_functions:PrintError(" \27[32m entities value in DB is not saved in local policy table \27[0m ")
 				return true
 			else
 				self:FailTestCase("entities value in DB is also saved in local policy table although invalid param existed in PreloadedPT file")
@@ -69,19 +70,19 @@ end
 
 -- Verify SDL can't start with invalid parameter in PreloadedPT
 local function VerifySDLShutDownWithInvalidParamInPreloadedPT(test_case_name)
- Test["SDLShutDownWith"..test_case_name] = function (self)
-    os.execute(" sleep 1 ")
-    -- Remove sdl.pid file on ATF folder in case SDL is stopped not by script.
-    os.execute("rm sdl.pid") 
-    local status = sdl:CheckStatusSDL()
-    if (status == 1) then
-      self:FailTestCase(" smartDeviceLinkCore process is not stopped ")
-      return false
-    end
-      common_functions:PrintError(" \27[32m SDL has already stoped.")
-    return true
- end
- end
+	Test["SDLShutDownWith"..test_case_name] = function (self)
+		os.execute(" sleep 1 ")
+		-- Remove sdl.pid file on ATF folder in case SDL is stopped not by script.
+		os.execute("rm sdl.pid") 
+		local status = sdl:CheckStatusSDL()
+		if (status == 1) then
+			self:FailTestCase(" smartDeviceLinkCore process is not stopped ")
+			return false
+		end
+		common_functions:PrintError(" \27[32m SDL has already stoped.")
+		return true
+	end
+end
 
 ------------------------------- Preconditions ---------------------------------
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
@@ -102,34 +103,36 @@ local invalid_entity_type_cases = {
 for i=1,#invalid_entity_type_cases do
 	local test_case_id = "TC_entityType_" .. tostring(i)
 	local test_case_name = test_case_id .. "_disallowed_by_ccs_entities_off.entityType_" .. invalid_entity_type_cases[i].description
-  
+	
 	common_steps:AddNewTestCasesGroup(test_case_name)	
-  
+	
 	Test[test_case_name .. "_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end	
-  
+	
 	Test[test_case_name .. "_RemoveExistedLPT"] = function (self)
 		common_functions:DeletePolicyTable()
 	end 	
 	
-  local testing_value = {
-    disallowed_by_ccs_entities_off= {
-      {
-        entityType = invalid_entity_type_cases[i].value,
-        entityID = 50
-      }
-    }
-  }    
-  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
+	local testing_value = {
+		disallowed_by_ccs_entities_off= {
+			{
+				entityType = invalid_entity_type_cases[i].value,
+				entityID = 50
+			}
+		}
+	} 
+	AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
 	
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
-    sdl.exitOnCrash = false
-    StartSDL(config.pathToSDL, false)
+		sdl.exitOnCrash = false
+		StartSDL(config.pathToSDL, false)
 	end	
-  
-  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_off.entityType_".. invalid_entity_type_cases[i].description)
-  CheckPolicyTable("CheckPolicyTable_"..test_case_name, sql_query, error_message)
+	
+	VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_off.entityType_".. invalid_entity_type_cases[i].description)
+	CheckPolicyTable("CheckPolicyTable_"..test_case_name, sql_query, error_message)
+	-------------------------------------- Postconditions ----------------------------------------
+	common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 end
 
 -- Precondition: invalid entityID parameter existed in PreloadedPT 
@@ -159,23 +162,23 @@ for i=1,#invalid_entity_id_cases do
 		common_functions:DeletePolicyTable()
 	end 
 	
-  local testing_value = {
-    disallowed_by_ccs_entities_off= {
-      {
-        entityType = 100, 
-        entityID = invalid_entity_id_cases[i].value
-      }
-    }
-  }
-  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
-
+	local testing_value = {
+		disallowed_by_ccs_entities_off= {
+			{
+				entityType = 100, 
+				entityID = invalid_entity_id_cases[i].value
+			}
+		}
+	}
+	AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
+	
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 	
-  VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_off.entityId_" .. invalid_entity_id_cases[i].description)
+	VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_ccs_entities_off.entityId_" .. invalid_entity_id_cases[i].description)
 	CheckPolicyTable("CheckPolicyTable_"..test_case_name, sql_query, error_message)
+  
+	-------------------------------------- Postconditions ----------------------------------------
+	common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 end
-
--------------------------------------- Postconditions ----------------------------------------
-common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

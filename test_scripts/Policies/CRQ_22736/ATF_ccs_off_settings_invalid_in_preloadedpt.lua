@@ -8,36 +8,36 @@ local match_result = "null"
 local temp_replace_value = "\"Thi123456789\""
 -- Add new structure into json_file
 local function AddItemsIntoJsonFile(test_case_name, parent_item, added_json_items)
-  Test["AddItemsIntoJsonFile_"..test_case_name] = function (self)
-    local json_file = config.pathToSDL .. 'sdl_preloaded_pt.json'
-    local file = io.open(json_file, "r")
-    local json_data = file:read("*all")
-    file:close()
-    json_data_update = string.gsub(json_data, match_result, temp_replace_value)
-    local json = require("modules/json")
-    local data = json.decode(json_data_update)
-    -- Go to parent item
-    local parent = data
-    for i = 1, #parent_item do
-      if not parent[parent_item[i]] then
-        parent[parent_item[i]] = {}
-      end
-      parent = parent[parent_item[i]]
-    end
-    if type(added_json_items) == "string" then
-      added_json_items = json.decode(added_json_items)
-    end
-    
-    for k, v in pairs(added_json_items) do
-      parent[k] = v
-    end
-    
-    data = json.encode(data)	
-    data_revert = string.gsub(data, temp_replace_value, match_result)
-    file = io.open(json_file, "w")
-    file:write(data_revert)
-    file:close()	
-  end
+	Test["AddItemsIntoJsonFile_"..test_case_name] = function (self)
+		local json_file = config.pathToSDL .. 'sdl_preloaded_pt.json'
+		local file = io.open(json_file, "r")
+		local json_data = file:read("*all")
+		file:close()
+		json_data_update = string.gsub(json_data, match_result, temp_replace_value)
+		local json = require("modules/json")
+		local data = json.decode(json_data_update)
+		-- Go to parent item
+		local parent = data
+		for i = 1, #parent_item do
+			if not parent[parent_item[i]] then
+				parent[parent_item[i]] = {}
+			end
+			parent = parent[parent_item[i]]
+		end
+		if type(added_json_items) == "string" then
+			added_json_items = json.decode(added_json_items)
+		end
+		
+		for k, v in pairs(added_json_items) do
+			parent[k] = v
+		end
+		
+		data = json.encode(data)	
+		data_revert = string.gsub(data, temp_replace_value, match_result)
+		file = io.open(json_file, "w")
+		file:write(data_revert)
+		file:close()	
+	end
 end
 
 -- Verify new parameter is not saved in LPT
@@ -60,7 +60,8 @@ local function CheckPolicyTable(test_case_name, sql_query)
 			os.execute("sleep 1")
 			local result = handler:read( '*l' )
 			handler:close()
-			if(result==nil) then
+			if(result == nil or result == "") then
+				common_functions:PrintError(" \27[32m SDL does not save invalid disallowed_by_ccs_entities_off \27[0m ")
 				return true
 			else
 				self:FailTestCase("SDL saved disallowed_by_ccs_entities_off although existed invalid settings in PreloadedPT.")
@@ -150,7 +151,6 @@ for j=1, #test_data do
 		common_functions:DeletePolicyTable()
 	end 	
 	
-	common_steps:RestoreIniFile("PostCondition_Restore_PreloadedPT", "sdl_preloaded_pt.json")
 	AddItemsIntoJsonFile(test_case_name, parent_item, test_data[j].value)
 	
 	Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
@@ -160,7 +160,7 @@ for j=1, #test_data do
 	
 	VerifySDLShutDownWithInvalidParamInPreloadedPT(test_case_name)
 	CheckPolicyTable(test_case_name.."_CheckInvalidEntitiesOffNotExistedInLPT", sql_query)
+	
+	-------------------------------------- Postconditions ----------------------------------------
+	common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 end
-
--------------------------------------- Postconditions ----------------------------------------
-common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
