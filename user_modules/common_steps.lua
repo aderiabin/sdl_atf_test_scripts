@@ -128,15 +128,36 @@ end
 -- @param expected_response: expected response for RegisterAppIterface request.
 -- If expected_response parameter is omitted, this function will check default response {success = true, resultCode = "SUCCESS"}
 --------------------------------------------------------------------------------
+-- function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, application_parameters, expected_response, expected_on_hmi_status)
+  -- Test[test_case_name] = function(self)
+    -- mobile_session_name = mobile_session_name or "mobileSession"
+    -- application_parameters = application_parameters or config.application1.registerAppInterfaceParams
+    -- local app_name = application_parameters.appName
+    -- local CorIdRAI = self[mobile_session_name]:SendRPC("RegisterAppInterface", application_parameters)
+    -- EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = {appName = app_name}})
+    -- :Do(function(_,data)
+        -- common_functions:StoreApplicationData(mobile_session_name, app_name, application_parameters, data.params.application.appID, self)
+      -- end)
+    -- expected_response = expected_response or {success = true, resultCode = "SUCCESS"}
+    -- self[mobile_session_name]:ExpectResponse(CorIdRAI, expected_response)
+    -- expected_on_hmi_status = expected_on_hmi_status or {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}
+    -- self[mobile_session_name]:ExpectNotification("OnHMIStatus", expected_on_hmi_status)
+    -- :Do(function(_,data)
+        -- common_functions:StoreHmiStatus(app_name, data.payload, self)
+      -- end)
+  -- end
+-- end
 function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, application_parameters, expected_response, expected_on_hmi_status)
   Test[test_case_name] = function(self)
     mobile_session_name = mobile_session_name or "mobileSession"
     application_parameters = application_parameters or config.application1.registerAppInterfaceParams
     local app_name = application_parameters.appName
+    common_functions:StoreApplicationData(mobile_session_name, app_name, application_parameters, _, self)
+    
     local CorIdRAI = self[mobile_session_name]:SendRPC("RegisterAppInterface", application_parameters)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = {appName = app_name}})
     :Do(function(_,data)
-        common_functions:StoreApplicationData(mobile_session_name, app_name, application_parameters, data.params.application.appID, self)
+        common_functions:StoreHmiAppId(app_name, data.params.application.appID, self)
       end)
     expected_response = expected_response or {success = true, resultCode = "SUCCESS"}
     self[mobile_session_name]:ExpectResponse(CorIdRAI, expected_response)
@@ -173,14 +194,16 @@ app_name_3 = {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "
 app_name_n = {hmiLevel = "BACKGROUND", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"}
 --}]]
 --------------------------------------------------------------------------------
-function CommonSteps:ActivateApplication(test_case_name, app_name, expected_on_hmi_status_for_other_applications)
+function CommonSteps:ActivateApplication(test_case_name, app_name, expected_level, expected_on_hmi_status_for_other_applications)
   Test[test_case_name] = function(self)
+    expected_level = expected_level or "FULL"
     local hmi_app_id = common_functions:GetHmiAppId(app_name, self)
     local audio_streaming_state = "NOT_AUDIBLE"
     if common_functions:IsMediaApp(app_name, self) then
       audio_streaming_state = "AUDIBLE"
     end
     local mobile_connect_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(app_name, self)
+    --local cid = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id, level = expected_level})
     local cid = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id})
     EXPECT_HMIRESPONSE(cid)
     :Do(function(_,data)
@@ -193,23 +216,19 @@ function CommonSteps:ActivateApplication(test_case_name, app_name, expected_on_h
               self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
             end)
         end
+        self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = expected_level, audioStreamingState = audio_streaming_state, systemContext = "MAIN"})
+        -- Verify OnHMIStatus for other applications
+        if expected_on_hmi_status_for_other_applications then
+          for k_app_name, v in pairs(expected_on_hmi_status_for_other_applications) do
+            local mobile_connection_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(k_app_name, self)
+            self[mobile_session_name]:ExpectNotification("OnHMIStatus", v)
+            :Do(function(_,data)
+                -- Store OnHMIStatus notification to use later
+                common_functions:StoreHmiStatus(app_name, data.payload, self)
+              end)
+          end -- for k_app_name, v
+        end -- if expected_on_hmi_status_for_other_applications then
       end) -- :Do(function(_,data)
-
-    self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = audio_streaming_state, systemContext = "MAIN"})
-    :Do(function(_,data)
-        common_functions:StoreHmiStatus(app_name, data.payload, self)
-      end)
-    -- Verify OnHMIStatus for other applications
-    if expected_on_hmi_status_for_other_applications then
-      for k_app_name, v in pairs(expected_on_hmi_status_for_other_applications) do
-        local mobile_connection_name, other_mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(k_app_name, self)
-        print(" activate , check result on session: " .. other_mobile_session_name)
-        self[other_mobile_session_name]:ExpectNotification("OnHMIStatus", v)
-        :Do(function(_,data)
-            common_functions:StoreHmiStatus(k_app_name, data.payload, self)
-          end)
-      end -- for k_app_name, v
-    end -- if expected_on_hmi_status_for_other_applications then
   end
 end
 --------------------------------------------------------------------------------
