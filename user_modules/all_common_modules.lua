@@ -13,6 +13,7 @@ file_connection = require('file_connection')
 config = require('config')
 expectations = require('expectations')
 Expectation = expectations.Expectation
+sdl = require('SDL')
 
 -------------------- Set default settings for ATF script --------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"

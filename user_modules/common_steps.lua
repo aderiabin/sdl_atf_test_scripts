@@ -288,6 +288,7 @@ end
 -- @param test_case_name: Test name
 --------------------------------------------------------------------------------
 function CommonSteps:IgnitionOn(test_case_name)
+  CommonSteps:KillAllSdlProcesses()
   CommonSteps:StartSDL(test_case_name .. "_StartSDL")
   CommonSteps:InitializeHmi(test_case_name.."_InitHMI")
   CommonSteps:HmiRespondOnReady(test_case_name.."_InitHMI_onReady")
@@ -348,6 +349,15 @@ function CommonSteps:RestoreIniFile(test_case_name)
   end
 end
 
+--------------------------------------------------------------------------------
+-- Restore smartDeviceLink.ini File
+-- @param test_case_name: Test name
+--------------------------------------------------------------------------------
+function CommonSteps:RestoreIniFile(test_case_name, file_name)
+  Test[test_case_name] = function(self)
+    os.execute(" cp " .. config.pathToSDL .. file_name .. "_origin " .. config.pathToSDL .. file_name )
+  end
+end
 --------------------------------------------------------------------------------
 -- Precondition steps:
 -- @param test_case_name: Test name
@@ -463,6 +473,25 @@ function CommonSteps:PutFile(test_case_name, file_name)
       }, "files/icon.png")
 
     EXPECT_RESPONSE(CorIdPutFile, { success = true, resultCode = "SUCCESS"})
+  end
+end
+
+--11. Check file existence
+function CommonSteps:FileExisted(name)
+   	local f=io.open(name,"r")
+
+   	if f ~= nil then 
+   		io.close(f)
+   		return true
+   	else 
+   		return false 
+   	end
+end
+
+
+function CommonSteps:Sleep(test_case_name, sec)
+   Test[test_case_name] = function(self)
+    os.execute("sleep " .. sec)
   end
 end
 

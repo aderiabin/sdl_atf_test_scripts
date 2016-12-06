@@ -15,13 +15,13 @@ function CommonFunctions:DeleteLogsFileAndPolicyTable(DeleteLogsFlags)
 end
 
 function CommonFunctions:DeletePolicyTable()
-  CommonFunctions:CheckSDLPath()
-  os.remove(config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/policy.sqlite")
+  CommonFunctions:CheckSdlPath()
+  os.remove(config.pathToSDL .. CommonFunctions:GetValueFromIniFile("AppStorageFolder") .. "/policy.sqlite")
   os.remove(config.pathToSDL .. "policy.sqlite")
 end
 
 function CommonFunctions:DeleteLogsFiles()
-  CommonFunctions:CheckSDLPath()
+  CommonFunctions:CheckSdlPath()
   if self:file_exists(config.pathToSDL .. "app_info.dat") then
     os.remove(config.pathToSDL .. "app_info.dat")
   end
@@ -661,6 +661,7 @@ function CommonFunctions:CheckSdlPath()
   end
 end
 
+
 function CommonFunctions:UserPrint(color, message)
   print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
 end
@@ -683,5 +684,15 @@ function CommonFunctions:CreateStructsArray(structure, size)
   end
   return temp
 end
+
+function CommonFunctions:PrintError(errorMessage)
+	print()
+	print(" \27[31m " .. errorMessage .. " \27[0m ")
+end
+
+function CommonFunctions:StoreHmiAppId(app_name, hmi_app_id, self)
+  local mobile_connection_name, mobile_session_name = CommonFunctions:GetMobileConnectionNameAndSessionName(app_name, self)
+  self.mobile_connections[mobile_connection_name][mobile_session_name][app_name].hmi_app_id = hmi_app_id
+end 
 
 return CommonFunctions

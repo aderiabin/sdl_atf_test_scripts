@@ -50,6 +50,7 @@ self.mobile_connections = {
 -- Author: Ta Thanh Dong
 -- ATF version: 2.2
 --------------------------------------------------------------------------------
+local policy_table = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local common_functions = require('user_modules/shared_testcases/commonFunctions')
 local old_common_steps = require('user_modules/shared_testcases/commonSteps')
 local common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
