@@ -1,3 +1,5 @@
+-- To avoid ATF defect: ATF does not verify expected result, we have to overwrite ./modules/mobile_session.lua
+os.execute("cp -r -f ./user_modules/mobile_session.lua ./modules/mobile_session.lua")
 Test = require('user_modules/connect_without_mobile_connection')
 common_functions = require('user_modules/common_functions')
 common_steps = require('user_modules/common_steps')
