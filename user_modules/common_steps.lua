@@ -128,25 +128,6 @@ end
 -- @param expected_response: expected response for RegisterAppIterface request.
 -- If expected_response parameter is omitted, this function will check default response {success = true, resultCode = "SUCCESS"}
 --------------------------------------------------------------------------------
--- function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, application_parameters, expected_response, expected_on_hmi_status)
-  -- Test[test_case_name] = function(self)
-    -- mobile_session_name = mobile_session_name or "mobileSession"
-    -- application_parameters = application_parameters or config.application1.registerAppInterfaceParams
-    -- local app_name = application_parameters.appName
-    -- local CorIdRAI = self[mobile_session_name]:SendRPC("RegisterAppInterface", application_parameters)
-    -- EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = {appName = app_name}})
-    -- :Do(function(_,data)
-        -- common_functions:StoreApplicationData(mobile_session_name, app_name, application_parameters, data.params.application.appID, self)
-      -- end)
-    -- expected_response = expected_response or {success = true, resultCode = "SUCCESS"}
-    -- self[mobile_session_name]:ExpectResponse(CorIdRAI, expected_response)
-    -- expected_on_hmi_status = expected_on_hmi_status or {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}
-    -- self[mobile_session_name]:ExpectNotification("OnHMIStatus", expected_on_hmi_status)
-    -- :Do(function(_,data)
-        -- common_functions:StoreHmiStatus(app_name, data.payload, self)
-      -- end)
-  -- end
--- end
 function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, application_parameters, expected_response, expected_on_hmi_status)
   Test[test_case_name] = function(self)
     mobile_session_name = mobile_session_name or "mobileSession"
@@ -207,28 +188,29 @@ function CommonSteps:ActivateApplication(test_case_name, app_name, expected_leve
     local cid = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id})
     EXPECT_HMIRESPONSE(cid)
     :Do(function(_,data)
-        -- if application is disallowed, HMI has to send SDL.OnAllowSDLFunctionality notification to allow before activation
-        -- If isSDLAllowed is false, consent for sending policy table through specified device is required.
-        if data.result.isSDLAllowed ~= true then
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-          EXPECT_HMICALL("BasicCommunication.ActivateApp")
-          :Do(function(_,data)
-              self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-            end)
-        end
-        self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = expected_level, audioStreamingState = audio_streaming_state, systemContext = "MAIN"})
-        -- Verify OnHMIStatus for other applications
-        if expected_on_hmi_status_for_other_applications then
-          for k_app_name, v in pairs(expected_on_hmi_status_for_other_applications) do
-            local mobile_connection_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(k_app_name, self)
-            self[mobile_session_name]:ExpectNotification("OnHMIStatus", v)
-            :Do(function(_,data)
-                -- Store OnHMIStatus notification to use later
-                common_functions:StoreHmiStatus(app_name, data.payload, self)
-              end)
-          end -- for k_app_name, v
-        end -- if expected_on_hmi_status_for_other_applications then
-      end) -- :Do(function(_,data)
+      -- if application is disallowed, HMI has to send SDL.OnAllowSDLFunctionality notification to allow before activation
+      -- If isSDLAllowed is false, consent for sending policy table through specified device is required.
+      if data.result.isSDLAllowed ~= true then
+        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+        EXPECT_HMICALL("BasicCommunication.ActivateApp")
+        :Do(function(_,data)
+            self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+          end)
+      end
+    end) -- :Do(function(_,data)
+      
+    self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = expected_level, audioStreamingState = audio_streaming_state, systemContext = "MAIN"})
+    -- Verify OnHMIStatus for other applications
+    if expected_on_hmi_status_for_other_applications then
+      for k_app_name, v in pairs(expected_on_hmi_status_for_other_applications) do
+        local mobile_connection_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(k_app_name, self)
+        self[mobile_session_name]:ExpectNotification("OnHMIStatus", v)
+        :Do(function(_,data)
+            -- Store OnHMIStatus notification to use later
+            common_functions:StoreHmiStatus(app_name, data.payload, self)
+          end)
+      end -- for k_app_name, v
+    end -- if expected_on_hmi_status_for_other_applications then      
   end
 end
 --------------------------------------------------------------------------------
@@ -360,20 +342,11 @@ end
 --------------------------------------------------------------------------------
 -- Restore smartDeviceLink.ini File
 -- @param test_case_name: Test name
---------------------------------------------------------------------------------
-function CommonSteps:RestoreIniFile(test_case_name)
-  Test[test_case_name] = function(self)
-    local file_name = "smartDeviceLink.ini"
-    os.execute(" cp " .. config.pathToSDL .. file_name .. "_origin " .. config.pathToSDL .. file_name )
-  end
-end
-
---------------------------------------------------------------------------------
--- Restore smartDeviceLink.ini File
--- @param test_case_name: Test name
+-- @param file_name: if it is omitted, restore "smartDeviceLink.ini"
 --------------------------------------------------------------------------------
 function CommonSteps:RestoreIniFile(test_case_name, file_name)
   Test[test_case_name] = function(self)
+    file_name = file_name or "smartDeviceLink.ini"
     os.execute(" cp " .. config.pathToSDL .. file_name .. "_origin " .. config.pathToSDL .. file_name )
   end
 end

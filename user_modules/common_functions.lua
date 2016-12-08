@@ -22,7 +22,7 @@ end
 
 function CommonFunctions:DeleteLogsFiles()
   CommonFunctions:CheckSdlPath()
-  if self:file_exists(config.pathToSDL .. "app_info.dat") then
+  if self:IsFileExist(config.pathToSDL .. "app_info.dat") then
     os.remove(config.pathToSDL .. "app_info.dat")
   end
   os.remove(config.pathToSDL .. "*.log")
@@ -187,14 +187,20 @@ end
 -- @param added_json_items: it is a table contains items to be added to json file
 --------------------------------------------------------------------------------
 function CommonFunctions:AddItemsIntoJsonFile(json_file, parent_item, added_json_items)
+  local match_result = "null"
+  local temp_replace_value = "\"Temporary_Text\""
   local file = io.open(json_file, "r")
   local json_data = file:read("*all") -- may be abbreviated to "*a";
   file:close()
+  json_data = string.gsub(json_data, match_result, temp_replace_value)
   local json = require("modules/json")
   local data = json.decode(json_data)
   -- Go to parent item
   local parent = data
   for i = 1, #parent_item do
+    if not parent[parent_item[i]] then
+      parent[parent_item[i]] = {}
+    end
     parent = parent[parent_item[i]]
   end
   if type(added_json_items) == "string" then
@@ -205,6 +211,7 @@ function CommonFunctions:AddItemsIntoJsonFile(json_file, parent_item, added_json
     parent[k] = v
   end
   data = json.encode(data)
+  data = string.gsub(data, temp_replace_value, match_result)
   file = io.open(json_file, "w")
   file:write(data)
   file:close()
@@ -216,21 +223,28 @@ end
 -- @param removed_items: it is a array of items will be removed
 --------------------------------------------------------------------------------
 function CommonFunctions:RemoveItemsFromJsonFile(json_file, parent_item, removed_items)
+  local match_result = "null"
+  local temp_replace_value = "\"Temporary_Text\""
   local file = io.open(json_file, "r")
   local json_data = file:read("*all") -- may be abbreviated to "*a";
   file:close()
+  json_data = string.gsub(json_data, match_result, temp_replace_value)
   local json = require("modules/json")
   local data = json.decode(json_data)
   -- Go to parent item
   local parent = data
   for i = 1, #parent_item do
-    parent = parent[i]
+    if not parent[parent_item[i]] then
+      parent[parent_item[i]] = {}
+    end  
+    parent = parent[parent_item[i]] 
   end
   -- Remove items
   for i = 1, #removed_items do
     parent[removed_items[i]] = nil
   end
   data = json.encode(data)
+  data = string.gsub(data, temp_replace_value, match_result)
   file = io.open(json_file, "w")
   file:write(data)
   file:close()

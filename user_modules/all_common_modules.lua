@@ -18,3 +18,10 @@ sdl = require('SDL')
 -------------------- Set default settings for ATF script --------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
+os.execute("rm sdl.pid")
+os.execute("kill -9 $(ps aux | grep -e smartDeviceLinkCore | awk '{print$2}')")
+if common_functions:IsFileExist("sdl_bin_bk/smartDeviceLinkCore") then
+  os.execute("cp -f -r sdl_bin_bk/* " .. config.pathToSDL)
+else
+  os.execute("cp -f -r " .. config.pathToSDL .. " sdl_bin_bk")
+end
