@@ -203,6 +203,11 @@ for i=1,#valid_entity_type_cases do
 		common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
+		
+		Test[test_case_name .. "_DelayedExp"] = function (self)
+			common_functions:DelayedExp(5000)
+		end 
+		
 		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
 		local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
 		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
@@ -261,6 +266,11 @@ for i=1,#valid_entity_type_cases do
 		common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 		common_steps:RegisterApplication("RegisterApp_"..test_case_name)
 		common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
+		
+		Test[test_case_name .. "_DelayedExp"] = function (self)
+			common_functions:DelayedExp(5000)
+		end 
+		
 		UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
 		local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
 		VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
