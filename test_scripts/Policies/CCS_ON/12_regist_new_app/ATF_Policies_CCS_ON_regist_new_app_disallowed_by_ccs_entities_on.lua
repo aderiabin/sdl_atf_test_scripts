@@ -47,8 +47,9 @@ end
 --   Request Policy Table Update.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
-  -- create PTU from sdl_preloaded_pt.json
-	local data = common_functions_ccs_on:ConvertPreloadedToJson()
+  -- create json for PTU from sdl_preloaded_pt.json
+  local data = common_functions_ccs_on:ConvertPreloadedToJson()
+  data.policy_table.module_config.preloaded_pt = false
   -- insert Group001 into "functional_groupings"
   data.policy_table.functional_groupings.Group001 = {
     user_consent_prompt = "ConsentGroup001",
@@ -219,8 +220,9 @@ common_steps:ActivateApplication("Precondition_Activate_Application_1", config.a
 --   Request Policy Table Update. Change disallowed_by_ccs_entities_off to disallowed_by_ccs_entities_on
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
-  -- create PTU from sdl_preloaded_pt.json
-	local data = common_functions_ccs_on:ConvertPreloadedToJson()
+  -- create json for PTU from sdl_preloaded_pt.json
+  local data = common_functions_ccs_on:ConvertPreloadedToJson()
+  data.policy_table.module_config.preloaded_pt = false
   -- insert Group001 into "functional_groupings"
   data.policy_table.functional_groupings.Group001 = {
     user_consent_prompt = "ConsentGroup001",
