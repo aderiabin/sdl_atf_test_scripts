@@ -1,5 +1,3 @@
--- To avoid ATF defect: ATF does not verify expected result, we have to overwrite ./modules/mobile_session.lua
-os.execute("cp -r -f ./user_modules/mobile_session.lua ./modules/mobile_session.lua")
 Test = require('user_modules/connect_without_mobile_connection')
 common_functions = require('user_modules/common_functions')
 common_steps = require('user_modules/common_steps')
@@ -20,10 +18,28 @@ sdl = require('SDL')
 -------------------- Set default settings for ATF script --------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
-os.execute("rm sdl.pid")
+if common_functions:IsFileExist("sdl.pid") then
+  os.execute("rm sdl.pid")
+end
 os.execute("kill -9 $(ps aux | grep -e smartDeviceLinkCore | awk '{print$2}')")
-if common_functions:IsFileExist("sdl_bin_bk/smartDeviceLinkCore") then
-  os.execute("cp -f -r sdl_bin_bk/* " .. config.pathToSDL)
+
+local path_to_sdl_without_bin = string.gsub(config.pathToSDL, "bin/", "")
+local sdl_bin_bk = path_to_sdl_without_bin .. "sdl_bin_bk/"
+if common_functions:IsDirectoryExist(sdl_bin_bk) == false then
+  os.execute("mkdir " .. sdl_bin_bk)
+end
+if common_functions:IsFileExist(sdl_bin_bk .. "hmi_capabilities.json") then
+  os.execute("cp -f -r " .. sdl_bin_bk .. "hmi_capabilities.json " .. config.pathToSDL)
 else
-  os.execute("cp -f -r " .. config.pathToSDL .. " sdl_bin_bk")
+  os.execute("cp -f -r " .. config.pathToSDL .. "hmi_capabilities.json " ..  sdl_bin_bk .. "hmi_capabilities.json")
+end
+if common_functions:IsFileExist(sdl_bin_bk .. "smartDeviceLink.ini") then
+  os.execute("cp -f -r " .. sdl_bin_bk .. "smartDeviceLink.ini " .. config.pathToSDL)
+else
+  os.execute("cp -f -r " .. config.pathToSDL .. "smartDeviceLink.ini " ..  sdl_bin_bk .. "smartDeviceLink.ini")
+end
+if common_functions:IsFileExist(sdl_bin_bk .. "sdl_preloaded_pt.json") then
+  os.execute("cp -f -r " .. sdl_bin_bk .. "sdl_preloaded_pt.json " .. config.pathToSDL)
+else
+  os.execute("cp -f -r " .. config.pathToSDL .. "sdl_preloaded_pt.json " ..  sdl_bin_bk .. "sdl_preloaded_pt.json")
 end
