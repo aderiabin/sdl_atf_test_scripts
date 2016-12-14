@@ -138,7 +138,9 @@ end
 --------------------------------------------------------------------------
 Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
 	-- hmi side: sending SDL.OnAppPermissionConsent for application 1
-	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {ccsStatus = {}, appID = hmi_app_id_1, consentedFunctions = {{name = "ConsentGroup001", id = id_group, allowed = true}}, source = "GUI"})
+	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", 
+    {appID = hmi_app_id_1, 
+    consentedFunctions = {{name = "ConsentGroup001", id = id_group, allowed = true}}, source = "GUI"})
 end
 
 --------------------------------------------------------------------------

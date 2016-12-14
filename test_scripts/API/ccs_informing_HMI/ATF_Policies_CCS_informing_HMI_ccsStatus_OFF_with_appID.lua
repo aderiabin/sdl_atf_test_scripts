@@ -154,7 +154,8 @@ Test[TEST_NAME .. "Precondition_Emulate_ccsStatus_added_into_database"] = functi
   handler = io.popen(ful_sql_query, 'w')
   handler:close()
   os.execute("sleep 1")  
-	os.execute("cp " .. policy_file_temp .. " " .. policy_file)   
+	os.execute("cp " .. policy_file_temp .. " " .. policy_file)
+  common_multi_mobile_connections:DelayedExp(2000)  
 end
 
 --------------------------------------------------------------------------
