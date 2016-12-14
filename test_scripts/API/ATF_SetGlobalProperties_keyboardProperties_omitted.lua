@@ -26,7 +26,7 @@ local function Precondition()
   common_steps:AddMobileConnection("Precondition_AddDefaultMobileConnection", "mobileConnection")
   common_steps:AddMobileSession("Precondition_AddDefaultMobileConnect")
   common_steps:RegisterApplication("Precondition_Register_App")
-  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)  
+  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 end
 
 local function UiRespondsSuccessfulResultCodes(successful_result_code)

@@ -7,8 +7,8 @@ local MENU_TITLE = "Menu Title"
 local VRHELP = {{position = 1, text = "VR help item"}}
 local VRHELP_TITLE = "VR help title"
 
--- Precondition: an app is registered
-common_steps:PreconditionSteps("Precondition", 6)
+-- Precondition: an app is activated
+common_steps:PreconditionSteps("Precondition", 7)
 
 local function TC_SetGlobalProperties_keyboardProperties_empty(test_case_name)
   Test[test_case_name] = function(self)

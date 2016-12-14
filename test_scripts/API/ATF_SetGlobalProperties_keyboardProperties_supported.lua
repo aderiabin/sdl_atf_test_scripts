@@ -32,23 +32,23 @@ local function GetParameterValueInJsonFile(json_file, path_to_parameter)
   return parameter
 end
 
-local kps = GetParameterValueInJsonFile(
+local kbp_supported = GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "displayCapabilities", "keyboardPropertiesSupported"})
-if not kps.languageSupported then
-  common_functions:PrintError("keyboardPropertiesSupported.languageSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+  {"UI", "keyboardPropertiesSupported"})
+if not kbp_supported then
+  common_functions:PrintError("UI.keyboardPropertiesSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
   quit(1)
 end
 -- Test keyboardProperties with the last values on list of supported values from hmi_capabilities.json
 local supported_keyboard_properties = {
-  language = kps.languageSupported[#kps.languageSupported],
-  keyboardLayout = kps.keyboardLayoutSupported[#kps.keyboardLayoutSupported],
-  keypressMode = kps.keypressModeSupported[#kps.keypressModeSupported],
+  language = kbp_supported.languageSupported[#kbp_supported.languageSupported],
+  keyboardLayout = kbp_supported.keyboardLayoutSupported[#kbp_supported.keyboardLayoutSupported],
+  keypressMode = kbp_supported.keypressModeSupported[#kbp_supported.keypressModeSupported],
 }
-if kps.limitedCharactersListSupported then
+if kbp_supported.limitedCharactersListSupported then
   supported_keyboard_properties.limitedCharacterList = {"a"}
 end
-if kps.autoCompleteTextSupported then
+if kbp_supported.autoCompleteTextSupported then
   supported_keyboard_properties.autoCompleteText = "Daemon, Freedom"
 end
 
@@ -65,7 +65,7 @@ local function Precondition()
   common_steps:AddMobileConnection("Precondition_AddDefaultMobileConnection", "mobileConnection")
   common_steps:AddMobileSession("Precondition_AddDefaultMobileConnect")
   common_steps:RegisterApplication("Precondition_Register_App")
-  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)  
+  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 end
 
 local function UiRespondsSuccessfulResultCodes(successful_result_code)

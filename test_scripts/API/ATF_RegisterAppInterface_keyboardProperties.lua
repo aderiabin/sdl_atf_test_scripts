@@ -20,11 +20,20 @@ local function GetParameterValueInJsonFile(json_file, path_to_parameter)
   return parameter
 end
 
--- ToDo: update expected result in RAI response when question APPLINK-30703 is closed.
-local hmi_capabilities_keyboardProperties = GetParameterValueInJsonFile(
+local kbp_supported = GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "displayCapabilities", "keyboardPropertiesSupported"})
-
+  {"UI", "keyboardPropertiesSupported"})
+if not kbp_supported then
+  common_functions:PrintError("UI.keyboardPropertiesSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+  quit(1)
+end
+local keyboard_properties = {
+  {
+    language = kbp_supported.languageSupported[1],
+    keyboardLayout = kbp_supported.keyboardLayoutSupported[1],
+    keypressMode = kbp_supported.keypressModeSupported[1]
+  }
+}
 -- Precondition: new session is added.
 common_steps:PreconditionSteps("Precondition", 5)
 
@@ -36,11 +45,10 @@ Test["RegisterAppInterface_keyboardProperties_from_HMI_capabilities.json"] = fun
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
     {application = {appName = app.appName}})
-  
-  -- ToDo: update expected result in RAI response when question APPLINK-30703 is closed.    
+
   EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS",
-      keyboardProperties = hmi_capabilities_keyboardProperties})
-      
+      keyboardProperties = keyboard_properties})
+
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "NONE",
       audioStreamingState = "NOT_AUDIBLE"})
 end

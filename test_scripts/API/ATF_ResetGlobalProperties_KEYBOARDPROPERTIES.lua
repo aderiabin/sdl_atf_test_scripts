@@ -23,19 +23,19 @@ local function GetParameterValueInJsonFile(json_file, path_to_parameter)
   return parameter
 end
 
-local kp_default = GetParameterValueInJsonFile(
+local kbp_default = GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "displayCapabilities", "keyboardPropertiesDefault"})
+  {"UI", "keyboardPropertiesDefault"})
 
-if kp_default.languageDefault == nil  then
-  common_functions:PrintError("keyboardPropertiesDefault.languageDefault parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+if not kbp_default then
+  common_functions:PrintError("UI.keyboardPropertiesDefault parameter is not exist in hmi_capabilities.json. Stop ATF script.")
   quit(1)
 end
 
 local default_keyboard_properties = {
-  language = kp_default.languageDefault,
-  keyboardLayout = kp_default.keyboardLayoutDefault,
-  keypressMode = kp_default.keypressModeDefault,
+  language = kbp_default.languageDefault,
+  keyboardLayout = kbp_default.keyboardLayoutDefault,
+  keypressMode = kbp_default.keypressModeDefault,
 }
 
 -- Precondition: an application is registered

@@ -26,22 +26,22 @@ local function GetParameterValueInJsonFile(json_file, path_to_parameter)
   return parameter
 end
 
-local kps = GetParameterValueInJsonFile(
+local kbp_supported = GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "displayCapabilities", "keyboardPropertiesSupported"})
-if not kps.languageSupported then
-  common_functions:PrintError("keyboardPropertiesSupported.languageSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+  {"UI", "keyboardPropertiesSupported"})
+if not kbp_supported then
+  common_functions:PrintError("UI.keyboardPropertiesSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
   quit(1)
 end
 local keyboard_properties = {
-  keyboardLayout = kps.keyboardLayoutSupported[1],
-  keypressMode = kps.keypressModeSupported[1],
-  language = kps.languageSupported[1]
+  keyboardLayout = kbp_supported.keyboardLayoutSupported[1],
+  keypressMode = kbp_supported.keypressModeSupported[1],
+  language = kbp_supported.languageSupported[1]
 }
-if kps.limitedCharactersListSupported then
+if kbp_supported.limitedCharactersListSupported then
   keyboard_properties.limitedCharacterList = {"a"}
 end
-if kps.autoCompleteTextSupported then
+if kbp_supported.autoCompleteTextSupported then
   keyboard_properties.autoCompleteText = "Daemon, Freedom"
 end
 

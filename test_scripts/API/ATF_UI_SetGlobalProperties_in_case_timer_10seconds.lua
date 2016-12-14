@@ -21,13 +21,17 @@ local function GetParameterValueInJsonFile(json_file, path_to_parameter)
   return parameter
 end
 
-local keyboard_properties_default = GetParameterValueInJsonFile(
+local kbp_supported = GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "displayCapabilities", "keyboardPropertiesDefault"})
+  {"UI", "keyboardPropertiesDefault"})
+if not kbp_supported then
+  common_functions:PrintError("UI.keyboardPropertiesDefault parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+  quit(1)
+end
 local keyboard_properties = {
-  language = keyboard_properties_default.languageDefault,
-  keyboardLayout = keyboard_properties_default.keyboardLayoutDefault,
-  keypressMode = keyboard_properties_default.keypressModeDefault
+  language = kbp_supported.languageDefault,
+  keyboardLayout = kbp_supported.keyboardLayoutDefault,
+  keypressMode = kbp_supported.keypressModeDefault
 }
 -- Precondition: an application is registered
 common_steps:PreconditionSteps("Precondition", 6)
@@ -44,8 +48,8 @@ Test["SDL does not send UI.SetGlobalProperties to HMI if app is NONE HMI level i
   :Times(0)
 end
 
-common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName) 
-  
+common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
+
 Test["GetCurrentTime"] = function(self)
   current_time = timestamp()
   print("Time when app is activated: " .. tostring(current_time))

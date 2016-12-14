@@ -27,11 +27,11 @@ local function GetParameterValueInJsonFile(json_file, path_to_parameter)
   return parameter
 end
 
-local kps = GetParameterValueInJsonFile(
+local kbp_supported = GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "displayCapabilities", "keyboardPropertiesSupported"})
-if not kps.languageSupported then
-  common_functions:PrintError("keyboardPropertiesSupported.languageSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+  {"UI", "keyboardPropertiesSupported"})
+if not kbp_supported then
+  common_functions:PrintError("UI.keyboardPropertiesSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
   quit(1)
 end
 
@@ -40,10 +40,10 @@ local Unsupported_keyboardProperties = {
   keyboardLayout = "AZERTY",
   keypressMode = "RESEND_CURRENT_ENTRY",
 }
-if kps.limitedCharactersListSupported == false then
+if kbp_supported.limitedCharactersListSupported == false then
   Unsupported_keyboardProperties.limitedCharacterList = {"a"}
 end
-if kps.autoCompleteTextSupported == false then
+if kbp_supported.autoCompleteTextSupported == false then
   Unsupported_keyboardProperties.autoCompleteText = "Daemon, Freedom"
 end
 
@@ -58,7 +58,7 @@ local function Precondition()
   common_steps:AddMobileConnection("Precondition_AddDefaultMobileConnection", mobile_connection_name)
   common_steps:AddMobileSession("Precondition_AddDefaultMobileConnect")
   common_steps:RegisterApplication("Precondition_Register_App")
-  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)  
+  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 end
 
 local function UiRespondsSuccessfulResultCodes(successful_result_code)
