@@ -271,7 +271,7 @@ function CommonFunctions:CompareJsonFiles(file_name1, file_name2, compared_speci
     json_data1 = json_data1[compared_specified_item[i]]
     json_data2 = json_data2[compared_specified_item[i]]
   end
-  return CommonFunctions:is_table_equal(json_data1,json_data2)
+  return CommonFunctions:CompareTables(json_data1,json_data2)
 end
 
 -- COMMON FUNCTIONS FOR POLICY TABLE
@@ -642,11 +642,11 @@ function CommonFunctions:CompareTables(t1,t2)
   if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
   for k1,v1 in pairs(t1) do
     local v2 = t2[k1]
-    if v2 == nil or not CommonFunctions:is_table_equal(v1,v2) then return false end
+    if v2 == nil or not CommonFunctions:CompareTables(v1,v2) then return false end
   end
   for k2,v2 in pairs(t2) do
     local v1 = t1[k2]
-    if v1 == nil or not CommonFunctions:is_table_equal(v1,v2) then return false end
+    if v1 == nil or not CommonFunctions:CompareTables(v1,v2) then return false end
   end
   return true
 end
