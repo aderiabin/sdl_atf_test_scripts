@@ -19,21 +19,21 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 ------------------------------------------Tests-------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------
--- TEST 03: 
+-- TEST 02: 
   -- In case:
-  -- SDL Policies database contains "disallowed_by_css_entities_on" param in "functional grouping" section
+  -- SDL Policies database contains "disallowed_by_css_entities_off" param in "functional grouping" section
   -- and SDL gets SDL.OnAppPermissionConsent ("ccsStatus: ON") 
-  -- SDL must sends 'USER_DISALLOWED, success:false' to mobile app on requested RPCs from this "functional grouping"
+  -- allow this "functional grouping" and process requested RPCs from such "functional groupings" assigned to mobile app
 --------------------------------------------------------------------------
--- Test 03.01:  
--- Description: disallowed_by_ccs_entities_on exists. User consent is allowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
--- Expected Result: requested RPC is disallowed by ccs
+-- Test 02.02:  
+-- Description: disallowed_by_ccs_entities_off exists. User consent is disallowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
+-- Expected Result: requested RPC is allowed by ccs
 --------------------------------------------------------------------------
 -- Precondition:
 --   Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
 --   Request Policy Table Update.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_Update_Policy_Table"] = function(self)
+Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
   -- create json for PTU from sdl_preloaded_pt.json
   local data = common_functions_ccs_on:ConvertPreloadedToJson()
   data.policy_table.module_config.preloaded_pt = false
@@ -94,29 +94,29 @@ end
 
 --------------------------------------------------------------------------
 -- Precondition:
---   HMI sends OnAppPermissionConsent with consented function = allowed
+--   HMI sends OnAppPermissionConsent with consented function = disallowed
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
-    consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = true}}
+    consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = false}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(1) 
+  :Times(1)
   common_functions:DelayedExp(2000)  
 end
 
 --------------------------------------------------------------------------
 -- Precondition:
---   Check consent_group in Policy Table: is_consented = 1
+--   Check consent_group in Policy Table: is_consented = 0
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_Check_Consent_Group"] = function(self)
   local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
-  if result ~= "1" then
+  if result ~= "0" then
     self.FailTestCase("Incorrect consent status.")    
   end
 end
@@ -144,20 +144,14 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     source = "GUI",
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}}
   })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    return validate_result
+  end)  
+  :Times(1)
   common_functions:DelayedExp(2000)
-end
-
---------------------------------------------------------------------------
--- Main check:
---   Check device_consent_group in Policy Table: is_consented = 1
---------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_Check_Device_Consent_Group"] = function(self)
-  local sql_query = "SELECT is_consented FROM device_consent_group WHERE device_id = '" .. config.deviceMAC .. "' and functional_group_id = 'DataConsent-2';"
-  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
-  print(" \27[33m device consent = " .. tostring(result) .. ". \27[0m ")
-  if result ~= "1" then
-    self.FailTestCase("Incorrect consent status.")    
-  end
 end
 
 --------------------------------------------------------------------------
@@ -190,17 +184,15 @@ end
 -- Main check:
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
-	--mobile side: send SubscribeWayPoints request
+Test[TEST_NAME_ON .. "MainCheck_RPC_is_allowed"] = function(self)
   local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
-  --mobile side: SubscribeWayPoints response
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)
+  common_functions:DelayedExp(2000)
 end
 
--- end Test 03.01
+-- end Test 01.02
 ----------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --------------------------------------Postcondition------------------------------------------

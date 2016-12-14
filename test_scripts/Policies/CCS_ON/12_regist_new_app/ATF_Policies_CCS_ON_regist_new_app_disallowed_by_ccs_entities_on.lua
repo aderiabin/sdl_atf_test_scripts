@@ -46,7 +46,7 @@ end
 --   Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
 --   Request Policy Table Update.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
+Test[TEST_NAME_ON.."Precondition_Update_Policy_Table_1"] = function(self)
   -- create json for PTU from sdl_preloaded_pt.json
   local data = common_functions_ccs_on:ConvertPreloadedToJson()
   data.policy_table.module_config.preloaded_pt = false
@@ -58,7 +58,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       entityID = 5
     }},
     rpcs = {
-      SubscribeWayPoints = {
+      SendLocation = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -132,6 +132,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SendLocation", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    return validate_result
+  end)  
   :Times(1)  
   common_functions:DelayedExp(3000)  
 end
@@ -196,16 +201,26 @@ end
 
 --------------------------------------------------------------------------
 -- Main check:
---   RPC of Group001 is disallowed to process.
+--   RPC of Group001 is disallowed to process on Application 1.
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_RPC_of_Application_1_Group001_is_disallowed"] = function(self)
+  local cid = self.mobileSession:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  self.mobileSession:ExpectResponse("SendLocation", {success = false , resultCode = "USER_DISALLOWED"})
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   RPC of Group001 is disallowed to process on Application 2.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_of_Application_2_Group001_is_disallowed"] = function(self)
-  --mobile side: send SubscribeWayPoints request
-  local corid = self.mobileSession2:SendRPC("SubscribeWayPoints",{})
-  --mobile side: SubscribeWayPoints response
-  self.mobileSession2:ExpectResponse("SubscribeWayPoints", {success = fail , resultCode = "USER_DISALLOWED"})
-  self.mobileSession2:ExpectNotification("OnHashChange")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)
+  local cid = self.mobileSession2:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  self.mobileSession2:ExpectResponse("SendLocation", {success = false , resultCode = "USER_DISALLOWED"})
 end
 
 --------------------------------------------------------------------------
@@ -219,7 +234,7 @@ common_steps:ActivateApplication("Precondition_Activate_Application_1", config.a
 --   Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
 --   Request Policy Table Update. Change disallowed_by_ccs_entities_off to disallowed_by_ccs_entities_on
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
+Test[TEST_NAME_ON.."Precondition_Update_Policy_Table_2"] = function(self)
   -- create json for PTU from sdl_preloaded_pt.json
   local data = common_functions_ccs_on:ConvertPreloadedToJson()
   data.policy_table.module_config.preloaded_pt = false
@@ -231,7 +246,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       entityID = 5
     }},
     rpcs = {
-      SubscribeWayPoints = {
+      SendLocation = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -333,20 +348,50 @@ end
 
 --------------------------------------------------------------------------
 -- Main check:
---   RPC of Group001 is allowed to process.
+--   RPC of Group001 is allowed to process on Application 1.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_RPC_of_Application_3_Group001_is_allowed"] = function(self)
-  --mobile side: send SubscribeWayPoints request
-  local corid = self.mobileSession3:SendRPC("SubscribeWayPoints",{})
-  --hmi side: expected SubscribeWayPoints request
-  EXPECT_HMICALL("Navigation.SubscribeWayPoints")
+Test[TEST_NAME_ON .. "MainCheck_RPC_of_Application_1_Group001_is_allowed"] = function(self)
+  local cid = self.mobileSession:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  EXPECT_HMICALL("Navigation.SendLocation")
   :Do(function(_,data)
-    --hmi side: sending Navigation.SubscribeWayPoints response
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
   end)
-  --mobile side: SubscribeWayPoints response
-  self.mobileSession3:ExpectResponse("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
-  self.mobileSession3:ExpectNotification("OnHashChange")
+  self.mobileSession:ExpectResponse("SendLocation", {success = true , resultCode = "SUCCESS"})
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   RPC of Group001 is allowed to process on Application 2.
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_RPC_of_Application_2_Group001_is_allowed"] = function(self)
+  local cid = self.mobileSession2:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  EXPECT_HMICALL("Navigation.SendLocation")
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+  end)
+  self.mobileSession2:ExpectResponse("SendLocation", {success = true , resultCode = "SUCCESS"})
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   RPC of Group001 is allowed to process on Application 3.
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_RPC_of_Application_3_Group001_is_allowed"] = function(self)
+  local cid = self.mobileSession3:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  EXPECT_HMICALL("Navigation.SendLocation")
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+  end)
+  self.mobileSession3:ExpectResponse("SendLocation", {success = true , resultCode = "SUCCESS"})
 end
   
 -- end Test 12.02

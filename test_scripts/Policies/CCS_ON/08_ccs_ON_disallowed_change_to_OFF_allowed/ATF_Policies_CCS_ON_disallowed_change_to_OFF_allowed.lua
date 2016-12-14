@@ -110,6 +110,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_ccsStatus_ON
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    return validate_result
+  end)  
   :Times(1)  
   common_functions:DelayedExp(2000) 
 end
@@ -153,6 +158,11 @@ Test[TEST_NAME_ON .. "MainCheck_HMI_sends_OnAppPermissionConsent_ccsStatus_OFF"]
     ccsStatus = {{entityType = 2, entityID = 5, status = "OFF"}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
+    return validate_result
+  end)  
   :Times(1)
   common_functions:DelayedExp(2000) 
 end

@@ -43,7 +43,7 @@ Test[TEST_NAME_ON .. "Precondition_Update_Policy_Table"] = function(self)
     user_consent_prompt = "ConsentGroup001",
     -- omit disallowed_by_ccs_entities_on/off
     rpcs = {
-      Alert = {
+      SubscribeVehicleData = {
         hmi_levels = {"NONE", "BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -94,9 +94,7 @@ end
 --   Check GetListOfPermissions response with empty ccsStatus array list. Get group id.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_GetListOfPermissions"] = function(self)
-  --hmi side: sending SDL.GetListOfPermissions request to SDL
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions") 
-  -- hmi side: expect SDL.GetListOfPermissions response
   EXPECT_HMIRESPONSE(request_id,{
     result = {
       code = 0, 
@@ -115,9 +113,10 @@ end
 --   HMI sends OnAllowSDLFunctionality with data consent = disallowed
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAllowSDLFunctionality"] = function(self)
-  --hmi side: send request SDL.OnAllowSDLFunctionality
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
-    {allowed = false, source = "GUI"}) 
+    {allowed = false, source = "GUI"})
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Times(1)  
   common_functions:DelayedExp(2000)    
 end
 
@@ -127,7 +126,6 @@ end
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}},
@@ -182,26 +180,11 @@ end
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
+  corid = self.mobileSession:SendRPC("SubscribeVehicleData", {rpm = true})
   EXPECT_RESPONSE(corid, { success = false, resultCode = "DISALLOWED"})
+  EXPECT_NOTIFICATION("OnHashChange")
+  :Times(0)
+  common_functions:DelayedExp(2000)  
 end
 
 -- end Test 01.04

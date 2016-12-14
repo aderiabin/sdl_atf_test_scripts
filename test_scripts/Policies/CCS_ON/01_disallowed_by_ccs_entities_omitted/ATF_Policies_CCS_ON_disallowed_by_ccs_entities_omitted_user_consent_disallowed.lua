@@ -56,7 +56,7 @@ Test[TEST_NAME_ON .. "Precondition_Update_Policy_Table"] = function(self)
       entityID = 5
     }},
     rpcs = {
-      Alert = {
+      SubscribeVehicleData = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -94,9 +94,7 @@ end
 --   Check GetListOfPermissions response with empty ccsStatus array list. Get group id.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_GetListOfPermissions"] = function(self)
-  --hmi side: sending SDL.GetListOfPermissions request to SDL
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions") 
-  -- hmi side: expect SDL.GetListOfPermissions response
   EXPECT_HMIRESPONSE(request_id,{
     result = {
       code = 0, 
@@ -116,7 +114,6 @@ end
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}},
@@ -158,13 +155,11 @@ end
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
-	--mobile side: send SubscribeWayPoints request
   local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
-  --mobile side: expect response
   self.mobileSession:ExpectResponse(corid, { success = false, resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)
+  common_functions:DelayedExp(2000)
 end
 
 -- end Test 01.02

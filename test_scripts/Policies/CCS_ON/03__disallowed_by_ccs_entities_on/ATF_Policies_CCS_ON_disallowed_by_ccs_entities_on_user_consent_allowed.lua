@@ -19,15 +19,15 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 ------------------------------------------Tests-------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------
--- TEST 02: 
+-- TEST 03: 
   -- In case:
-  -- SDL Policies database contains "disallowed_by_css_entities_off" param in "functional grouping" section
+  -- SDL Policies database contains "disallowed_by_css_entities_on" param in "functional grouping" section
   -- and SDL gets SDL.OnAppPermissionConsent ("ccsStatus: ON") 
-  -- allow this "functional grouping" and process requested RPCs from such "functional groupings" assigned to mobile app
+  -- SDL must sends 'USER_DISALLOWED, success:false' to mobile app on requested RPCs from this "functional grouping"
 --------------------------------------------------------------------------
--- Test 02.03:  
--- Description: disallowed_by_ccs_entities_off exists. User consent is disallowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
--- Expected Result: requested RPC is allowed by ccs
+-- Test 03.01:  
+-- Description: disallowed_by_ccs_entities_on exists. User consent is allowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
+-- Expected Result: requested RPC is disallowed by ccs
 --------------------------------------------------------------------------
 -- Precondition:
 --   Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
@@ -40,7 +40,7 @@ Test[TEST_NAME_ON .. "Precondition_Update_Policy_Table"] = function(self)
   -- insert Group001 into "functional_groupings"
   data.policy_table.functional_groupings.Group001 = {
     user_consent_prompt = "ConsentGroup001",
-    disallowed_by_ccs_entities_off = {{
+    disallowed_by_ccs_entities_on = {{
       entityType = 2, 
       entityID = 5
     }},
@@ -94,30 +94,29 @@ end
 
 --------------------------------------------------------------------------
 -- Precondition:
---   HMI sends OnAppPermissionConsent with consented function = nil
+--   HMI sends OnAppPermissionConsent with consented function = allowed
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
-    consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = nil}}
+    consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = true}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
+  :Times(1) 
   common_functions:DelayedExp(2000)  
 end
 
 --------------------------------------------------------------------------
 -- Precondition:
---   Check consent_group in Policy Table: empty
+--   Check consent_group in Policy Table: is_consented = 1
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_Check_Consent_Group"] = function(self)
   local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
-  if result ~= nil then
+  if result ~= "1" then
     self.FailTestCase("Incorrect consent status.")    
   end
 end
@@ -140,22 +139,29 @@ end
 --   HMI sends OnAppPermissionConsent with ccs status = ON
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
-    -- hmi side: sending SDL.OnAppPermissionConsent for applications
+  -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     source = "GUI",
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}}
   })
-  common_functions:DelayedExp(2000)  
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    return validate_result
+  end)  
+  :Times(1)
+  common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
 -- Main check:
---   Check consent_group in Policy Table: is_consented = 1
+--   Check device_consent_group in Policy Table: is_consented = 1
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group"] = function(self)
-  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
+Test[TEST_NAME_ON .. "MainCheck_Check_Device_Consent_Group"] = function(self)
+  local sql_query = "SELECT is_consented FROM device_consent_group WHERE device_id = '" .. config.deviceMAC .. "' and functional_group_id = 'DataConsent-2';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
-  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  print(" \27[33m device consent = " .. tostring(result) .. ". \27[0m ")
   if result ~= "1" then
     self.FailTestCase("Incorrect consent status.")    
   end
@@ -163,36 +169,43 @@ end
 
 --------------------------------------------------------------------------
 -- Main check:
---   Check ccs_consent_group in Policy Table: is_consented = 1
+--   Check consent_group in Policy Table: is_consented = 0
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= "0" then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   Check ccs_consent_group in Policy Table: is_consented = 0
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group"] = function(self)
   local sql_query = "SELECT is_consented FROM ccs_consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m ccs consent = " .. tostring(result) .. ". \27[0m ")
-  if result ~= "1" then
+  if result ~= "0" then
     self.FailTestCase("Incorrect ccs consent status.")    
   end
 end
 
 --------------------------------------------------------------------------
 -- Main check:
---   RPC is allowed to process.
+--   RPC is disallowed to process.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_RPC_is_allowed"] = function(self)
-	--mobile side: send SubscribeWayPoints request
+Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
-  --hmi side: expected SubscribeWayPoints request
-  EXPECT_HMICALL("Navigation.SubscribeWayPoints")
-  :Do(function(_,data)
-    --hmi side: sending Navigation.SubscribeWayPoints response
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
-  --mobile side: SubscribeWayPoints response
-  EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+  EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
+  :Times(0)
+  common_functions:DelayedExp(2000)  
 end
 
--- end Test 02.03
+-- end Test 03.01
 ----------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --------------------------------------Postcondition------------------------------------------

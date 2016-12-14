@@ -110,6 +110,19 @@ end
 
 --------------------------------------------------------------------------
 -- Precondition:
+--   Check consent_group in Policy Table: empty
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "Precondition_Check_Consent_Group"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= nil then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Precondition:
 --   HMI sends OnAppPermissionConsent
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
@@ -122,6 +135,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     }
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    return validate_result
+  end)  
   :Times(1)
   common_functions:DelayedExp(4000)
 end
@@ -141,6 +159,19 @@ end
 
 --------------------------------------------------------------------------
 -- Main check:
+--   Check consent_group in Policy Table of Group001: is_consented = 0
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= "0" then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
@@ -150,7 +181,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)
+  common_functions:DelayedExp(2000)    
 end
 
 -- end Test 11.03

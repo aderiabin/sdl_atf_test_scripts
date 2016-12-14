@@ -54,7 +54,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       entityID = 5
     }},
     rpcs = {
-      Alert = {
+      SubscribeVehicleData = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -92,9 +92,7 @@ end
 --   Check GetListOfPermissions response with empty ccsStatus array list. 
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON.."Precondition_GetListOfPermissions"] = function(self)
-  --hmi side: sending SDL.GetListOfPermissions request to SDL
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions") 
-  -- hmi side: expect SDL.GetListOfPermissions response
   EXPECT_HMIRESPONSE(request_id,{
     result = {
       code = 0, 
@@ -138,9 +136,8 @@ end
 -- Precondition:
 --   HMI sends OnAppPermissionConsent
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_1"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
     ccsStatus = {
@@ -149,7 +146,14 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     }
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(2) 
+  :ValidIf(function(_,data)
+    local validate_result_1 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    local validate_result_2 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})      
+    return (validate_result_1 and validate_result_2)
+  end)  
+  :Times(1) 
   common_functions:DelayedExp(2000)  
 end
 
@@ -210,13 +214,11 @@ end
 --   RPC of Group001 is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_Of_Group001_is_disallowed"] = function(self)
-	--mobile side: send SubscribeWayPoints request
   local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
-  --mobile side: expect response
-  self.mobileSession:ExpectResponse(corid, { success = false, resultCode = "DISALLOWED"})
+  self.mobileSession:ExpectResponse(corid, { success = false, resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
+  common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
@@ -224,35 +226,19 @@ end
 --   RPC of Group002 is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_of_Group002_is_disallowed"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
+  local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+  self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
+  EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  EXPECT_RESPONSE(corid, { success = false, resultCode = "DISALLOWED"})
+  common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
 -- Precondition:
 --   HMI sends OnAppPermissionConsent
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_2"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
     ccsStatus = {
@@ -261,7 +247,14 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     }
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(2) 
+  :ValidIf(function(_,data)
+    local validate_result_1 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
+    local validate_result_2 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeVehicleData", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})      
+    return (validate_result_1 and validate_result_2)
+  end)   
+  :Times(1) 
   common_functions:DelayedExp(2000)  
 end
 
@@ -322,15 +315,11 @@ end
 --   RPC of Group001 is allowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_of_Group001_is_allowed"] = function(self)
-  --mobile side: send SubscribeWayPoints request
   local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
-  --hmi side: expected SubscribeWayPoints request
   EXPECT_HMICALL("Navigation.SubscribeWayPoints")
   :Do(function(_,data)
-    --hmi side: sending Navigation.SubscribeWayPoints response
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
   end)
-  --mobile side: SubscribeWayPoints response
   EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")
 end
@@ -340,44 +329,13 @@ end
 --   RPC of Group002 is allowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_Of_Group002_is_allowed"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  local alert_id
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
+  corid = self.mobileSession:SendRPC("SubscribeVehicleData", {rpm = true})
+  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
   :Do(function(_,data)
-    self.hmiConnection:SendNotification("UI.OnSystemContext", {systemContext="ALERT",
-      appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-    alert_id = data.id
-    local function alertResponse()
-      self.hmiConnection:SendResponse(alert_id, "UI.Alert", "SUCCESS", { })
-      self.hmiConnection:SendNotification("UI.OnSystemContext", {systemContext="MAIN",
-        appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-    end
-    RUN_AFTER(alertResponse, 3000)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
   end)
-  local speak_id
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Do(function(_,data)
-    self.hmiConnection:SendNotification("TTS.Started")
-    speak_id = data.id
-    local function speakResponse()
-      self.hmiConnection:SendResponse(speak_id, "TTS.Speak", "SUCCESS", { })
-      self.hmiConnection:SendNotification("TTS.Stopped")
-    end
-    RUN_AFTER(speakResponse, 2000)
-  end)
-  EXPECT_RESPONSE(corid, {success = true, resultCode = "SUCCESS"})
+  EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange")
 end
 
 -- end Test

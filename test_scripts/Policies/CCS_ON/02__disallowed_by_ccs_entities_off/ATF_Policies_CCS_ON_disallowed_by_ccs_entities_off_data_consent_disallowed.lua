@@ -44,7 +44,7 @@ Test[TEST_NAME_ON .. "Precondition_Update_Policy_Table"] = function(self)
       entityID = 5
     }},
     rpcs = {
-      Alert = {
+      SubscribeVehicleData = {
         hmi_levels = {"NONE", "BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -96,6 +96,8 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAllowSDLFunctionality"] = functio
   --hmi side: send request SDL.OnAllowSDLFunctionality
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
     {allowed = false, source = "GUI"})
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Times(1)    
   common_functions:DelayedExp(2000)    
 end
 
@@ -158,26 +160,11 @@ end
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
+  local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+  self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "DISALLOWED"})
+  EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)
-  EXPECT_RESPONSE(corid, {success = false, resultCode = "DISALLOWED"})
+  common_functions:DelayedExp(2000)
 end
 
 -- end Test 02.01

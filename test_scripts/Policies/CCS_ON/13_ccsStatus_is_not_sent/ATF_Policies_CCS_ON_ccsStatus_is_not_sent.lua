@@ -52,7 +52,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       entityID = 4
     }},    
     rpcs = {
-      Alert = {
+      SubscribeVehicleData = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -144,26 +144,11 @@ end
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed_by_omit_of_user_consent"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
+  local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+  self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "DISALLOWED"})
+  EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  EXPECT_RESPONSE(corid, { success = false, resultCode = "DISALLOWED"})
+  common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
@@ -176,6 +161,8 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     appID = hmi_app_id_1, source = "GUI",
     consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = true}}
   })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Times(1)
   common_functions:DelayedExp(2000) 
 end
 
@@ -210,44 +197,13 @@ end
 --   RPC is allowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_allowed_by_user_consent"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  local alert_id
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
+  corid = self.mobileSession:SendRPC("SubscribeVehicleData", {rpm = true})
+  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
   :Do(function(_,data)
-    self.hmiConnection:SendNotification("UI.OnSystemContext", {systemContext="ALERT",
-      appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-    alert_id = data.id
-    local function alertResponse()
-      self.hmiConnection:SendResponse(alert_id, "UI.Alert", "SUCCESS", { })
-      self.hmiConnection:SendNotification("UI.OnSystemContext", {systemContext="MAIN",
-        appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-    end
-    RUN_AFTER(alertResponse, 3000)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
   end)
-  local speak_id
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Do(function(_,data)
-    self.hmiConnection:SendNotification("TTS.Started")
-    speak_id = data.id
-    local function speakResponse()
-      self.hmiConnection:SendResponse(speak_id, "TTS.Speak", "SUCCESS", { })
-      self.hmiConnection:SendNotification("TTS.Stopped")
-    end
-    RUN_AFTER(speakResponse, 2000)
-  end)
-  EXPECT_RESPONSE(corid, {success = true, resultCode = "SUCCESS"})
+  EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange")
 end
 
 --------------------------------------------------------------------------
@@ -260,6 +216,8 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     appID = hmi_app_id_1, source = "GUI", 
     consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = false}}
   })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Times(1)
   common_functions:DelayedExp(2000) 
 end
 
@@ -294,26 +252,11 @@ end
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed_by_user_consent"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
+  local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+  self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
+  EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  EXPECT_RESPONSE(corid, { success = false, resultCode = "USER_DISALLOWED"})
+  common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
@@ -323,7 +266,9 @@ end
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAllowSDLFunctionality"] = function(self)
   --hmi side: send request SDL.OnAllowSDLFunctionality
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
-    {allowed = false, source = "GUI"}) 
+    {allowed = false, source = "GUI"})
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Times(1)
   common_functions:DelayedExp(2000)    
 end
 
@@ -345,26 +290,11 @@ end
 --   RPC is disallowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed_by_data_consent_false"] = function(self)
-  corid = self.mobileSession:SendRPC("Alert", {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = { 
-      {text = "TTSChunk", type = "TEXT"} 
-    }, 
-    duration = 5000,
-    playTone = false,
-    progressIndicator = true
-  })
-  -- UI.Alert 
-  EXPECT_HMICALL("UI.Alert")
+  local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+  self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "DISALLOWED"})
+  EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  -- TTS.Speak request 
-  EXPECT_HMICALL("TTS.Speak")
-  :Times(0)
-  :Timeout(RESPONSE_TIMEOUT)  
-  EXPECT_RESPONSE(corid, { success = false, resultCode = "DISALLOWED"})
+  common_functions:DelayedExp(2000)
 end
 
 -- end Test 13.01

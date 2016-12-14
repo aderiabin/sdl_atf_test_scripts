@@ -50,7 +50,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       {entityType = 3, entityID = 3}
     },    
     rpcs = {
-      SubscribeWayPoints = {
+      SubscribeVehicleData = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -64,7 +64,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       {entityType = 6, entityID = 6}
     },    
     rpcs = {
-      Alert = {
+      SubscribeWayPoints = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -91,7 +91,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       {entityType = 1, entityID = 2}      
     },
     rpcs = {
-      SubscribeVehicleData = {
+      UnsubscribeWayPoints = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -155,6 +155,19 @@ end
 
 --------------------------------------------------------------------------
 -- Precondition:
+--   Check consent_group in Policy Table: empty
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "Precondition_Check_Consent_Group"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= nil then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Precondition:
 --   HMI sends OnAppPermissionConsent
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
@@ -169,7 +182,16 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     }
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(3) 
+  :ValidIf(function(_,data)
+    local validate_result_1 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    local validate_result_2 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})      
+    local validate_result_3 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SendLocation", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    return (validate_result_1 and validate_result_2 and validate_result_3)
+  end)  
+  :Times(1) 
   common_functions:DelayedExp(2000)
 end
 
@@ -177,7 +199,7 @@ end
 -- Main check:
 --   Check ccs_consent_group in Policy Table of Group001: is_consented = 0
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group"] = function(self)
+Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group_of_Group001"] = function(self)
   local sql_query = "SELECT is_consented FROM ccs_consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m ccs consent = " .. tostring(result) .. ". \27[0m ")
@@ -190,7 +212,7 @@ end
 -- Main check:
 --   Check ccs_consent_group in Policy Table of Group002: is_consented = 1
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group"] = function(self)
+Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group_of_Group002"] = function(self)
   local sql_query = "SELECT is_consented FROM ccs_consent_group WHERE application_id = '0000001' and functional_group_id = 'Group002';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m ccs consent = " .. tostring(result) .. ". \27[0m ")
@@ -203,7 +225,7 @@ end
 -- Main check:
 --   Check ccs_consent_group in Policy Table of Group003: is_consented = 1
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group"] = function(self)
+Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group_of_Group003"] = function(self)
   local sql_query = "SELECT is_consented FROM ccs_consent_group WHERE application_id = '0000001' and functional_group_id = 'Group003';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m ccs consent = " .. tostring(result) .. ". \27[0m ")
@@ -213,10 +235,10 @@ Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group"] = function(self)
 end
 
 --------------------------------------------------------------------------
--- Precondition:
+-- Main check:
 --   Check ccs_consent_group in Policy Table of Group004: empty
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_Check_Ccs_Consent_Group"] = function(self)
+Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group_of_Group004"] = function(self)
   local sql_query = "SELECT is_consented FROM ccs_consent_group WHERE application_id = '0000001' and functional_group_id = 'Group004';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m ccs consent = " .. tostring(result) .. ". \27[0m ")
@@ -226,16 +248,123 @@ Test[TEST_NAME_ON .. "Precondition_Check_Ccs_Consent_Group"] = function(self)
 end
 
 --------------------------------------------------------------------------
--- Precondition:
+-- Main check:
 --   Check ccs_consent_group in Policy Table of Group005: empty
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_Check_Ccs_Consent_Group"] = function(self)
+Test[TEST_NAME_ON .. "MainCheck_Check_Ccs_Consent_Group_of_Group005"] = function(self)
   local sql_query = "SELECT is_consented FROM ccs_consent_group WHERE application_id = '0000001' and functional_group_id = 'Group005';"
   local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
   print(" \27[33m ccs consent = " .. tostring(result) .. ". \27[0m ")
   if result ~= nil then
     self.FailTestCase("Incorrect ccs consent status.")    
   end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   Check consent_group in Policy Table of Group001: is_consented = 0
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group_of_Group001"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= "0" then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   Check consent_group in Policy Table of Group002: is_consented = 1
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group_of_Group002"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group002';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= "1" then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   Check consent_group in Policy Table of Group003: is_consented = 1
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group_of_Group003"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group003';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= "1" then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   Check consent_group in Policy Table of Group004: empty
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group_of_Group004"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group004';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= nil then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   Check consent_group in Policy Table of Group005: empty
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_Check_Consent_Group_of_Group005"] = function(self)
+  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group005';"
+  local result = common_functions_ccs_on:QueryPolicyTable(policy_file, sql_query)
+  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
+  if result ~= nil then
+    self.FailTestCase("Incorrect consent status.")    
+  end
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   RPC of Group001 is disallowed to process.
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_RPC_of_Group001_is_disallowed"] = function(self)
+  local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+  self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
+  EXPECT_NOTIFICATION("OnHashChange")
+  :Times(0)
+  common_functions:DelayedExp(2000)
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   RPC of Group002 is allowed to process.
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_RPC_of_Group002_is_allowed"] = function(self)
+  local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
+  EXPECT_HMICALL("Navigation.SubscribeWayPoints")
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+  end)
+  EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange")
+end
+
+--------------------------------------------------------------------------
+-- Main check:
+--   RPC of Group003 is allowed to process.
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "MainCheck_RPC_of_Group003_is_allowed"] = function(self)
+  local cid = self.mobileSession:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  EXPECT_HMICALL("Navigation.SendLocation")
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+  end)
+  EXPECT_RESPONSE("SendLocation", {success = true , resultCode = "SUCCESS"})
 end
 
 -- end Test 11.01

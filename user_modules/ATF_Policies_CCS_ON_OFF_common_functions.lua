@@ -8,7 +8,6 @@ local policy_table = require('user_modules/shared_testcases/testCasesForPolicyTa
 ------------------------------------------------------------------------------------------------------
 TEST_NAME_ON = "CCS_ON:_"
 TEST_NAME_OFF = "CCS_OFF:_"
-RESPONSE_TIMEOUT = 2000
 local CCS_ON_OFF_common_functions = {}
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------Common Functions-----------------------------------------------
@@ -193,7 +192,7 @@ function CCS_ON_OFF_common_functions:GetGroupId(data, group_name)
 end
 
 --------------------------------------------------------------------------
--- function: Get group id of function_groups in allowedFunctions array of GetListOfPermissions response
+-- function: Query data from Policy Table
 -- params:
 --   policy_file: path to Policy Table file
 --   sql_query: the sql query to work with database
@@ -205,6 +204,26 @@ function CCS_ON_OFF_common_functions:QueryPolicyTable(policy_file, sql_query)
   local result = handler:read( '*l' )
   handler:close()
   return result
+end
+
+--------------------------------------------------------------------------
+-- function: Validate hmiPermissions of specific RPC
+-- params:
+--   data: data payload from hmi
+--   rpc_name: name of rpc
+--   expected_table: the expected table to compare with actual hmiPermissions table
+--------------------------------------------------------------------------
+function CCS_ON_OFF_common_functions:ValidateHMIPermissions(data, rpc_name, expected_table)
+  for i = 1, #data.payload.permissionItem do
+    if data.payload.permissionItem[i].rpcName == "SubscribeWayPoints" then
+        if common_functions:CompareTables(data.payload.permissionItem[i].hmiPermissions, expected_table) then
+          return true
+        else
+          common_functions:PrintError("The permission of RPC: " .. rpc_name .. " is incorrect.")
+          return false
+        end
+    end
+  end
 end
 
 return CCS_ON_OFF_common_functions
