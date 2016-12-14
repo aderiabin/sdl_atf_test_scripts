@@ -87,6 +87,8 @@ function CheckNoneMediaResumeSuccessWithoutPhoneCallEnded(test_case_name)
       end)
     self[mobile_session_name]:ExpectNotification("OnHMIStatus",
       {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+		-- Postcondition: Stop PHONE_CALL
+		self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged", {isActive = false, eventName = "PHONE_CALL"})
   end
 end
 

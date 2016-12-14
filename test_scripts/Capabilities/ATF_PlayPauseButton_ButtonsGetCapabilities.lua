@@ -341,6 +341,10 @@ TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
 ------------------------------------------------------------------------------------------------------
 local function TestHMISendButtonGetCapabilitiesWithOnlyPlayPauseButton()
   commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with only PLAY_PAUSE button")
-  SuccessTestCase("Verify_HMI_sends_Buttons_GetCapabilities_with_only_PLAY_PAUSE_button", {"PLAY_PAUSE"})
+  local capabilities_with_only_play_pause_button =
+  {
+    button_capability("PLAY_PAUSE")
+  }
+  SuccessTestCase("Verify_HMI_sends_Buttons_GetCapabilities_with_only_PLAY_PAUSE_button", capabilities_with_only_play_pause_button)
 end
 TestHMISendButtonGetCapabilitiesWithOnlyPlayPauseButton()
