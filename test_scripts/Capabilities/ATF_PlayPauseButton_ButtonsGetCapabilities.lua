@@ -1,15 +1,5 @@
-Test = require('connecttest')
-require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-local mobile = require('mobile_connection')
-local tcp = require('tcp_connection')
-local file_connection = require('file_connection')
-local config = require('config')
-local module = require('testbase')
 -----------------------------Required Shared Libraries---------------------------------------
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-require('user_modules/AppTypes')
+require('user_modules/all_common_modules')
 
 --------------------------------------- Common functions ------------------------------------
 local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
@@ -317,8 +307,8 @@ stopSDL()
 -- Expected result: SDL sends the list of button names including Play_Pause in RegisterApp's response to app
 ------------------------------------------------------------------------------------------------------
 local function TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
-  commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names")
-  local capabilities =
+  common_steps:AddNewTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names")
+  local capabilities_with_some_button =
   {
     button_capability("PLAY_PAUSE"),
     button_capability("PRESET_1"),
@@ -331,7 +321,7 @@ local function TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
     button_capability("SEEKLEFT"),
     button_capability("SEEKRIGHT")
   }
-  SuccessTestCase("Verify_HMI_sends_Buttons_GetCapabilities_with_some_button_names", capabilities)
+  SuccessTestCase("Verify_HMI_sends_Buttons_GetCapabilities_with_some_button_names", capabilities_with_some_button)
 end
 TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
 
@@ -340,8 +330,8 @@ TestHMISendButtonGetCapabilitiesWithSomeButtonNames()
 -- Expected result: SDL sends only "PLAY_PAUSE" button name in RegisterApp's response to app
 ------------------------------------------------------------------------------------------------------
 local function TestHMISendButtonGetCapabilitiesWithOnlyPlayPauseButton()
-  commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with only PLAY_PAUSE button")
-  local capabilities_with_only_play_pause_button =
+  common_steps:AddNewTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with only PLAY_PAUSE button")
+	local capabilities_with_only_play_pause_button =
   {
     button_capability("PLAY_PAUSE")
   }
