@@ -136,7 +136,7 @@ local function Verify_GENERIC_ERROR_Response_Case(self, response)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", response)
   end)
   -- mobile side: expect the response
-  EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info = "Invalid response from system" })
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from vehicle" })
   :Timeout(11000)
 end
 
