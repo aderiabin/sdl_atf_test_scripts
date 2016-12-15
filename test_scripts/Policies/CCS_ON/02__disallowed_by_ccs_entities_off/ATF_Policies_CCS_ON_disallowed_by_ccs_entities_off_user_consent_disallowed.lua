@@ -21,7 +21,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 --------------------------------------------------------------------------
 -- TEST 02: 
   -- In case:
-  -- SDL Policies database contains "disallowed_by_css_entities_off" param in "functional grouping" section
+  -- SDL Policies database contains "disallowed_by_ccs_entities_off" param in "functional grouping" section
   -- and SDL gets SDL.OnAppPermissionConsent ("ccsStatus: ON") 
   -- allow this "functional grouping" and process requested RPCs from such "functional groupings" assigned to mobile app
 --------------------------------------------------------------------------
@@ -198,7 +198,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_allowed"] = function(self)
   EXPECT_NOTIFICATION("OnHashChange")
 end
 
--- end Test 01.02
+-- end Test 02.02
 ----------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --------------------------------------Postcondition------------------------------------------

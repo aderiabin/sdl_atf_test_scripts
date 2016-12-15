@@ -21,7 +21,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 --------------------------------------------------------------------------
 -- TEST 01: 
   -- In case:
-  -- SDL Policies database omits "disallowed_by_css_entities_off" or "disallowed_by_css_entities_on" param in "functional grouping" section
+  -- SDL Policies database omits "disallowed_by_ccs_entities_off" or "disallowed_by_ccs_entities_on" param in "functional grouping" section
   -- and SDL gets SDL.OnAppPermissionConsent ("ccsStatus: ON") 
   -- and registered application has this "functional grouping" assigned,
   -- SDL must process requested RPCs from "functional groupings" assigned to mobile app in terms of user_consent and data_consent policies rules

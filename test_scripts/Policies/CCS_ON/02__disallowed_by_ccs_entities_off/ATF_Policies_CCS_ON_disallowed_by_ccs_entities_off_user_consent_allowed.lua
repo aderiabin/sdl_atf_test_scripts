@@ -21,7 +21,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 --------------------------------------------------------------------------
 -- TEST 02: 
   -- In case:
-  -- SDL Policies database contains "disallowed_by_css_entities_off" param in "functional grouping" section
+  -- SDL Policies database contains "disallowed_by_ccs_entities_off" param in "functional grouping" section
   -- and SDL gets SDL.OnAppPermissionConsent ("ccsStatus: ON") 
   -- allow this "functional grouping" and process requested RPCs from such "functional groupings" assigned to mobile app
 --------------------------------------------------------------------------
@@ -144,14 +144,6 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     source = "GUI",
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}}
   })
-  -- self.mobileSession:ExpectNotification("OnPermissionsChange", {
-    -- permissionItem = {
-      -- { rpcName = "SubscribeWayPoints",
-        -- hmiPermissions = {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}}
-      -- }
-    -- }
-  -- })
-  
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_,data)
     local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 

@@ -26,7 +26,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
   -- SDL must
   -- change "functional_grouping" status according to ccsStatus to "userDisallowed"
 --------------------------------------------------------------------------
--- Test 04.01:  
+-- Test 04.02:  
 -- Description: disallowed_by_ccs_entities_on exists. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON, function allowed)
 -- Expected Result: requested RPC is disallowed by ccs
 --------------------------------------------------------------------------
@@ -180,7 +180,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   :Times(0)
 end
 
--- end Test 04.01
+-- end Test 04.02
 ----------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --------------------------------------Postcondition------------------------------------------

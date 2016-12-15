@@ -19,15 +19,15 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 ------------------------------------------Tests-------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------
--- TEST 02: 
+-- TEST 03: 
   -- In case:
-  -- SDL Policies database contains "disallowed_by_css_entities_off" param in "functional grouping" section
+  -- SDL Policies database contains "disallowed_by_ccs_entities_on" param in "functional grouping" section
   -- and SDL gets SDL.OnAppPermissionConsent ("ccsStatus: ON") 
-  -- allow this "functional grouping" and process requested RPCs from such "functional groupings" assigned to mobile app
+  -- SDL must sends 'USER_DISALLOWED, success:false' to mobile app on requested RPCs from this "functional grouping"
 --------------------------------------------------------------------------
--- Test 02.02:  
--- Description: disallowed_by_ccs_entities_off exists. User consent is disallowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
--- Expected Result: requested RPC is allowed by ccs
+-- Test 03.02:  
+-- Description: disallowed_by_ccs_entities_on exists. User consent is disallowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
+-- Expected Result: requested RPC is disallowed by ccs
 --------------------------------------------------------------------------
 -- Precondition:
 --   Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
@@ -191,7 +191,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_allowed"] = function(self)
   :Times(0)
 end
 
--- end Test 01.02
+-- end Test 03.02
 ----------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --------------------------------------Postcondition------------------------------------------

@@ -29,7 +29,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
   -- send OnPermissionsChange to all impacted apps
   -- process RPCs from such "<functional_grouping>" as user allowed
 --------------------------------------------------------------------------
--- Test 05.02:  
+-- Test 05.03:  
 -- Description: 
 --   "functional grouping" is user_disallowed by CCS "ON" 
 --     (disallowed_by_ccs_entities_on exists. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON))
@@ -205,7 +205,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   :Times(0)
 end
 
--- end Test 05.01
+-- end Test 05.03
 ----------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --------------------------------------Postcondition------------------------------------------
