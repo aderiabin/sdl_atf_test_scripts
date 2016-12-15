@@ -134,7 +134,13 @@ Test[TEST_NAME_ON.."Precondition_GetListOfPermissions"] = function(self)
     result = {
       code = 0, 
       method = "SDL.GetListOfPermissions", 
-      allowedFunctions = {{name = "ConsentGroup001", allowed = nil}},
+      allowedFunctions = {
+        {name = "ConsentGroup001", allowed = nil},
+        {name = "ConsentGroup002", allowed = nil},
+        {name = "ConsentGroup003", allowed = nil},
+        {name = "ConsentGroup004", allowed = nil},
+        {name = "ConsentGroup005", allowed = nil}        
+      },
       ccsStatus = {}
     }
   })
@@ -186,9 +192,9 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     local validate_result_1 = common_functions_ccs_on:ValidateHMIPermissions(data, 
       "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
     local validate_result_2 = common_functions_ccs_on:ValidateHMIPermissions(data, 
-      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})      
+      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})      
     local validate_result_3 = common_functions_ccs_on:ValidateHMIPermissions(data, 
-      "SendLocation", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+      "SendLocation", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
     return (validate_result_1 and validate_result_2 and validate_result_3)
   end)  
   :Times(1) 
