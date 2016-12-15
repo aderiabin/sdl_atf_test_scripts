@@ -41,7 +41,7 @@ end
 ---------------------------------------------------------------------------------------------
 -- Stop Phone Call with delay time
 -- @param test_case_name: main test name
--- @param delay_time: the time that Emergency will be stopped
+-- @param delay_time: the time that PHONE_CALL will be stopped
 ---------------------------------------------------------------------------------------------
 function StopPhoneCallWithDelayTime(test_case_name, delay_time)
   Test[test_case_name] = function(self)

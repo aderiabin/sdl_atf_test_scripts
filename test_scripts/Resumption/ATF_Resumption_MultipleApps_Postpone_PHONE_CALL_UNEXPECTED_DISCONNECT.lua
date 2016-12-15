@@ -70,9 +70,9 @@ end
 ---------------------------------------------------------------------------------------------
 function CheckAppsResumptionUnsuccessWhenIsActiveInvalid(test_case_name)
   local isActiveValue = {
-    {isActive= "", eventName="EMERGENCY_EVENT"},
-    {isActive= 123, eventName="EMERGENCY_EVENT"},
-    {eventName="EMERGENCY_EVENT"}
+    {isActive= "", eventName="PHONE_CALL"},
+    {isActive= 123, eventName="PHONE_CALL"},
+    {eventName="PHONE_CALL"}
   }
   local invalid_type ={"IsActiveEmpty", "IsActiveWrongType", "IsActiveMissed"}
   for i=1, #isActiveValue do
