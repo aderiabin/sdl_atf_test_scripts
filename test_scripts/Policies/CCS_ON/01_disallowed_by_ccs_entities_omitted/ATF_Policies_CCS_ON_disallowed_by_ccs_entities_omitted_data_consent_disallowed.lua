@@ -183,8 +183,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   corid = self.mobileSession:SendRPC("SubscribeVehicleData", {rpm = true})
   EXPECT_RESPONSE(corid, { success = false, resultCode = "DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
-  common_functions:DelayedExp(2000)  
+  :Times(0) 
 end
 
 -- end Test 01.04
