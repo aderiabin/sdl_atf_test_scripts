@@ -81,7 +81,6 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
     EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
-    common_functions:DelayedExp(2000)
   end
 
   --------------------------------------------------------------------------
