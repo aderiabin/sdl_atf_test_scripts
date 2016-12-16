@@ -291,4 +291,5 @@ end
 CheckMultipleAppsFullLimitedLimitedLimitedArePostponedWhenVRIsStartedAfterRegisteredApp()
 
 -------------------------------------------Postcondition-------------------------------------
+common_steps:StopSDL("StopSDL")
 common_steps:RestoreIniFile("Restore_Ini_file")
