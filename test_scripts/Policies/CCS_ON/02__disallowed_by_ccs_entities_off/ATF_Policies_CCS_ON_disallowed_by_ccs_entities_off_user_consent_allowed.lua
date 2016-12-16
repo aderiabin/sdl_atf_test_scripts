@@ -26,8 +26,8 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
   -- allow this "functional grouping" and process requested RPCs from such "functional groupings" assigned to mobile app
 --------------------------------------------------------------------------
 -- Test 02.03:  
--- Description: disallowed_by_ccs_entities_off exists. User consent is disallowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
--- Expected Result: requested RPC is allowed by ccs
+-- Description: disallowed_by_ccs_entities_off exists. User consent is allowed. HMI -> SDL: OnAppPermissionConsent(ccsStatus ON)
+-- Expected Result: requested RPC is allowed
 --------------------------------------------------------------------------
 -- Precondition:
 --   Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
@@ -104,6 +104,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = true}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
+    return validate_result
+  end)  
   :Times(1)
   common_functions:DelayedExp(2000)  
 end
@@ -145,12 +150,7 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :ValidIf(function(_,data)
-    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
-      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
-    return validate_result
-  end)
-  :Times(1)
+  :Times(0) -- permission does not change
   common_functions:DelayedExp(2000)  
 end
 

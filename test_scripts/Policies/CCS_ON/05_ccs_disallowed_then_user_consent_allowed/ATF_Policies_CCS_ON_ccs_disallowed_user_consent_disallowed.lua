@@ -162,7 +162,7 @@ Test[TEST_NAME_ON .. "MainCheck_HMI_sends_OnAppPermissionConsent"] = function(se
     consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = false}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(1)
+  :Times(0)
   common_functions:DelayedExp(2000) 
 end
 
