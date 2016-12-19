@@ -76,40 +76,40 @@
 	local strAppFolder = config.pathToSDL .. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 	strMaxLengthFileName255 = string.rep("a", 251)  .. ".png" -- set max length file name
 
-	local notsplit_default_HelpPromt 
-	local temp_HelpPromt = {}
-	local default_HelpPromt = {}
+	local notsplit_default_HelpPrompt 
+	local temp_HelpPrompt = {}
+	local default_HelpPrompt = {}
 	-- Requirement id in JIRA: APPLINK-19475
-	-- Read default value of HelpPromt in .ini file
+	-- Read default value of HelpPrompt in .ini file
 	f = assert(io.open(config.pathToSDL.. "/smartDeviceLink.ini", "r"))
  
  	fileContent = f:read("*all")
- 	DefaultContant = fileContent:match('HelpPromt.?=.?([^\n]*)')
+ 	DefaultContant = fileContent:match('HelpPrompt.?=.?([^\n]*)')
  	print("DefaultContant = " ..DefaultContant) 	
 
 	if not DefaultContant then
-		print ( " \27[31m HelpPromt is not found in smartDeviceLink.ini \27[0m " )
-		default_HelpPromt = "Default Help Prompt"
+		print ( " \27[31m HelpPrompt is not found in smartDeviceLink.ini \27[0m " )
+		default_HelpPrompt = "Default Help Prompt"
 	else
 		local i = 1
-		for notsplit_default_HelpPromt in string.gmatch(DefaultContant,"[^,]*") do
+		for notsplit_default_HelpPrompt in string.gmatch(DefaultContant,"[^,]*") do
 
-			if( (notsplit_default_HelpPromt ~= nil) and (#notsplit_default_HelpPromt > 1) ) then
-				temp_HelpPromt[i] = notsplit_default_HelpPromt
-				print(i .. ": temp_HelpPromt = " ..temp_HelpPromt[i] ..",")
+			if( (notsplit_default_HelpPrompt ~= nil) and (#notsplit_default_HelpPrompt > 1) ) then
+				temp_HelpPrompt[i] = notsplit_default_HelpPrompt
+				print(i .. ": temp_HelpPrompt = " ..temp_HelpPrompt[i] ..",")
 				i = i + 1
 
 			end
 		end
 		local count = 1
 
-		for i = 1, #temp_HelpPromt do
-			default_HelpPromt[count] = { 
-											text = temp_HelpPromt[i] ..",",
+		for i = 1, #temp_HelpPrompt do
+			default_HelpPrompt[count] = { 
+											text = temp_HelpPrompt[i] ..",",
 										 	type = "TEXT"
 										}
-			if (#temp_HelpPromt > 1) then
-				default_HelpPromt[count + 1] = {
+			if (#temp_HelpPrompt > 1) then
+				default_HelpPrompt[count + 1] = {
 													text = "300",
 													type = "SILENCE"
 												}
@@ -1335,7 +1335,7 @@
 					--hmi side: expect TTS.SetGlobalProperties request
 					EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
-														helpPrompt = default_HelpPromt,																		
+														helpPrompt = default_HelpPrompt,																		
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
 					:Do(function(_,data)
@@ -1407,7 +1407,7 @@
 					--hmi side: expect TTS.SetGlobalProperties request
 					EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
-														helpPrompt = default_HelpPromt,	
+														helpPrompt = default_HelpPrompt,	
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
 					:Do(function(_,data)
@@ -1621,7 +1621,7 @@
 																	position = 1
 																}
 							else
-								SGP_helpPrompt = default_HelpPromt
+								SGP_helpPrompt = default_HelpPrompt
 								SGP_vrHelp[1] = { 
 																	text = config.application1.registerAppInterfaceParams.appName,
 																	position = 1
@@ -1667,7 +1667,7 @@
 																	position = 1
 																}
 							else
-								SGP_helpPrompt = default_HelpPromt
+								SGP_helpPrompt = default_HelpPrompt
 								SGP_vrHelp[1] = { 
 																	text = config.application1.registerAppInterfaceParams.appName,
 																	position = 1
@@ -1713,7 +1713,7 @@
 							if(
 								( (AddCmdSuccess[cmdCount] == true) and (DeleteCmdSuccess[cmdCount] == true) ) or
 								  (AddCmdSuccess[cmdCount] == false) )then
-								SGP_helpPrompt = default_HelpPromt
+								SGP_helpPrompt = default_HelpPrompt
 							
 								SGP_vrHelp[1] = {
 																	text = config.application1.registerAppInterfaceParams.appName,
@@ -1748,7 +1748,7 @@
 							if(
 								( (AddCmdSuccess[cmdCount] == true) and (DeleteCmdSuccess[cmdCount] == true) ) or
 								  (AddCmdSuccess[cmdCount] == false) )then
-								SGP_helpPrompt = default_HelpPromt						
+								SGP_helpPrompt = default_HelpPrompt						
 								SGP_vrHelp[1] = {
 																	text = config.application1.registerAppInterfaceParams.appName,
 																	position = 1
@@ -2953,7 +2953,7 @@
 						--hmi side: expect TTS.SetGlobalProperties request
 						EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
-														helpPrompt = default_HelpPromt,		
+														helpPrompt = default_HelpPrompt,		
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
 						:Do(function(_,data)
@@ -3108,7 +3108,7 @@
 						--hmi side: expect TTS.SetGlobalProperties request
 						EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
-														helpPrompt = default_HelpPromt,
+														helpPrompt = default_HelpPrompt,
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
 						:Do(function(_,data)
@@ -3348,7 +3348,7 @@
 						--hmi side: expect TTS.SetGlobalProperties request
 						EXPECT_HMICALL("TTS.SetGlobalProperties",
 														{
-															helpPrompt = default_HelpPromt,																		
+															helpPrompt = default_HelpPrompt,																		
 															appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 														})
 						:Do(function(_,data)
@@ -3800,7 +3800,7 @@
 							--hmi side: expect TTS.SetGlobalProperties request
 							EXPECT_HMICALL("TTS.SetGlobalProperties",
 															{
-																helpPrompt = default_HelpPromt,																		
+																helpPrompt = default_HelpPrompt,																		
 																appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 															})
 							:Do(function(_,data)
@@ -4073,7 +4073,7 @@
 						--hmi side: expect TTS.SetGlobalProperties request
 						EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
-														helpPrompt = default_HelpPromt,																		
+														helpPrompt = default_HelpPrompt,																		
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
 						:Do(function(_,data)
@@ -4150,7 +4150,7 @@
 						--hmi side: expect TTS.SetGlobalProperties request
 						EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
-														helpPrompt = default_HelpPromt,																		
+														helpPrompt = default_HelpPrompt,																		
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
 						:Do(function(_,data)
@@ -5120,7 +5120,7 @@
 
 				end
 
-				Test["TC23_SetGlobalProperties_NoParams_DefaultvrHelp_HelpPromt"] = function (self)					
+				Test["TC23_SetGlobalProperties_NoParams_DefaultvrHelp_HelpPrompt"] = function (self)					
 					xmlReporter.AddMessage("Test Case 4")
 					userPrint(35,"======================================= Test Case 23 =============================================")
 					--mobile side: sending SetGlobalProperties request
@@ -5146,7 +5146,7 @@
 					--hmi side: expect TTS.SetGlobalProperties request
 					EXPECT_HMICALL("TTS.SetGlobalProperties",
 													{
-														helpPrompt = default_HelpPromt,																		
+														helpPrompt = default_HelpPrompt,																		
 														appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 													})
 					:Do(function(_,data)

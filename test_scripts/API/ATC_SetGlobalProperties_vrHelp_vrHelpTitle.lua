@@ -30,20 +30,20 @@ end
 DeleteLog_app_info_dat_policy()
 
 --UPDATED
-local default_HelpPromt = "Default Help Prompt"
+local default_HelpPrompt = "Default Help Prompt"
 	
 -- Requirement id in JIRA: APPLINK-19475
--- Read default value of HelpPromt in .ini file
+-- Read default value of HelpPrompt in .ini file
 f = assert(io.open(config.pathToSDL.. "/smartDeviceLink.ini", "r"))
  
 fileContent = f:read("*all")
-DefaultContant = fileContent:match('HelpPromt.?=.?([^\n]*)')
+DefaultContant = fileContent:match('HelpPrompt.?=.?([^\n]*)')
  	
 if not DefaultContant then
-	print ( " \27[31m HelpPromt is not found in smartDeviceLink.ini \27[0m " )
+	print ( " \27[31m HelpPrompt is not found in smartDeviceLink.ini \27[0m " )
 else
-	default_HelpPromt = DefaultContant
-	print(default_HelpPromt)
+	default_HelpPrompt = DefaultContant
+	print(default_HelpPrompt)
 end
 f:close()
 
@@ -110,7 +110,7 @@ function Test:AppSendsFirstSGPWithVrHelpItems(...)
 							helpPrompt = 
 										{
 											{
-												text = default_HelpPromt,
+												text = default_HelpPrompt,
 												type = "TEXT"
 										}	},																		
 							appID = self.applications[config.application1.registerAppInterfaceParams.appName]
@@ -240,7 +240,7 @@ function Test:AppSendsFirstSGPWithoutVrHelpItems1(...)
 					{
 						helpPrompt = {
 										{
-											text = default_HelpPromt,
+											text = default_HelpPrompt,
 											type = "TEXT"
 									}	},																		
 						appID = self.applications[config.application1.registerAppInterfaceParams.appName]
@@ -399,7 +399,7 @@ function Test:AppSendsFirstSGPWithoutVrHelpItems2(...)
 											helpPrompt = 
 														{
 															{
-																text = default_HelpPromt,
+																text = default_HelpPrompt,
 																type = "TEXT"
 														}	},																		
 											appID = self.applications[config.application1.registerAppInterfaceParams.appName]
@@ -656,7 +656,7 @@ function Test:AppSendsFirstSGPWithoutVrHelpItems3(...)
 							helpPrompt = 
 										{
 											{
-												text = default_HelpPromt,
+												text = default_HelpPrompt,
 												type = "TEXT"
 											}			
 										},																		
@@ -714,7 +714,7 @@ function Test:AppSendsNextSGPWithVrHelpItemsAfterDefaultProperties(...)
 							helpPrompt = 
 										{
 											{
-												text = default_HelpPromt,
+												text = default_HelpPrompt,
 												type = "TEXT"
 											}			
 										},																		
@@ -785,7 +785,7 @@ function Test:AppSendsNextSGPWithoutVrHelpItems(...)
 							helpPrompt = 
 										{
 											{
-												text = default_HelpPromt,
+												text = default_HelpPrompt,
 												type = "TEXT"
 											}			
 										},																		
@@ -935,7 +935,7 @@ function Test:AfterResumptionNextSGPWithoutVrHelpItems(...)
 							helpPrompt = 
 										{
 											{
-												text = default_HelpPromt,
+												text = default_HelpPrompt,
 												type = "TEXT"
 											}			
 										},																		
@@ -990,7 +990,7 @@ function Test:AfterResumptionNextSGPWithVrHelpItems(...)
 							helpPrompt = 
 										{
 											{
-												text = default_HelpPromt,
+												text = default_HelpPrompt,
 												type = "TEXT"
 											}			
 										},																		
