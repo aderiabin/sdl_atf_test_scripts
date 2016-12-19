@@ -120,9 +120,6 @@ Test[TEST_NAME_ON.."Precondition_GetListOfPermissions"] = function(self)
       ccsStatus = {}
     }
   })
-  :Do(function(_,data)
-    id_group_1 = common_functions_ccs_on:GetGroupId(data, "ConsentGroup001")
-  end)  
 end
 
 --------------------------------------------------------------------------

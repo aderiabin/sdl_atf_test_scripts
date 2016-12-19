@@ -154,7 +154,7 @@ end
 -- Precondition:
 --   HMI sends OnAppPermissionConsent with consented function = allowed and without ccs status
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_userConsent_allowed"] = function(self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
@@ -207,9 +207,9 @@ end
 
 --------------------------------------------------------------------------
 -- Precondition:
---   HMI sends OnAppPermissionConsent with consented function = allowed and without ccs status
+--   HMI sends OnAppPermissionConsent with consented function = disallowed and without ccs status
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_userConsent_disallowed"] = function(self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI", 

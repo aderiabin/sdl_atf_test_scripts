@@ -291,7 +291,7 @@ end
 -- Precondition:
 --   HMI sends OnAppPermissionConsent with ccs status = ON
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_ccsStatus"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
@@ -333,7 +333,7 @@ CheckGroup001IsNotConsentedAndGroup002IsConsented()
 -- Precondition:
 --   HMI sends OnAppPermissionConsent with ccs status = OFF
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
+Test[TEST_NAME_ON .. ""Precondition_HMI_sends_OnAppPermissionConsent_userConsent] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     appID = hmi_app_id_1, source = "GUI",
