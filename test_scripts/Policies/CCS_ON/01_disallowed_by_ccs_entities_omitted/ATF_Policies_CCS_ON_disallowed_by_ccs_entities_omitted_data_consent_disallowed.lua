@@ -116,6 +116,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAllowSDLFunctionality"] = functio
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
     {allowed = false, source = "GUI"})
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+	:ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints")
+    return not validate_result
+  end)
   :Times(1)  
   common_functions:DelayedExp(2000)    
 end
@@ -132,6 +137,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function
     consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = true}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+	:ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
+    return validate_result
+  end)  
   :Times(1)
   common_functions:DelayedExp(2000)  
 end
