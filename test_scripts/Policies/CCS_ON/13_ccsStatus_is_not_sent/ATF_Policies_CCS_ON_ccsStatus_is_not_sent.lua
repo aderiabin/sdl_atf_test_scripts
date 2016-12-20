@@ -161,6 +161,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_userConsent_
     consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = true}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+	:ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeVehicleData", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})			
+    return validate_result
+  end)  
   :Times(1)
   common_functions:DelayedExp(2000) 
 end
@@ -216,6 +221,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_userConsent_
     consentedFunctions = {{name = "ConsentGroup001", id = id_group_1, allowed = false}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+	:ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    return validate_result
+  end)  
   :Times(1)
   common_functions:DelayedExp(2000) 
 end
@@ -266,6 +276,11 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAllowSDLFunctionality"] = functio
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
     {allowed = false, source = "GUI"})
   self.mobileSession:ExpectNotification("OnPermissionsChange")
+	:ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_on:ValidateHMIPermissions(data, 
+      "SubscribeVehicleData")
+    return not validate_result
+  end)
   :Times(1)
   common_functions:DelayedExp(2000)    
 end
