@@ -150,7 +150,7 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_ccsStatus"] 
     ccsStatus = {{entityType = 2, entityID = 5, status = "ON"}}
   })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(0) -- permission does not change
+  :Times(1)
   common_functions:DelayedExp(2000)  
 end
 
