@@ -217,7 +217,7 @@ function CCS_ON_OFF_common_functions:ValidateHMIPermissions(data, rpc_name, expe
   for i = 1, #data.payload.permissionItem do
     if data.payload.permissionItem[i].rpcName == rpc_name then
       if expected_table then
-        return common_functions:CompareTables(data.payload.permissionItem[i].hmiPermissions, expected_table) then
+        return common_functions:CompareTables(data.payload.permissionItem[i].hmiPermissions, expected_table)
       else
         return true
       end
