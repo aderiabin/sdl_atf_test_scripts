@@ -1,35 +1,15 @@
 -- This script verifies case: MOB -> SDL: ResetGlobalProperties("KEYBOARDPROPERTIES")
 require('user_modules/all_common_modules')
-
 local SUCCESS_RESULTCODES = {"SUCCESS"}
-local ERROR_RESULTCODES = {"INVALID_DATA", "REJECTED", "DISALLOWED", "USER_DISALLOWED", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS", "WARNINGS", "GENERIC_ERROR", "APPLICATION_NOT_REGISTERED"}
+local ERROR_RESULTCODES = {"INVALID_DATA", "REJECTED", "DISALLOWED", "USER_DISALLOWED", "WARNINGS", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS",  "GENERIC_ERROR", "APPLICATION_NOT_REGISTERED"}
 
---------------------------------------------------------------------------------
--- Get parameter's value from json file
--- @param json_file: file name of a JSON file
--- @param path_to_parameter: full path of parameter
--- Example: path for Location1 parameter: {"policy", functional_groupings, "Location1"}
---------------------------------------------------------------------------------
-local function GetParameterValueInJsonFile(json_file, path_to_parameter)
-  local file = io.open(json_file, "r")
-  local json_data = file:read("*all")
-  file:close()
-  local json = require("modules/json")
-  local data = json.decode(json_data)
-  local parameter = data
-  for i = 1, #path_to_parameter do
-    parameter = parameter[path_to_parameter[i]]
-  end
-  return parameter
-end
-
-local kbp_default = GetParameterValueInJsonFile(
+local kbp_default = common_functions:GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
   {"UI", "keyboardPropertiesDefault"})
 
 if not kbp_default then
   common_functions:PrintError("UI.keyboardPropertiesDefault parameter is not exist in hmi_capabilities.json. Stop ATF script.")
-  quit(1)
+  os.exit()
 end
 
 local default_keyboard_properties = {
@@ -60,7 +40,7 @@ end
 
 for i = 1, #ERROR_RESULTCODES do
   Test["ResetGlobalProperties_KEYBOARDPROPERTIES_resultCode_" .. ERROR_RESULTCODES[i]] = function(self)
-    common_functions:DelayedExp(1000)
+    common_functions:DelayedExp(500)
     local cid = self.mobileSession:SendRPC("ResetGlobalProperties",
       {properties = {"KEYBOARDPROPERTIES"}})
 

@@ -33,8 +33,9 @@ local CommonSteps = {}
 --------------------------------------------------------------------------------
 function CommonSteps:AddMobileConnection(test_case_name, mobile_connection_name)
   Test[test_case_name] = function(self)
+    mobile_connection_name = mobile_connection_name or "mobileConnection"
     local tcpConnection = tcp.Connection(config.mobileHost, config.mobilePort)
-    local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
+    local fileConnection = file_connection.FileConnection("mobile_" .. mobile_connection_name .. ".out", tcpConnection)    
     self[mobile_connection_name] = mobile.MobileConnection(fileConnection)
     event_dispatcher:AddConnection(self[mobile_connection_name])
     self[mobile_connection_name]:Connect()
@@ -350,6 +351,15 @@ function CommonSteps:RestoreIniFile(test_case_name, file_name)
     os.execute(" cp " .. config.pathToSDL .. file_name .. "_origin " .. config.pathToSDL .. file_name )
   end
 end
+
+function CommonSteps:RemoveFileInSdlBinFolder(test_case_name, file_name)
+  Test[test_case_name] = function(self)
+    if common_functions:IsFileExist(config.pathToSDL .. file_name) then
+      os.remove(config.pathToSDL .. file_name)
+    end
+  end
+end
+
 --------------------------------------------------------------------------------
 -- Precondition steps:
 -- @param test_case_name: Test name

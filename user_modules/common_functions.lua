@@ -216,6 +216,34 @@ function CommonFunctions:AddItemsIntoJsonFile(json_file, parent_item, added_json
   file:write(data)
   file:close()
 end
+
+--------------------------------------------------------------------------------
+-- Get parameter's value from json file
+-- @param json_file: file name of a JSON file
+-- @param path_to_parameter: full path of parameter
+-- Example: path for Location1 parameter: {"policy", functional_groupings, "Location1"}
+--------------------------------------------------------------------------------
+function CommonFunctions:GetParameterValueInJsonFile(json_file, path_to_parameter)
+  local file = io.open(json_file, "r")
+  if not file then 
+    common_functions:PrintError("Open " .. json_file .. " unsuccessfully")
+    return nil
+  end
+  local json_data = file:read("*all")
+  file:close()
+  if json_data == "" then 
+    common_functions:PrintError("There is no data in " .. json_file .. " file")
+    return nil
+  end
+  local json = require("modules/json")
+  local data = json.decode(json_data) 
+  local parameter = data
+  for i = 1, #path_to_parameter do
+    parameter = parameter[path_to_parameter[i]]
+  end
+  return parameter
+end
+
 --------------------------------------------------------------------------------
 -- Remove items into json file
 -- @param json_file: file name of a JSON file to be removed items
