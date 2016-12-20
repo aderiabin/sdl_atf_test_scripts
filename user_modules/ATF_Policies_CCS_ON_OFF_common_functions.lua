@@ -215,15 +215,15 @@ end
 --------------------------------------------------------------------------
 function CCS_ON_OFF_common_functions:ValidateHMIPermissions(data, rpc_name, expected_table)
   for i = 1, #data.payload.permissionItem do
-    if data.payload.permissionItem[i].rpcName == "SubscribeWayPoints" then
-        if common_functions:CompareTables(data.payload.permissionItem[i].hmiPermissions, expected_table) then
-          return true
-        else
-          common_functions:PrintError("The permission of RPC: " .. rpc_name .. " is incorrect.")
-          return false
-        end
+    if data.payload.permissionItem[i].rpcName == rpc_name then
+      if expected_table then
+        return common_functions:CompareTables(data.payload.permissionItem[i].hmiPermissions, expected_table) then
+      else
+        return true
+      end
     end
   end
+  return false
 end
 
 return CCS_ON_OFF_common_functions
