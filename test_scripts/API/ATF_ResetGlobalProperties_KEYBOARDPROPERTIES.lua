@@ -1,14 +1,14 @@
 -- This script verifies case: MOB -> SDL: ResetGlobalProperties("KEYBOARDPROPERTIES")
 require('user_modules/all_common_modules')
 local SUCCESS_RESULTCODES = {"SUCCESS"}
-local ERROR_RESULTCODES = {"INVALID_DATA", "REJECTED", "DISALLOWED", "USER_DISALLOWED", "WARNINGS", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS",  "GENERIC_ERROR", "APPLICATION_NOT_REGISTERED"}
+local ERROR_RESULTCODES = {"INVALID_DATA", "REJECTED", "DISALLOWED", "USER_DISALLOWED", "WARNINGS", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS", "GENERIC_ERROR", "APPLICATION_NOT_REGISTERED"}
 
 local kbp_default = common_functions:GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
   {"UI", "keyboardPropertiesDefault"})
 
 if not kbp_default then
-  common_functions:PrintError("UI.keyboardPropertiesDefault parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+  common_functions:PrintError("UI.keyboardPropertiesDefault parameter does not exist in hmi_capabilities.json. Stop ATF script.")
   os.exit()
 end
 

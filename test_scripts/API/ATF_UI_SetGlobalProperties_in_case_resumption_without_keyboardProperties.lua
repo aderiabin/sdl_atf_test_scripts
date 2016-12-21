@@ -1,5 +1,5 @@
 -- This script verifies case: MOB -> SDL: There is no SetGlobalProperties() in 10s but keyboardProperties is resumed.
--- Specific case: SDL -> HMI: UI.SetGlobalProperties(keyboardProperties) due to resumption
+-- Specific case: SDL -> HMI: UI.SetGlobalProperties(without keyboardProperties) due to resumption
 require('user_modules/all_common_modules')
 local TIMEOUT_PROMPT = {{text = "Timeout prompt", type = "TEXT"}}
 local HELP_PROMPT = {{text = "Help prompt", type = "TEXT"}}
@@ -31,15 +31,14 @@ end
 -- Precondition: application is activated.
 common_steps:PreconditionSteps("Precondition", 7)
 
-Test["SetGlobalProperties"] = function(self)
+Test["SetGlobalProperties_keyboardProperties_omited"] = function(self)
   local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       helpPrompt = HELP_PROMPT,
       timeoutPrompt = TIMEOUT_PROMPT,
       menuTitle = MENU_TITLE,
       vrHelp = VRHELP,
-      vrHelpTitle = VRHELP_TITLE,
-      keyboardProperties = keyboard_properties
+      vrHelpTitle = VRHELP_TITLE
     })
 
   EXPECT_HMICALL("TTS.SetGlobalProperties",
@@ -55,9 +54,11 @@ Test["SetGlobalProperties"] = function(self)
     {
       menuTitle = MENU_TITLE,
       vrHelp = VRHELP,
-      vrHelpTitle = VRHELP_TITLE,
-      keyboardProperties = keyboard_properties
+      vrHelpTitle = VRHELP_TITLE
     })
+  :ValidIf(function(_,data)
+      return not data.params.keyboardProperties
+    end)
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -95,9 +96,11 @@ Test["RegisterAppInterface_keyboardProperties_from_resumption_data"] = function(
     {
       menuTitle = MENU_TITLE,
       vrHelp = VRHELP,
-      vrHelpTitle = VRHELP_TITLE,
-      keyboardProperties = keyboard_properties
+      vrHelpTitle = VRHELP_TITLE
     })
+  :ValidIf(function(_,data)
+      return not data.params.keyboardProperties
+    end)
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)

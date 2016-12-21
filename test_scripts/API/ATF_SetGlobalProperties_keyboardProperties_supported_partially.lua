@@ -12,7 +12,7 @@ local kbp_supported = common_functions:GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
   {"UI", "keyboardPropertiesSupported"})
 if not kbp_supported then
-  common_functions:PrintError("UI.keyboardPropertiesSupported parameter is not exist in hmi_capabilities.json. Stop ATF script.")
+  common_functions:PrintError("UI.keyboardPropertiesSupported parameter does not exist in hmi_capabilities.json. Stop ATF script.")
   os.exit()
 end
 -- Test keyboardProperties with the last values on list of supported values from hmi_capabilities.json
@@ -42,7 +42,7 @@ local function Precondition()
   common_steps:AddMobileConnection("Precondition_AddDefaultMobileConnection", "mobileConnection")
   common_steps:AddMobileSession("Precondition_AddDefaultMobileConnect")
   common_steps:RegisterApplication("Precondition_Register_App")
-  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
+  common_steps:ActivateApplication("Precondition_ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 end
 
 local function UiRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, successful_result_code, unsuported_parameter)
@@ -258,27 +258,29 @@ local function TCs_For_An_UnsportedParameter(unsupported_one_param_in_keyboard_p
   end
 
   -- Test case 2: SetGlobalProperties(at least one param of <keyboardProperties> is not supported per capabilities file) during ignition cycle
+  
   Precondition()
-  common_steps:Sleep("Sleep_15_seconds_to_test_case_SetGlobalProperties_during_ignition_cycle", 15)
+  -- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
+  common_steps:Sleep("Sleep_10_seconds", 10)
 
   -- UI responds successful resultCodes
   for i = 1, #SUCCESS_RESULTCODES do
-    UiRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i])
+    UiRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i], unsuported_parameter)
   end
 
   -- TTS responds successful resultCodes
   for i = 1, #SUCCESS_RESULTCODES do
-    TtsRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i])
+    TtsRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i], unsuported_parameter)
   end
 
   -- UI responds error resultCodes
   for i = 1, #ERROR_RESULTCODES do
-    UiRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i])
+    UiRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i], unsuported_parameter)
   end
 
   -- TTS responds error resultCodes
   for i = 1, #ERROR_RESULTCODES do
-    TtsRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i])
+    TtsRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i], unsuported_parameter)
   end
 
 end

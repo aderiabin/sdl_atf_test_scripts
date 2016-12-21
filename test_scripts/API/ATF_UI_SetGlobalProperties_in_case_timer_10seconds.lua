@@ -1,38 +1,23 @@
 -- This script verifies case: MOB -> SDL: There is no SetGlobalProperties() in 10s and keyboardProperties is not resumed.
 require('user_modules/all_common_modules')
-local current_time
+local start_time
+local end_time
 
---------------------------------------------------------------------------------
--- Get parameter's value from json file
--- @param json_file: file name of a JSON file
--- @param path_to_parameter: full path of parameter
--- Example: path for Location1 parameter: {"policy", functional_groupings, "Location1"}
---------------------------------------------------------------------------------
-local function GetParameterValueInJsonFile(json_file, path_to_parameter)
-  local file = io.open(json_file, "r")
-  local json_data = file:read("*all")
-  file:close()
-  local json = require("modules/json")
-  local data = json.decode(json_data)
-  local parameter = data
-  for i = 1, #path_to_parameter do
-    parameter = parameter[path_to_parameter[i]]
-  end
-  return parameter
-end
-
-local kbp_supported = GetParameterValueInJsonFile(
+local kbp_supported = common_functions:GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
   {"UI", "keyboardPropertiesDefault"})
 if not kbp_supported then
-  common_functions:PrintError("UI.keyboardPropertiesDefault parameter is not exist in hmi_capabilities.json. Stop ATF script.")
-  quit(1)
+  common_functions:PrintError("UI.keyboardPropertiesDefault parameter does not exist in hmi_capabilities.json. Stop ATF script.")
+  os.exit()
 end
 local keyboard_properties = {
   language = kbp_supported.languageDefault,
   keyboardLayout = kbp_supported.keyboardLayoutDefault,
   keypressMode = kbp_supported.keypressModeDefault
 }
+
+-- TC1: Check timer 10s is started when app is activated
+common_steps:AddNewTestCasesGroup("Check timer 10s is started when app is activated")
 -- Precondition: an application is registered
 common_steps:PreconditionSteps("Precondition", 6)
 
@@ -51,8 +36,8 @@ end
 common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 
 Test["GetCurrentTime"] = function(self)
-  current_time = timestamp()
-  print("Time when app is activated: " .. tostring(current_time))
+  start_time = timestamp()
+  print("Time when app is activated: " .. tostring(start_time))
 end
 
 -- Mobile does not send send <keyboardProperties> during 10 sec
@@ -65,17 +50,18 @@ Test["UI.SetGlobalProperties with keyboardProperties is default value in 10 seco
       menuTitle = MENU_TITLE,
       keyboardProperties = keyboard_properties
     })
-  :Timeout(15000)
+  :Timeout(11000)
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   :ValidIf(function(_,data)
-      local current_time1 = timestamp()
-      print("GetCurrentTime: " .. tostring(current_time1))
-      if current_time1 - current_time > 9000 and current_time1 - current_time < 11000 then
+      local end_time = timestamp()
+      print("Time when SDL->HMI: UI.SetGlobalProperties(): " .. tostring(end_time))
+      local interval = (end_time - start_time)
+      if interval > 9000 and interval < 11000 then
         return true
       else
-        common_functions:printError("Expected timeout for SDL sends UI.SetGlobalProperties to HMI is 10000 milliseconds. Actual timeout is " .. tostring(current_time1 - current_time))
+        common_functions:printError("Expected timeout for SDL to send UI.SetGlobalProperties to HMI is 10000 milliseconds. Actual timeout is " .. tostring(interval))
         return false
       end
     end)
