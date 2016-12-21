@@ -101,7 +101,9 @@ end
 -- @param app_name: application name will be closed session
 --------------------------------------------------------------------------------
 function CommonSteps:CloseMobileSessionByAppName(test_case_name, app_name)
-  CommonSteps:CloseMobileSession_InternalUsed(app_name, self)
+  Test[test_case_name] = function(self)
+    CommonSteps:CloseMobileSession_InternalUsed(app_name, self)
+  end  
 end
 
 -- COMMON FUNCTIONS FOR SERVICES
@@ -179,6 +181,7 @@ app_name_n = {hmiLevel = "BACKGROUND", systemContext = "MAIN", audioStreamingSta
 function CommonSteps:ActivateApplication(test_case_name, app_name, expected_level, expected_on_hmi_status_for_other_applications)
   Test[test_case_name] = function(self)
     expected_level = expected_level or "FULL"
+    app_name = app_name or config.application1.registerAppInterfaceParams.appName
     local hmi_app_id = common_functions:GetHmiAppId(app_name, self)
     local audio_streaming_state = "NOT_AUDIBLE"
     if common_functions:IsMediaApp(app_name, self) then
@@ -290,7 +293,7 @@ end
 -- @param test_case_name: Test name
 --------------------------------------------------------------------------------
 function CommonSteps:IgnitionOn(test_case_name)
-  CommonSteps:KillAllSdlProcesses()
+  CommonSteps:KillAllSdlProcesses(test_case_name .. "_KillAllSdlProcessesIfExist")
   CommonSteps:StartSDL(test_case_name .. "_StartSDL")
   CommonSteps:InitializeHmi(test_case_name.."_InitHMI")
   CommonSteps:HmiRespondOnReady(test_case_name.."_InitHMI_onReady")
@@ -351,15 +354,6 @@ function CommonSteps:RestoreIniFile(test_case_name, file_name)
     os.execute(" cp " .. config.pathToSDL .. file_name .. "_origin " .. config.pathToSDL .. file_name )
   end
 end
-
-function CommonSteps:RemoveFileInSdlBinFolder(test_case_name, file_name)
-  Test[test_case_name] = function(self)
-    if common_functions:IsFileExist(config.pathToSDL .. file_name) then
-      os.remove(config.pathToSDL .. file_name)
-    end
-  end
-end
-
 --------------------------------------------------------------------------------
 -- Precondition steps:
 -- @param test_case_name: Test name
@@ -376,9 +370,7 @@ function CommonSteps:PreconditionSteps(test_case_name, number_of_precondition_st
   local mobile_connection_name = "mobileConnection"
   local mobile_session_name = "mobileSession"
   local app = config.application1.registerAppInterfaceParams
-
-  common_functions:KillAllSdlProcesses()
-
+  CommonSteps:KillAllSdlProcesses(test_case_name .. "_KillAllSdlProcessesIfExist")
   if number_of_precondition_steps >= 1 then
     CommonSteps:StartSDL(test_case_name .. "_StartSDL")
   end
@@ -494,6 +486,14 @@ end
 function CommonSteps:Sleep(test_case_name, sec)
    Test[test_case_name] = function(self)
     os.execute("sleep " .. sec)
+  end
+end
+
+function CommonSteps:RemoveFileInSdlBinFolder(test_case_name, file_name)
+  Test[test_case_name] = function(self)
+    if common_functions:IsFileExist(config.pathToSDL .. file_name) then
+      os.remove(config.pathToSDL .. file_name)
+    end
   end
 end
 
