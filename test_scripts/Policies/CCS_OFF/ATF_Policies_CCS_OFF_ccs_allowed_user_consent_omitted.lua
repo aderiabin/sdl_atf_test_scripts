@@ -156,6 +156,7 @@ Test[TEST_NAME_OFF .. "MainCheck_HMI_sends_OnAppPermissionConsent"] = function(s
     })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :Times(0)
+	common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------

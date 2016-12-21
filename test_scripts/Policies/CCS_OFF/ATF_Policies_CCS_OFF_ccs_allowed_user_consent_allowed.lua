@@ -145,7 +145,7 @@ end
 
 --------------------------------------------------------------------------
 -- Main check:
--- OnAppPermissionChanged is sent
+-- OnAppPermissionChanged is not sent
 -- when HMI sends OnAppPermissionConsent with consentedFunctions allowed = true
 --------------------------------------------------------------------------
 Test[TEST_NAME_OFF .. "Precondition_HMI_sends_OnAppPermissionConsent_userConsent"] = function(self)
@@ -157,6 +157,7 @@ Test[TEST_NAME_OFF .. "Precondition_HMI_sends_OnAppPermissionConsent_userConsent
     })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :Times(0)
+	common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
