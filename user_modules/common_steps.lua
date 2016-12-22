@@ -487,4 +487,19 @@ function CommonSteps:Sleep(test_case_name, sec)
   end
 end
 
+-- Execute query to insert/ update/ delete data to LPT 
+function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
+  Test[test_case_name] = function(self)
+    local policy_file = config.pathToSDL .. "storage/policy.sqlite"
+    local policy_file_temp = "/tmp/policy.sqlite"
+    os.execute("cp " .. policy_file .. " " .. policy_file_temp)
+    ful_sql_query = "sqlite3 " .. policy_file_temp .. " \"" .. sql_query .. "\""
+    handler = io.popen(ful_sql_query, 'r')
+    handler:close()
+    os.execute("sleep 1") 
+    os.execute("cp " .. policy_file_temp .. " " .. policy_file)
+    os.execute("rm -rf " .. policy_file_temp)
+  end
+end
+
 return CommonSteps
