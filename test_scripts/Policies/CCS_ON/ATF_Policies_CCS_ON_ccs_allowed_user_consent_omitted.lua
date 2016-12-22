@@ -150,11 +150,11 @@ Test[TEST_NAME_ON .. "Precondition_Check_Ccs_Consent_Group"] = function(self)
 end
 
 --------------------------------------------------------------------------
--- Main check:
+-- Precondition:
 --   OnAppPermissionChanged is not sent
 --   when HMI sends OnAppPermissionConsent without consentedFunctions
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_HMI_sends_OnAppPermissionConsent"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {

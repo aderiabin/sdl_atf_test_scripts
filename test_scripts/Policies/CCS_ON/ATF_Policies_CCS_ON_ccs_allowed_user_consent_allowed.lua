@@ -150,7 +150,7 @@ Test[TEST_NAME_ON .. "Precondition_Check_Ccs_Consent_Group"] = function(self)
 end
 
 --------------------------------------------------------------------------
--- Main check:
+-- Precondition:
 --   OnAppPermissionChanged is sent
 --   when HMI sends OnAppPermissionConsent with consentedFunctions allowed = true
 --------------------------------------------------------------------------
