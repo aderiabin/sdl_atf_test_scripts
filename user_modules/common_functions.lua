@@ -190,7 +190,7 @@ function CommonFunctions:AddItemsIntoJsonFile(json_file, parent_item, added_json
   local match_result = "null"
   local temp_replace_value = "\"Temporary_Text\""
   local file = io.open(json_file, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  local json_data = file:read("*all") 
   file:close()
   json_data = string.gsub(json_data, match_result, temp_replace_value)
   local json = require("modules/json")
@@ -226,7 +226,7 @@ function CommonFunctions:RemoveItemsFromJsonFile(json_file, parent_item, removed
   local match_result = "null"
   local temp_replace_value = "\"Temporary_Text\""
   local file = io.open(json_file, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  local json_data = file:read("*all") 
   file:close()
   json_data = string.gsub(json_data, match_result, temp_replace_value)
   local json = require("modules/json")
@@ -248,6 +248,30 @@ function CommonFunctions:RemoveItemsFromJsonFile(json_file, parent_item, removed
   file = io.open(json_file, "w")
   file:write(data)
   file:close()
+end
+--------------------------------------------------------------------------------
+-- Get items from json file
+-- @param json_file: file name of a JSON file 
+-- @param parent_item: contains the value want to get
+--------------------------------------------------------------------------------
+function CommonFunctions:GetItemsFromJsonFile(json_file, parent_item)
+  if not self:IsFileExist(json_file) then			
+			CommonFunctions:PrintError("File is not existed")
+			return 
+		end		
+  local file = io.open(json_file, "r")
+  local json_data = file:read("*all")
+  file:close()
+  local json = require("modules/json")
+  local data = json.decode(json_data)
+  local value = data
+  for i = 1, #parent_item do
+    if not value[parent_item[i]] then
+      return nil
+    end  
+    value = value[parent_item[i]] 
+  end
+  return value  
 end
 --------------------------------------------------------------------------------
 -- Compare 2 JSON files
@@ -296,7 +320,7 @@ function CommonFunctions:QueryPolicyDataBase(sdl_query)
   end
   if policy_file then
     local ful_sql_query = "sqlite3 " .. policy_file .. " " .. sdl_query
-    local handler = io.popen(query, 'r')
+    local handler = io.popen(ful_sql_query, 'r')
     os.execute("sleep 1")
     local result = handler:read( '*l' )
     handler:close()
