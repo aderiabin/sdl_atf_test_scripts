@@ -29,14 +29,14 @@
 
 work_dir = "~/SmartDeviceLinkCore/"
 
-sdl_repository = "https://github.com/smartdevicelink/sdl_core/"
+sdl_repository = "https://github.com/CustomSDL/sdl_panasonic/"
 sdl_branch = "develop"
 
-atf_repository = "https://github.com/smartdevicelink/sdl_atf/"
-atf_branch = "BUILD_SERVER_VERSION"
+atf_repository = "https://github.com/CustomSDL/sdl_atf/"
+atf_branch = "release/candidate_release_4.3.0"
 
-scripts_repository = "https://github.com/smartdevicelink/sdl_atf_test_scripts/"
-scripts_branch = "master"
+scripts_repository = "https://github.com/CustomSDL/sdl_atf_test_scripts/"
+scripts_branch = "develop"
 
 sdl_clone_dir = work_dir + "sdl_core/"
 sdl_build_dir = sdl_clone_dir + "build/"
@@ -45,6 +45,9 @@ qt_path = "/opt/qt53/"
 atf_build_dir = work_dir + "atf_build/"
 
 scripts_clone_dir = work_dir + "sdl_atf_test_scripts/"
+
+# test_scripts_dir is dir where atomatic tool will search test scripts for running
+test_scripts_dir = scripts_clone_dir + "test_scripts/"
 
 test_run_dir = work_dir + "test_run/"
 reports_dir = test_run_dir + "reports/"

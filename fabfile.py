@@ -40,9 +40,31 @@ from utils import get_list_of_failed_test_cases
 from utils import get_known_issues
 from utils import filter_known_issues
 import config as config
+import os
+
+def resolve_path(relative_path):
+    """
+    Function that transform relative to absolute path
+    :param relative_path: relative path
+    :return: absolute path
+    """
+    return os.path.abspath(os.path.expanduser(relative_path)) + "/"
+
+config.work_dir = resolve_path(config.work_dir)
+config.sdl_clone_dir = resolve_path(config.sdl_clone_dir)
+config.sdl_build_dir = resolve_path(config.sdl_build_dir)
+config.qt_path = resolve_path(config.qt_path)
+config.atf_build_dir = resolve_path(config.atf_build_dir)
+config.scripts_clone_dir = resolve_path(config.scripts_clone_dir)
+config.test_scripts_dir = resolve_path(config.test_scripts_dir)
+config.test_run_dir = resolve_path(config.test_run_dir)
+config.reports_dir = resolve_path(config.reports_dir)
 
 
 class TaskWithConfig(Task):
+    """
+        Task that support custom config
+    """
     def __init__(self, func, *args, **kwargs):
         super(TaskWithConfig, self).__init__(*args, **kwargs)
         self.func = func
@@ -123,19 +145,15 @@ def prepare_test_run(rewrite=False):
     """
     with open_dir(config.test_run_dir, rewrite):
         run("cp -r {} {}".format(config.atf_build_dir +
+                                 "bin/", config.test_run_dir))
+        run("cp -r {} {}".format(config.atf_build_dir +
                                  "modules/", config.test_run_dir))
         run("cp -r {} {}".format(config.atf_build_dir +
                                  "data/", config.test_run_dir))
         run("cp -r {} {}".format(config.atf_build_dir +
-                                 "StartSDL.sh", config.test_run_dir))
-        run("cp -r {} {}".format(config.atf_build_dir +
-                                 "StopSDL.sh", config.test_run_dir))
-        run("cp -r {} {}".format(config.atf_build_dir +
-                                 "WaitClosingSocket.sh", config.test_run_dir))
+                                 "tools/", config.test_run_dir))
         run("cp -r {} {}".format(config.atf_build_dir +
                                  "start.sh", config.test_run_dir))
-        run("cp -r {} {}".format(config.atf_build_dir +
-                                 "interp", config.test_run_dir))
         run("cp -r {} {}".format(config.scripts_clone_dir +
                                  "/*", config.test_run_dir))
         run("cp -r {} {}".format(config.sdl_build_dir + "bin",
@@ -154,7 +172,7 @@ def tests_run():
     if not exists(config.test_run_dir):
         print("{} does not exists".format(config.test_run_dir))
     with cd(config.test_run_dir):
-        output = run('ls test_scripts')
+        output = run('find {} -name "*.lua"'.format(config.test_scripts_dir))
         scripts = output.split()
         known_issues = run("cat KnownIssues.md")
         known_issues = get_known_issues(known_issues)
@@ -164,7 +182,7 @@ def tests_run():
             print("Execute {}".format(script))
             with settings(warn_only=True):
                 output = run('''./start.sh --storeFullSDLLogs \
-                             --sdl_core=./SDL_bin/ test_scripts/{} |\
+                             --sdl-core=./SDL_bin/ {} |\
                              tee console_output'''.format(script))
                 script_reports_dir = "{}/{}".format(config.reports_dir, script)
                 run("mkdir -p {}".format(script_reports_dir))
@@ -185,20 +203,11 @@ def tests_run():
                 print("  * {}".format(case))
 
 
-@task
-def setup():
-    """
-    Setup system preconditions for test scripts
-    """
-    run("sudo chmod 4755 /sbin/ifconfig")
-
-
 @task(task_class=TaskWithConfig)
 def prepare():
     """
     Prepare all preconditions for tests_run
     """
-    execute(setup)
     execute(clone_sdl)
     execute(clone_atf)
     execute(clone_scripts)
