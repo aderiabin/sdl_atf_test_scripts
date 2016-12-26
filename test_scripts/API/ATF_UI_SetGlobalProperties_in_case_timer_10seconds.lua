@@ -1,5 +1,9 @@
 -- This script verifies case: MOB -> SDL: There is no SetGlobalProperties() in 10s and keyboardProperties is not resumed.
 require('user_modules/all_common_modules')
+local MENU_TITLE = nil
+local app = config.application1.registerAppInterfaceParams
+local VRHELP = {{position = 1, text = app.appName}}
+local VRHELP_TITLE = app.appName
 local start_time
 local end_time
 

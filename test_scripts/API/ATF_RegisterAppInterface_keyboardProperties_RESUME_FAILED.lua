@@ -142,9 +142,38 @@ Test["RegisterAppInterface_keyboardProperties_from_resumption_data"] = function(
     {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"},
     {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"}
   )
+  :Do(function(_,data)
+      if data.payload.hmiLevel == "FULL" then
+        start_time = timestamp()
+      end
+    end)
+
   :Times(2)
   EXPECT_HMICALL("UI.SetGlobalProperties", {})
   :Times(0)
+end
+
+-- Check SDL sends UI.SetGlobalProperties with keyboardProperties is default value
+Test["UI.SetGlobalProperties with keyboardProperties is default value in 10 seconds"] = function(self)
+  EXPECT_HMICALL("UI.SetGlobalProperties",
+    {
+      keyboardProperties = keyboard_properties
+    })
+  :Timeout(11000)
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  :ValidIf(function(_,data)
+      local end_time = timestamp()
+      print("Time when SDL->HMI: UI.SetGlobalProperties(): " .. tostring(end_time))
+      local interval = (end_time - start_time)
+      if interval > 9000 and interval < 11000 then
+        return true
+      else
+        common_functions:printError("Expected timeout for SDL to send UI.SetGlobalProperties to HMI is 10000 milliseconds. Actual timeout is " .. tostring(interval))
+        return false
+      end
+    end)
 end
 
 Test["SDL_Clean_Up_keyboardProperties_In_Stored_Data"] = function(self)

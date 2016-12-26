@@ -10,23 +10,19 @@ local VRHELP = {{position = 1, text = "VR help item"}}
 local VRHELP_TITLE = "VR help title"
 local hmi_capabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 local app = config.application1.registerAppInterfaceParams
+local start_time
+local end_time
 
 -- TC1
-common_steps:AddNewTestCasesGroup("TC1: Check RegisterAppInterface(keyboardProperties value is upper bound)")
-local kbp_supported = common_functions:GetParameterValueInJsonFile(
-  hmi_capabilities_file,
-  {"UI", "keyboardPropertiesSupported"})
-if not kbp_supported then
-  common_functions:PrintError("UI.keyboardPropertiesSupported parameter does not exist in hmi_capabilities.json. Stop ATF script.")
-  os.exit()
-end
-local keyboard_properties = {
-  {
-    language = kbp_supported.languageSupported[1],
-    keyboardLayout = kbp_supported.keyboardLayoutSupported[1],
-    keypressMode = kbp_supported.keypressModeSupported[1]
-  }
-}
+-- common_steps:AddNewTestCasesGroup("TC1: Check RegisterAppInterface(keyboardProperties value is upper bound)")
+-- local kbp_supported = common_functions:GetParameterValueInJsonFile(
+-- hmi_capabilities_file,
+-- {"UI", "keyboardPropertiesSupported"})
+-- if not kbp_supported then
+-- common_functions:PrintError("UI.keyboardPropertiesSupported parameter does not exist in hmi_capabilities.json. Stop ATF script.")
+-- os.exit()
+-- end
+
 -- Update keyboardPropertiesSupported in hmi_capabilities.json
 local added_json_items = {
   keyboardPropertiesSupported =
@@ -116,7 +112,54 @@ end
 
 -- TC2
 common_steps:AddNewTestCasesGroup("TC2: Check resumption with keyboardProperties is different from default value.")
-common_steps:ActivateApplication("Precondition_Activate_App")
+common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
+
+Test["GetCurrentTime"] = function(self)
+  start_time = timestamp()
+  print("Time when app is activated: " .. tostring(start_time))
+end
+
+-- Mobile does not send send <keyboardProperties> during 10 sec
+-- Check SDL sends UI.SetGlobalProperties with keyboardProperties is default value
+Test["UI.SetGlobalProperties with keyboardProperties is default value in 10 seconds"] = function(self)
+  local keyboard_properties_default = common_functions:GetParameterValueInJsonFile(
+    hmi_capabilities_file,
+    {"UI", "keyboardPropertiesDefault"})
+  local keyboard_properties = {
+    language = keyboard_properties_default.languageDefault,
+    keyboardLayout = keyboard_properties_default.keyboardLayoutDefault,
+    keypressMode = keyboard_properties_default.keypressModeDefault
+  }
+  EXPECT_HMICALL("UI.SetGlobalProperties",
+    {
+      keyboardProperties = keyboard_properties
+    })
+  :Timeout(11000)
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  :ValidIf(function(_,data)
+      local end_time = timestamp()
+      print("Time when SDL->HMI: UI.SetGlobalProperties(): " .. tostring(end_time))
+      local interval = (end_time - start_time)
+      if interval > 9000 and interval < 11000 then
+        return true
+      else
+        common_functions:printError("Expected timeout for SDL to send UI.SetGlobalProperties to HMI is 10000 milliseconds. Actual timeout is " .. tostring(interval))
+        return false
+      end
+    end)
+end
+
+Test["WaitForTTS.SetGlobalProperties_to_avoid_effect_next_test"] = function(self)
+  EXPECT_HMICALL("TTS.SetGlobalProperties", {})
+  :Timeout(1000)
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  :Times(AnyNumber())
+end
+
 Test["Precondition_SetGlobalProperties_keyboardProperties_different_from_default"] = function(self)
   local keyboard_properties = custom_keyboard_properties[#custom_keyboard_properties]
   local cid = self.mobileSession:SendRPC("SetGlobalProperties",
@@ -163,8 +206,8 @@ Test["RegisterAppInterface_keyboardProperties_from_resumption_data"] = function(
   app.hashID = self.currentHashID
   local cid = self.mobileSession:SendRPC("RegisterAppInterface", app)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {})
-  EXPECT_RESPONSE(cid, { success = true , resultCode = "SUCCESS", 
-    info = "Resume succeeded.", keyboardProperties = custom_keyboard_properties})
+  EXPECT_RESPONSE(cid, { success = true , resultCode = "SUCCESS",
+      info = "Resume succeeded.", keyboardProperties = custom_keyboard_properties})
   EXPECT_HMICALL("BasicCommunication.ActivateApp")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})

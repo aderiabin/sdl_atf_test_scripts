@@ -8,25 +8,36 @@ local VRHELP_TITLE = "VR help title"
 local SUCCESS_RESULTCODES = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED", "UNSUPPORTED_RESOURCE"}
 local ERROR_RESULTCODES = {"UNSUPPORTED_REQUEST", "DISALLOWED", "USER_DISALLOWED", "REJECTED", "ABORTED", "IGNORED", "IN_USE", "DATA_NOT_AVAILABLE", "TIMED_OUT", "INVALID_DATA", "CHAR_LIMIT_EXCEEDED", "INVALID_ID", "DUPLICATE_NAME", "APPLICATION_NOT_REGISTERED", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS", "GENERIC_ERROR", "TRUNCATED_DATA"}
 
-local kbp_supported = common_functions:GetParameterValueInJsonFile(
-  config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "keyboardPropertiesSupported"})
-if not kbp_supported then
-  common_functions:PrintError("UI.keyboardPropertiesSupported parameter does not exist in hmi_capabilities.json. Stop ATF script.")
-  os.exit()
+-- Update keyboardPropertiesSupported in hmi_capabilities.json
+-- limitedCharactersListSupported = false
+-- autoCompleteText == false
+Test["Precondition_update_keyboardProperties_on_hmi_capabilities.json"] = function(self)
+  local hmi_capabilities_file = config.pathToSDL .. "hmi_capabilities.json"
+  local added_json_items = {
+    keyboardPropertiesSupported =
+    {
+      languageSupported = {
+        "FR-CA"
+      },
+      keyboardLayoutSupported = {
+        "AZERTY"
+      },
+      keypressModeSupported = {
+        "RESEND_CURRENT_ENTRY"
+      },
+      limitedCharactersListSupported = false,
+      autoCompleteTextSupported = false
+    }
+  }
+  common_functions:AddItemsIntoJsonFile(hmi_capabilities_file, {"UI"}, added_json_items)
 end
+
 -- Test keyboardProperties with the last values on list of supported values from hmi_capabilities.json
 local supported_keyboard_properties = {
-  language = kbp_supported.languageSupported[#kbp_supported.languageSupported],
-  keyboardLayout = kbp_supported.keyboardLayoutSupported[#kbp_supported.keyboardLayoutSupported],
-  keypressMode = kbp_supported.keypressModeSupported[#kbp_supported.keypressModeSupported],
+  language = "FR-CA",
+  keyboardLayout = "AZERTY",
+  keypressMode = "RESEND_CURRENT_ENTRY"
 }
-if kbp_supported.limitedCharactersListSupported then
-  supported_keyboard_properties.limitedCharacterList = {"a"}
-end
-if kbp_supported.autoCompleteTextSupported then
-  supported_keyboard_properties.autoCompleteText = "Daemon, Freedom"
-end
 
 -- MOB -> SDL: SetGlobalProperties_request during 10s (some params of <keyboardProperties> structure are NOT supported at 'HMI_capabilities.json' file)
 -- SDL -> HMI: UI.SetGlobalProperties(omitted only unsupported params in <keyboardProperties>)
@@ -79,7 +90,7 @@ local function UiRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard
         self.hmiConnection:SendResponse(data.id, data.method, successful_result_code, {})
       end)
     :ValidIf(function(_,data)
-        print("expected: data.params.keyboardProperties = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
+        print("expected: data.params.keyboardProperties.".. unsuported_parameter .. " = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
         return not data.params.keyboardProperties[unsuported_parameter]
       end)
 
@@ -122,7 +133,7 @@ local function TtsRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboar
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
       end)
     :ValidIf(function(_,data)
-        print("expected: data.params.keyboardProperties = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
+        print("expected: data.params.keyboardProperties." .. unsuported_parameter .. " = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
         return not data.params.keyboardProperties[unsuported_parameter]
       end)
 
@@ -166,7 +177,7 @@ local function UiRespondsErrorResultCodes(unsupported_one_param_in_keyboard_prop
         self.hmiConnection:SendError(data.id, data.method, error_result_code, "error_message")
       end)
     :ValidIf(function(_,data)
-        print("expected: data.params.keyboardProperties = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
+        print("expected: data.params.keyboardProperties." .. unsuported_parameter .. " = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
         return not data.params.keyboardProperties[unsuported_parameter]
       end)
 
@@ -215,7 +226,7 @@ local function TtsRespondsErrorResultCodes(unsupported_one_param_in_keyboard_pro
         self.hmiConnection:SendError(data.id, data.method, error_result_code, "error_message")
       end)
     :ValidIf(function(_,data)
-        print("expected: data.params.keyboardProperties = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
+        print("expected: data.params.keyboardProperties." .. unsuported_parameter .. " = nil. Actual: " .. tostring(data.params.keyboardProperties[unsuported_parameter]))
         return not data.params.keyboardProperties[unsuported_parameter]
       end)
 
@@ -234,31 +245,35 @@ local function TCs_For_An_UnsportedParameter(unsupported_one_param_in_keyboard_p
   -- Test case 1: SetGlobalProperties(at least one param of <keyboardProperties> is not supported per capabilities file) during 10 sec timer after this app registration
 
   -- UI responds successful resultCodes
+  common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and UI responds all successful resultCodes)")
   for i = 1, #SUCCESS_RESULTCODES do
     Precondition()
     UiRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i], unsuported_parameter)
   end
 
   -- TTS responds successful resultCodes
+  common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and TTS responds all successful resultCodes)")
   for i = 1, #SUCCESS_RESULTCODES do
     Precondition()
     TtsRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i], unsuported_parameter)
   end
 
   -- UI responds error resultCodes
+  common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and UI responds all error resultCodes)")
   for i = 1, #ERROR_RESULTCODES do
     Precondition()
     UiRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i], unsuported_parameter)
   end
 
   -- TTS responds error resultCodes
+  common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and TTS responds all error resultCodes)")
   for i = 1, #ERROR_RESULTCODES do
     Precondition()
     TtsRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i], unsuported_parameter)
   end
 
   -- Test case 2: SetGlobalProperties(at least one param of <keyboardProperties> is not supported per capabilities file) during ignition cycle
-  
+
   Precondition()
   -- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
   common_steps:Sleep("Sleep_10_seconds", 10)
@@ -304,17 +319,13 @@ keypressMode_unsupported.keypressMode = "RESEND_CURRENT_ENTRY"
 TCs_For_An_UnsportedParameter(keypressMode_unsupported, "keypressMode")
 
 -- TC for limitedCharactersList is unsupported
-if kbp_supported.limitedCharactersListSupported == false then
-  common_steps:AddNewTestCasesGroup("Test cases: limitedCharactersList is unsupported")
-  local limitedCharactersList_unsupported = common_functions:CloneTable(supported_keyboard_properties)
-  limitedCharactersList_unsupported.limitedCharacterList = {"a"}
-  TCs_For_An_UnsportedParameter(limitedCharactersList_unsupported, "limitedCharacterList")
-end
+common_steps:AddNewTestCasesGroup("Test cases: limitedCharactersList is unsupported")
+local limitedCharactersList_unsupported = common_functions:CloneTable(supported_keyboard_properties)
+limitedCharactersList_unsupported.limitedCharacterList = {"a"}
+TCs_For_An_UnsportedParameter(limitedCharactersList_unsupported, "limitedCharacterList")
 
 -- TC for autoCompleteText is unsupported
-if kbp_supported.autoCompleteText == false then
-  common_steps:AddNewTestCasesGroup("Test cases: autoCompleteText is unsupported")
-  local autoCompleteText_unsupported = common_functions:CloneTable(supported_keyboard_properties)
-  autoCompleteText_unsupported.autoCompleteText = "Daemon, Freedom"
-  TCs_For_An_UnsportedParameter(autoCompleteText_unsupported, "autoCompleteText")
-end
+common_steps:AddNewTestCasesGroup("Test cases: autoCompleteText is unsupported")
+local autoCompleteText_unsupported = common_functions:CloneTable(supported_keyboard_properties)
+autoCompleteText_unsupported.autoCompleteText = "Daemon, Freedom"
+TCs_For_An_UnsportedParameter(autoCompleteText_unsupported, "autoCompleteText")

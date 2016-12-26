@@ -8,13 +8,25 @@ local VRHELP_TITLE = "VR help title"
 local SUCCESS_RESULTCODES = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED", "UNSUPPORTED_RESOURCE"}
 local ERROR_RESULTCODES = {"UNSUPPORTED_REQUEST", "DISALLOWED", "USER_DISALLOWED", "REJECTED", "ABORTED", "IGNORED", "IN_USE", "DATA_NOT_AVAILABLE", "TIMED_OUT", "INVALID_DATA", "CHAR_LIMIT_EXCEEDED", "INVALID_ID", "DUPLICATE_NAME", "APPLICATION_NOT_REGISTERED", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS", "GENERIC_ERROR", "TRUNCATED_DATA"}
 
+-- Requirement:
 -- MOB -> SDL: SetGlobalProperties_request during 10s (<keyboardProperties> is supported at 'HMI_capabilities.json' file)
 -- SDL -> HMI: UI/TTS.SetGlobalProperties(<keyboardProperties>)
 -- HMI -> SDL: UI/TTS.SetGlobalProperties(resultCode)
 -- SDL -> MOB: SetGlobalProperties(resultCode)
 
+-- Update keyboardPropertiesSupported in hmi_capabilities.json
+-- limitedCharactersListSupported = false
+-- autoCompleteText == false
+local hmi_capabilities_file = config.pathToSDL .. "hmi_capabilities.json"
+local added_json_items = {
+  limitedCharactersListSupported = false,
+  autoCompleteTextSupported = false
+}
+Test["Precondition_update_keyboardProperties_limitedCharactersListSupported_and_autoCompleteTextSupported_false"] = function(self)
+  common_functions:AddItemsIntoJsonFile(hmi_capabilities_file, {"UI", "keyboardPropertiesSupported"}, added_json_items)
+end
 local kbp_supported = common_functions:GetParameterValueInJsonFile(
-  config.pathToSDL .. "hmi_capabilities.json",
+  hmi_capabilities_file,
   {"UI", "keyboardPropertiesSupported"})
 if not kbp_supported then
   common_functions:PrintError("UI.keyboardPropertiesSupported parameter does not exist in hmi_capabilities.json. Stop ATF script.")
@@ -26,12 +38,6 @@ local supported_keyboard_properties = {
   keyboardLayout = kbp_supported.keyboardLayoutSupported[#kbp_supported.keyboardLayoutSupported],
   keypressMode = kbp_supported.keypressModeSupported[#kbp_supported.keypressModeSupported],
 }
-if kbp_supported.limitedCharactersListSupported then
-  supported_keyboard_properties.limitedCharacterList = {"a"}
-end
-if kbp_supported.autoCompleteTextSupported then
-  supported_keyboard_properties.autoCompleteText = "Daemon, Freedom"
-end
 
 local function Precondition()
   common_steps:StopSDL("Precondition_StopSDL")

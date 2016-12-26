@@ -7,26 +7,8 @@ local VRHELP = {{position = 1, text = "VR help item"}}
 local VRHELP_TITLE = "VR help title"
 local SUCCESS_RESULTCODES = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED", "UNSUPPORTED_RESOURCE"}
 local ERROR_RESULTCODES = {"UNSUPPORTED_REQUEST", "DISALLOWED", "USER_DISALLOWED", "REJECTED", "ABORTED", "IGNORED", "IN_USE", "DATA_NOT_AVAILABLE", "TIMED_OUT", "INVALID_DATA", "CHAR_LIMIT_EXCEEDED", "INVALID_ID", "DUPLICATE_NAME", "APPLICATION_NOT_REGISTERED", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS", "GENERIC_ERROR", "TRUNCATED_DATA"}
-
-local kbp_supported = common_functions:GetParameterValueInJsonFile(
-  config.pathToSDL .. "hmi_capabilities.json",
-  {"UI", "keyboardPropertiesSupported"})
-if not kbp_supported then
-  common_functions:PrintError("UI.keyboardPropertiesSupported parameter does not exist in hmi_capabilities.json. Stop ATF script.")
-  os.exit()
-end
-
-local Unsupported_keyboardProperties = {
-  language = "RU-RU",
-  keyboardLayout = "AZERTY",
-  keypressMode = "RESEND_CURRENT_ENTRY",
-}
-if kbp_supported.limitedCharactersListSupported == false then
-  Unsupported_keyboardProperties.limitedCharacterList = {"a"}
-end
-if kbp_supported.autoCompleteTextSupported == false then
-  Unsupported_keyboardProperties.autoCompleteText = "Daemon, Freedom"
-end
+local hmi_capabilities_file = config.pathToSDL .. "hmi_capabilities.json"
+local Unsupported_keyboardProperties
 
 local function Precondition()
   local mobile_connection_name = "mobileConnection"
@@ -40,7 +22,7 @@ local function Precondition()
   common_steps:AddMobileConnection("Precondition_AddDefaultMobileConnection", mobile_connection_name)
   common_steps:AddMobileSession("Precondition_AddDefaultMobileConnect")
   common_steps:RegisterApplication("Precondition_Register_App")
-  common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
+  common_steps:ActivateApplication("Precondition_ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 end
 
 local function UiRespondsSuccessfulResultCodes(successful_result_code, test_case_suffix)
@@ -209,53 +191,125 @@ local function TtsRespondsErrorResultCodes(error_result_code, test_case_suffix)
   end
 end
 
--- Test case 1: SetGlobalProperties(all params of <keyboardProperties> struct are NOT supported) during 10 sec timer after this app registration
-local test_case_suffix = "during_timeout_10s"
--- UI responds successful resultCodes
-for i = 1, #SUCCESS_RESULTCODES do
+local function all_test_cases(test_case)
+  -- Test case 1: SetGlobalProperties(all params of <keyboardProperties> struct are NOT supported) during 10 sec timer after this app registration
+  local test_case_suffix = "during_timeout_10s_" .. test_case
+  -- UI responds successful resultCodes
+  for i = 1, #SUCCESS_RESULTCODES do
+    common_steps:AddNewTestCasesGroup("Test case: UI responds SetGlobalProperties with resultCode " .. SUCCESS_RESULTCODES[i])
+    Precondition()
+    UiRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
+  end
+
+  -- TTS responds successful resultCodes
+  for i = 1, #SUCCESS_RESULTCODES do
+    common_steps:AddNewTestCasesGroup("Test case: TTS responds SetGlobalProperties with resultCode " .. SUCCESS_RESULTCODES[i])
+    Precondition()
+    TtsRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
+  end
+
+  -- UI responds error resultCodes
+  for i = 1, #ERROR_RESULTCODES do
+    common_steps:AddNewTestCasesGroup("Test case: UI responds SetGlobalProperties with resultCode " .. ERROR_RESULTCODES[i])
+    Precondition()
+    UiRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
+  end
+
+  -- TTS responds error resultCodes
+  for i = 1, #ERROR_RESULTCODES do
+    common_steps:AddNewTestCasesGroup("Test case: TTS responds SetGlobalProperties with resultCode " .. ERROR_RESULTCODES[i])
+    Precondition()
+    TtsRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
+  end
+
+  -- Test case 2: SetGlobalProperties(all params of <keyboardProperties> struct are NOT supported) during ignition cycle
   Precondition()
-  UiRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
+  -- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
+  common_steps:Sleep("Sleep_10_seconds", 10)
+  test_case_suffix = "after_finishing_timeout_10s_" .. test_case
+  -- UI responds successful resultCodes
+  for i = 1, #SUCCESS_RESULTCODES do
+    UiRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
+  end
+
+  -- TTS responds successful resultCodes
+  for i = 1, #SUCCESS_RESULTCODES do
+    TtsRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
+  end
+
+  -- UI responds error resultCodes
+  for i = 1, #ERROR_RESULTCODES do
+    UiRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
+  end
+
+  -- TTS responds error resultCodes
+  for i = 1, #ERROR_RESULTCODES do
+    TtsRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
+  end
+
 end
 
--- TTS responds successful resultCodes
-for i = 1, #SUCCESS_RESULTCODES do
-  Precondition()
-  TtsRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
+common_steps:AddNewTestCasesGroup("Test suite #1: Check SetGlobalProperties(invalid value of keyboardProperties) when values of limitedCharactersListSupported and autoCompleteText are false")
+-- Update keyboardPropertiesSupported in hmi_capabilities.json
+-- limitedCharactersListSupported = false
+-- autoCompleteText == false
+Test["Precondition_update_keyboardProperties_on_hmi_capabilities.json"] = function(self)
+  local added_json_items = {
+    keyboardPropertiesSupported =
+    {
+      languageSupported = {
+        "FR-CA"
+      },
+      keyboardLayoutSupported = {
+        "AZERTY"
+      },
+      keypressModeSupported = {
+        "RESEND_CURRENT_ENTRY"
+      },
+      limitedCharactersListSupported = false,
+      autoCompleteTextSupported = false
+    }
+  }
+  common_functions:AddItemsIntoJsonFile(hmi_capabilities_file, {"UI"}, added_json_items)
+
+  Unsupported_keyboardProperties = {
+    language = "RU-RU",
+    keyboardLayout = "QWERTZ",
+    keypressMode = "QUEUE_KEYPRESSES",
+    limitedCharacterList = {"a"},
+    autoCompleteText = "Daemon, Freedom"
+  }
 end
 
--- UI responds error resultCodes
-for i = 1, #ERROR_RESULTCODES do
-  Precondition()
-  UiRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
+all_test_cases("Case_false")
+
+common_steps:AddNewTestCasesGroup("Test suite #2: Check SetGlobalProperties(invalid value of keyboardProperties) when values of limitedCharactersListSupported and autoCompleteText are true")
+-- Update keyboardPropertiesSupported in hmi_capabilities.json
+-- limitedCharactersListSupported = true
+-- autoCompleteText == true
+Test["Precondition_update_keyboardProperties_on_hmi_capabilities.json"] = function(self)
+  local added_json_items = {
+    keyboardPropertiesSupported =
+    {
+      languageSupported = {
+        "FR-CA"
+      },
+      keyboardLayoutSupported = {
+        "AZERTY"
+      },
+      keypressModeSupported = {
+        "RESEND_CURRENT_ENTRY"
+      },
+      limitedCharactersListSupported = true,
+      autoCompleteTextSupported = true
+    }
+  }
+  common_functions:AddItemsIntoJsonFile(hmi_capabilities_file, {"UI"}, added_json_items)
+  Unsupported_keyboardProperties = {
+    language = "RU-RU",
+    keyboardLayout = "QWERTZ",
+    keypressMode = "QUEUE_KEYPRESSES"
+  }
 end
 
--- TTS responds error resultCodes
-for i = 1, #ERROR_RESULTCODES do
-  Precondition()
-  TtsRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
-end
-
--- Test case 2: SetGlobalProperties(all params of <keyboardProperties> struct are NOT supported) during ignition cycle
-Precondition()
--- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
-common_steps:Sleep("Sleep_10_seconds", 10)
-test_case_suffix = "after_finishing_timeout_10s"
--- UI responds successful resultCodes
-for i = 1, #SUCCESS_RESULTCODES do
-  UiRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
-end
-
--- TTS responds successful resultCodes
-for i = 1, #SUCCESS_RESULTCODES do
-  TtsRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
-end
-
--- UI responds error resultCodes
-for i = 1, #ERROR_RESULTCODES do
-  UiRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
-end
-
--- TTS responds error resultCodes
-for i = 1, #ERROR_RESULTCODES do
-  TtsRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
-end
+all_test_cases("Case_true")
