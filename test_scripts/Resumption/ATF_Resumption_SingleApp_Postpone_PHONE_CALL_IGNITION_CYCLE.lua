@@ -42,7 +42,7 @@ end
 ---------------------------------------------------------------------------------------------
 -- Stop Phone Call with delay time
 -- @param test_case_name: main test name
--- @param delay_time: the time that Emergency will be stopped
+-- @param delay_time: the time that PHONE_CALL will be stopped
 ---------------------------------------------------------------------------------------------
 function StopPhoneCallWithDelayTime(test_case_name, delay_time)
   Test[test_case_name] = function(self)
@@ -88,6 +88,8 @@ function CheckNoneMediaResumeSuccessWithoutPhoneCallEnded(test_case_name)
       end)
     self[mobile_session_name]:ExpectNotification("OnHMIStatus",
       {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+    -- Postcondition: Stop PHONE_CALL
+    self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged", {isActive = false, eventName = "PHONE_CALL"})
   end
 end
 
@@ -317,5 +319,5 @@ end
 CheckAppLimitedIsPostponedWhenPhoneCallIsStartedAfterRegisteredApp()
 
 -------------------------------------------Postcondition-------------------------------------
+common_steps:StopSDL("StopSDL")
 common_steps:RestoreIniFile("Restore_Ini_file")
-

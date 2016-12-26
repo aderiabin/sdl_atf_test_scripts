@@ -40,7 +40,7 @@ local expected_hmi_status_4apps = {
 
 -------------------------------------------Preconditions-------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
-common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", 5000)
+common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", 8000)
 common_steps:PreconditionSteps("Precondition", 5)
 
 -----------------------------------------------Body------------------------------------------
@@ -289,4 +289,5 @@ end
 CheckMultipleAppsFullLimitedLimitedLimitedArePostponedWhenVRIsStartedAfterRegisteredApp()
 
 -------------------------------------------Postcondition-------------------------------------
+common_steps:StopSDL("StopSDL")
 common_steps:RestoreIniFile("Restore_Ini_file")

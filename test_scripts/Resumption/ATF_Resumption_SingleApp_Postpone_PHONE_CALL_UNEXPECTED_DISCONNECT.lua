@@ -41,7 +41,7 @@ end
 ---------------------------------------------------------------------------------------------
 -- Stop Phone Call with delay time
 -- @param test_case_name: main test name
--- @param delay_time: the time that Emergency will be stopped
+-- @param delay_time: the time that PHONE_CALL will be stopped
 ---------------------------------------------------------------------------------------------
 function StopPhoneCallWithDelayTime(test_case_name, delay_time)
   Test[test_case_name] = function(self)
@@ -87,6 +87,8 @@ function CheckNoneMediaResumeSuccessWithoutPhoneCallEnded(test_case_name)
       end)
     self[mobile_session_name]:ExpectNotification("OnHMIStatus",
       {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+    -- Postcondition: Stop PHONE_CALL
+    self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged", {isActive = false, eventName = "PHONE_CALL"})
   end
 end
 
@@ -164,10 +166,10 @@ local function CheckAppFullIsPostponedWhenPhoneCallIsStartedBeforeRegisteredApp(
     common_steps:AddMobileSession(test_case_name .. "_Add_Mobile_Session", _, mobile_session_name)
     common_steps:RegisterApplication(test_case_name .. "_Register_App", mobile_session_name, apps[i])
     if (apps[i].appName == "NON_MEDIA") then
-      CheckNoneMediaResumeSuccessWithoutPhoneCallEnded(test_case_name .. "_Verify_Verify_Resumption_Sucess_Without_Phone_Call_End")
+      CheckNoneMediaResumeSuccessWithoutPhoneCallEnded(test_case_name .. "_Verify_Resumption_Sucess_Without_Phone_Call_End")
     else
       CheckAppIsNotResumedDuringTime(test_case_name .. "_Verify_App_Is_Not_Resume_During_Time", apps[i].appName, 10000)
-      CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Verify_Verify_Resumption_SingleApp_Unsucess_When_IsActive_Invalid: ")
+      CheckAppsResumptionUnsuccesslWhenIsActiveInvalid(test_case_name .. "_Verify_Resumption_SingleApp_Unsucess_When_IsActive_Invalid: ")
       StopPhoneCallWithDelayTime(test_case_name .. "_Stop_Phone_Call", 1000)
       CheckAppsResumptionSuccessful(test_case_name .. "_Verify_Resumption_Success_When_Phone_Call_Ended",
         {mobileSession = {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"}})
@@ -312,4 +314,5 @@ end
 CheckAppLimitedIsPostponedWhenPhoneCallIsStartedAfterRegisteredApp()
 
 -------------------------------------------Postcondition-------------------------------------
+common_steps:StopSDL("StopSDL")
 common_steps:RestoreIniFile("Restore_Ini_file")

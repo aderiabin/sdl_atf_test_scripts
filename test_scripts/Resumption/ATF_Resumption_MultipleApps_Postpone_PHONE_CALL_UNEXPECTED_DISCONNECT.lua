@@ -36,7 +36,7 @@ local expected_hmi_status_4apps = {
 }
 -------------------------------------------Preconditions-------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
-common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", 5000)
+common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", 8000)
 common_steps:PreconditionSteps("Precondition", 5)
 
 -----------------------------------------------Body------------------------------------------
@@ -70,9 +70,9 @@ end
 ---------------------------------------------------------------------------------------------
 function CheckAppsResumptionUnsuccessWhenIsActiveInvalid(test_case_name)
   local isActiveValue = {
-    {isActive= "", eventName="EMERGENCY_EVENT"},
-    {isActive= 123, eventName="EMERGENCY_EVENT"},
-    {eventName="EMERGENCY_EVENT"}
+    {isActive= "", eventName="PHONE_CALL"},
+    {isActive= 123, eventName="PHONE_CALL"},
+    {eventName="PHONE_CALL"}
   }
   local invalid_type ={"IsActiveEmpty", "IsActiveWrongType", "IsActiveMissed"}
   for i=1, #isActiveValue do
@@ -344,4 +344,5 @@ end
 CheckMultipleAppsFullLimitedLimitedLimitedArePostponedWhenPhoneCallIsStartedAfterRegisteredApp()
 
 -------------------------------------------Postcondition-------------------------------------
+common_steps:StopSDL("StopSDL")
 common_steps:RestoreIniFile("Restore_Ini_file")
