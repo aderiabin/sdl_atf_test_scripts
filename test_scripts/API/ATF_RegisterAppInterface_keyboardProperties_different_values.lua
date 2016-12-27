@@ -152,7 +152,7 @@ end
 
 common_steps:IgnitionOff("Postcondition_IgnitionOff")
 
--- TC3: RegisterAppInterface(keyboardProperties) in case keyboardLayoutSupported has more values then other parameters
+-- TC3: RegisterAppInterface(keyboardProperties) in case keypressModeSupported has more values then other parameters
 common_steps:AddNewTestCasesGroup("TC3: RegisterAppInterface(keyboardProperties) in case keypressModeSupported has more values then other parameters")
 -- Update keyboardPropertiesSupported in hmi_capabilities.json
 local added_json_items = {

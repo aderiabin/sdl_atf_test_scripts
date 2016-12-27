@@ -495,7 +495,7 @@ function CommonSteps:RemoveFileInSdlBinFolder(test_case_name, file_name)
       os.remove(config.pathToSDL .. file_name)
     end
   end
-                
+end                
 -- Execute query to insert/ update/ delete data to LPT 
 function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
   Test[test_case_name] = function(self)

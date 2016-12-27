@@ -2,7 +2,7 @@
 require('user_modules/all_common_modules')
 local SUCCESS_RESULTCODES = {"SUCCESS"}
 local ERROR_RESULTCODES = {"INVALID_DATA", "REJECTED", "DISALLOWED", "USER_DISALLOWED", "WARNINGS", "OUT_OF_MEMORY", "TOO_MANY_PENDING_REQUESTS", "GENERIC_ERROR", "APPLICATION_NOT_REGISTERED"}
--- TODO: When APPLINK-15261 is implemented, "WARNINGS" should belong to SUCCESS_RESULTCODES list.
+-- TODO: "WARNINGS" should belong to SUCCESS_RESULTCODES list. Two above lists will be updated when the corresponding requirement is implemented.
 local kbp_default = common_functions:GetParameterValueInJsonFile(
   config.pathToSDL .. "hmi_capabilities.json",
   {"UI", "keyboardPropertiesDefault"})
