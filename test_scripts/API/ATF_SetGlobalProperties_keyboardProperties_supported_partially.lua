@@ -51,7 +51,7 @@ local function Precondition()
   common_steps:InitializeHmi("Precondition_InitHMI")
   common_steps:HmiRespondOnReady("Precondition_InitHMI_onReady")
   common_steps:AddMobileConnection("Precondition_AddDefaultMobileConnection", "mobileConnection")
-  common_steps:AddMobileSession("Precondition_AddDefaultMobileConnect")
+  common_steps:AddMobileSession("Precondition_AddDefaultMobileSession")
   common_steps:RegisterApplication("Precondition_Register_App")
   common_steps:ActivateApplication("Precondition_ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 end
@@ -309,13 +309,13 @@ TCs_For_An_UnsportedParameter(language_unsupported, "language")
 -- TC for keyboardLayout is unsupported
 common_steps:AddNewTestCasesGroup("Test cases: keyboardLayout is unsupported")
 local keyboardLayout_unsupported = common_functions:CloneTable(supported_keyboard_properties)
-keyboardLayout_unsupported.keyboardLayout = "AZERTY"
+keyboardLayout_unsupported.keyboardLayout = "QWERTY"
 TCs_For_An_UnsportedParameter(keyboardLayout_unsupported, "keyboardLayout")
 
 -- TC for keypressMode is unsupported
 common_steps:AddNewTestCasesGroup("Test cases: keypressMode is unsupported")
 local keypressMode_unsupported = common_functions:CloneTable(supported_keyboard_properties)
-keypressMode_unsupported.keypressMode = "RESEND_CURRENT_ENTRY"
+keypressMode_unsupported.keypressMode = "QUEUE_KEYPRESSES"
 TCs_For_An_UnsportedParameter(keypressMode_unsupported, "keypressMode")
 
 -- TC for limitedCharactersList is unsupported

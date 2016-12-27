@@ -14,15 +14,6 @@ local start_time
 local end_time
 
 -- TC1
--- common_steps:AddNewTestCasesGroup("TC1: Check RegisterAppInterface(keyboardProperties value is upper bound)")
--- local kbp_supported = common_functions:GetParameterValueInJsonFile(
--- hmi_capabilities_file,
--- {"UI", "keyboardPropertiesSupported"})
--- if not kbp_supported then
--- common_functions:PrintError("UI.keyboardPropertiesSupported parameter does not exist in hmi_capabilities.json. Stop ATF script.")
--- os.exit()
--- end
-
 -- Update keyboardPropertiesSupported in hmi_capabilities.json
 local added_json_items = {
   keyboardPropertiesSupported =
@@ -56,7 +47,78 @@ local added_json_items = {
       "EL-GR",
       "HU-HU",
       "FI-FI",
-      "SK-SK"
+      "SK-SK",
+      "EN-US",
+      "ES-MX",
+      "FR-CA",
+      "DE-DE",
+      "ES-ES",
+      "EN-GB",
+      "RU-RU",
+      "TR-TR",
+      "PL-PL",
+      "FR-FR",
+      "IT-IT",
+      "SV-SE",
+      "PT-PT",
+      "NL-NL",
+      "EN-AU",
+      "ZH-CN",
+      "ZH-TW",
+      "JA-JP",
+      "AR-SA",
+      "KO-KR",
+      "PT-BR",
+      "CS-CZ",
+      "DA-DK",
+      "NO-NO",
+      "NL-BE",
+      "EL-GR",
+      "HU-HU",
+      "FI-FI",
+      "SK-SK",
+      "EN-US",
+      "ES-MX",
+      "FR-CA",
+      "DE-DE",
+      "ES-ES",
+      "EN-GB",
+      "RU-RU",
+      "TR-TR",
+      "PL-PL",
+      "FR-FR",
+      "IT-IT",
+      "SV-SE",
+      "PT-PT",
+      "NL-NL",
+      "EN-AU",
+      "ZH-CN",
+      "ZH-TW",
+      "JA-JP",
+      "AR-SA",
+      "KO-KR",
+      "PT-BR",
+      "CS-CZ",
+      "DA-DK",
+      "NO-NO",
+      "NL-BE",
+      "EL-GR",
+      "HU-HU",
+      "FI-FI",
+      "SK-SK",
+      "EN-US",
+      "ES-MX",
+      "FR-CA",
+      "DE-DE",
+      "ES-ES",
+      "EN-GB",
+      "RU-RU",
+      "TR-TR",
+      "PL-PL",
+      "FR-FR",
+      "IT-IT",
+      "SV-SE",
+      "PT-PT"
     },
     keyboardLayoutSupported = {
       "QWERTY",
@@ -72,6 +134,7 @@ local added_json_items = {
     autoCompleteTextSupported = true
   }
 }
+
 Test["Precondition_update_keyboardProperties_upperbound_on_hmi_capabilities.json"] = function(self)
   common_functions:AddItemsIntoJsonFile(hmi_capabilities_file, {"UI"}, added_json_items)
 end

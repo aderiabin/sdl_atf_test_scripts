@@ -46,7 +46,7 @@ local function Precondition()
   common_steps:InitializeHmi("Precondition_InitHMI")
   common_steps:HmiRespondOnReady("Precondition_InitHMI_onReady")
   common_steps:AddMobileConnection("Precondition_AddDefaultMobileConnection", "mobileConnection")
-  common_steps:AddMobileSession("Precondition_AddDefaultMobileConnect")
+  common_steps:AddMobileSession("Precondition_AddDefaultMobileSession")
   common_steps:RegisterApplication("Precondition_Register_App")
   common_steps:ActivateApplication("ActivateApplication", config.application1.registerAppInterfaceParams.appName)
 end
