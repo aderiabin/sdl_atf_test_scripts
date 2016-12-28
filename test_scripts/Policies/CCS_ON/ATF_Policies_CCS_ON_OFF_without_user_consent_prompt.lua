@@ -46,7 +46,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
       entityID = 5
     }},
     rpcs = {
-      SubscribeVehicleData = {
+      SendLocation = {
         hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }  
@@ -137,13 +137,15 @@ end
 --   RPC is allowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_allowed_When_Ccs_ON"] = function(self)
-  corid = self.mobileSession:SendRPC("SubscribeVehicleData", {rpm = true})
-  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
+  local cid = self.mobileSession:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  EXPECT_HMICALL("Navigation.SendLocation")
   :Do(function(_,data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
   end)
-  EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
-  EXPECT_NOTIFICATION("OnHashChange")
+  EXPECT_RESPONSE("SendLocation", {success = true , resultCode = "SUCCESS"})
 end
 
 --------------------------------------------------------------------------
@@ -194,13 +196,15 @@ end
 --   RPC is allowed to process.
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "MainCheck_RPC_is_allowed_When_Ccs_OFF"] = function(self)
-  corid = self.mobileSession:SendRPC("SubscribeVehicleData", {rpm = true})
-  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
+  local cid = self.mobileSession:SendRPC("SendLocation", {
+    longitudeDegrees = 1.1,
+    latitudeDegrees = 1.1
+  })
+  EXPECT_HMICALL("Navigation.SendLocation")
   :Do(function(_,data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
   end)
-  EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
-  EXPECT_NOTIFICATION("OnHashChange")
+  EXPECT_RESPONSE("SendLocation", {success = true , resultCode = "SUCCESS"})
 end
 
 -- end Test
