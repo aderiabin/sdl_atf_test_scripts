@@ -216,6 +216,34 @@ function CommonFunctions:AddItemsIntoJsonFile(json_file, parent_item, added_json
   file:write(data)
   file:close()
 end
+
+--------------------------------------------------------------------------------
+-- Get parameter's value from json file
+-- @param json_file: file name of a JSON file
+-- @param path_to_parameter: full path of parameter
+-- Example: path for Location1 parameter: {"policy", functional_groupings, "Location1"}
+--------------------------------------------------------------------------------
+function CommonFunctions:GetParameterValueInJsonFile(json_file, path_to_parameter)
+  local file = io.open(json_file, "r")
+  if not file then 
+    common_functions:PrintError("Open " .. json_file .. " unsuccessfully")
+    return nil
+  end
+  local json_data = file:read("*all")
+  file:close()
+  if json_data == "" then 
+    common_functions:PrintError("There is no data in " .. json_file .. " file")
+    return nil
+  end
+  local json = require("modules/json")
+  local data = json.decode(json_data) 
+  local parameter = data
+  for i = 1, #path_to_parameter do
+    parameter = parameter[path_to_parameter[i]]
+  end
+  return parameter
+end
+
 --------------------------------------------------------------------------------
 -- Remove items into json file
 -- @param json_file: file name of a JSON file to be removed items
@@ -295,7 +323,7 @@ function CommonFunctions:CompareJsonFiles(file_name1, file_name2, compared_speci
     json_data1 = json_data1[compared_specified_item[i]]
     json_data2 = json_data2[compared_specified_item[i]]
   end
-  return CommonFunctions:CompareTables(json_data1,json_data2)
+  return CommonFunctions:is_table_equal(json_data1,json_data2)
 end
 
 -- COMMON FUNCTIONS FOR POLICY TABLE
@@ -666,11 +694,11 @@ function CommonFunctions:CompareTables(t1,t2)
   if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
   for k1,v1 in pairs(t1) do
     local v2 = t2[k1]
-    if v2 == nil or not CommonFunctions:CompareTables(v1,v2) then return false end
+    if v2 == nil or not CommonFunctions:is_table_equal(v1,v2) then return false end
   end
   for k2,v2 in pairs(t2) do
     local v1 = t1[k2]
-    if v1 == nil or not CommonFunctions:CompareTables(v1,v2) then return false end
+    if v1 == nil or not CommonFunctions:is_table_equal(v1,v2) then return false end
   end
   return true
 end
@@ -732,5 +760,7 @@ function CommonFunctions:StoreHmiAppId(app_name, hmi_app_id, self)
   local mobile_connection_name, mobile_session_name = CommonFunctions:GetMobileConnectionNameAndSessionName(app_name, self)
   self.mobile_connections[mobile_connection_name][mobile_session_name][app_name].hmi_app_id = hmi_app_id
 end 
+
+
 
 return CommonFunctions
