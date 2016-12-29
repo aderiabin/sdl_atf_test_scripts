@@ -14,8 +14,6 @@ apps[4] = common_functions:CreateRegisterAppParameters(
 apps[5] = common_functions:CreateRegisterAppParameters(
 {appID = "5", appName = "Application5", isMediaApplication = false, appHMIType = {"COMMUNICATION"}})
 
------------------------------------- Common Functions ---------------------------------------
-
 -------------------------------------------Preconditions-------------------------------------
 common_functions:DeleteLogsFileAndPolicyTable()
 common_steps:PreconditionSteps("Precondition",4)
@@ -33,16 +31,12 @@ for i = 1, 5 do
   common_steps:RegisterApplication("Case_2_RegisterApplication" .. i, "mobile_session" .. i, apps[i])
 end
 common_steps:ActivateApplication("Case_2_ActivateApplication1",apps[1].appName)
-local HMIStatus = {}
-HMIStatus[apps[1].appName] = {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"}
-common_steps:ActivateApplication("Case_2_ActivateApplication2",apps[2].appName, _, HMIStatus)
+local HMIStatus1 = {}
+HMIStatus1[apps[1].appName] = {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE"}
+common_steps:ActivateApplication("Case_2_ActivateApplication2",apps[2].appName, _, HMIStatus1)
+local HMIStatus2 = {}
+HMIStatus2[apps[2].appName] = {hmiLevel = "BACKGROUND", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"}
+common_steps:ActivateApplication("Case_2_ActivateApplication3",apps[3].appName, _, HMIStatus2)
 for i = 1, 5 do
   common_steps:UnregisterApp("Case_2_Unregister_App" .. i, apps[i].appName )
-end
-
--- Case 3: Check that it is able to register 5 sessions one by one
-common_steps:AddNewTestCasesGroup("Check that it is able to register 5 sessions one by one")
-for i = 1, 5 do
-  common_steps:AddMobileSession("Case_3_AddMobileSession" .. i, _, "mobile_session" .. i)
-  common_steps:RegisterApplication("Case_3_RegisterApplication" .. i, "mobile_session" .. i, apps[i])
 end
