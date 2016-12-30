@@ -141,25 +141,23 @@ end
 -- HMI sends OnAppPermissionConsent with ccs status = OFF
 --------------------------------------------------------------------------
 Test[TEST_NAME_OFF .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
-  hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+ hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
-  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-      appID = hmi_app_id_1, source = "GUI",
-      ccsStatus = {
-        {entityType = 1, entityID = 4, status = "OFF"},
-        {entityType = 2, entityID = 5, status = "OFF"}
-      }
-    })
-  self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :ValidIf(function(_,data)
-    local validate_result_1 = common_functions_ccs_on:ValidateHMIPermissions(data, 
+	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+    appID = hmi_app_id_1, source = "GUI",
+    ccsStatus = {
+      {entityType = 1, entityID = 4, status = "OFF"}, 
+      {entityType = 2, entityID = 5, status = "OFF"}
+    }
+  })
+	self.mobileSession:ExpectNotification("OnPermissionsChange")
+	:ValidIf(function(_,data)
+    local validate_result = common_functions_ccs_off:ValidateHMIPermissions(data, 
       "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
-    local validate_result_2 = common_functions_ccs_on:ValidateHMIPermissions(data, 
-      "SubscribeVehicleData", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})      
-    return (validate_result_1 and validate_return_2)
-  end)
-  :Times(1)
-  common_functions:DelayedExp(2000)
+    return validate_result
+  end) 
+	:Times(1)
+  common_functions:DelayedExp(2000)  
 end
 
 --------------------------------------------------------------------------
