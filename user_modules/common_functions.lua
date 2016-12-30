@@ -335,6 +335,7 @@ end
 -- @param removed_items: it is a array of items will be removed
 --------------------------------------------------------------------------------
 function CommonFunctions:QueryPolicyDataBase(sdl_query)
+  sdl_query = "\"" .. sdl_query .. "\""
   -- Look for policy.sqlite file
   local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
   local policy_file2 = config.pathToSDL .. "policy.sqlite"
@@ -344,14 +345,17 @@ function CommonFunctions:QueryPolicyDataBase(sdl_query)
   elseif CommonFunctions:IsFileExist(policy_file2) then
     policy_file = policy_file2
   else
-    common_functions:printError("policy.sqlite file is not exist")
+    common_functions:PrintError("policy.sqlite file is not exist")
   end
   if policy_file then
-    local ful_sql_query = "sqlite3 " .. policy_file .. " " .. sdl_query
+    local temp_file = config.pathToSDL .. "temp_policy.sqlite"
+    os.execute("cp -f " .. policy_file .. " " .. temp_file)
+    local ful_sql_query = "sqlite3 " .. temp_file .. " " .. sdl_query
     local handler = io.popen(ful_sql_query, 'r')
     os.execute("sleep 1")
     local result = handler:read( '*l' )
     handler:close()
+    os.execute("mv -f " .. temp_file .. " " .. policy_file)
     return result
   end
 end
