@@ -46,7 +46,8 @@ local supported_keyboard_properties = {
 
 local function Precondition()
   local app = config.application1.registerAppInterfaceParams
-  common_steps:StopSDL("Precondition_StopSDL")
+  common_steps:StopSDL("Precondition_StopSDL")  
+  common_steps:RemoveFileInSdlBinFolder("Precondition_Remove_app_info.dat", "app_info.dat")
   common_steps:StartSDL("Precondition_StartSDL")
   common_steps:InitializeHmi("Precondition_InitHMI")
   common_steps:HmiRespondOnReady("Precondition_InitHMI_onReady")
@@ -144,7 +145,7 @@ end
 
 local function UiRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, error_result_code, unsuported_parameter)
   Test["Sgp_UI_" .. error_result_code] = function(self)
-    common_functions:DelayedExp(500)
+    common_functions:DelayedExp(1000)
     local cid = self.mobileSession:SendRPC("SetGlobalProperties",
       {
         helpPrompt = HELP_PROMPT,
@@ -193,7 +194,7 @@ end
 
 local function TtsRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, error_result_code, unsuported_parameter)
   Test["Sgp_TTS_" .. error_result_code] = function(self)
-    common_functions:DelayedExp(500)
+    common_functions:DelayedExp(1000)
     local cid = self.mobileSession:SendRPC("SetGlobalProperties",
       {
         helpPrompt = HELP_PROMPT,
@@ -247,28 +248,40 @@ local function TCs_For_An_UnsportedParameter(unsupported_one_param_in_keyboard_p
   -- UI responds successful resultCodes
   common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and UI responds all successful resultCodes)")
   for i = 1, #SUCCESS_RESULTCODES do
-    Precondition()
+    -- Stop SDL and start again after testing every 5 resultCodes
+    if (i % 6 == 1) then
+      Precondition()
+    end
     UiRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i], unsuported_parameter)
   end
 
   -- TTS responds successful resultCodes
   common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and TTS responds all successful resultCodes)")
   for i = 1, #SUCCESS_RESULTCODES do
-    Precondition()
+    -- Stop SDL and start again after testing every 5 resultCodes
+    if (i % 6 == 1) then
+      Precondition()
+    end
     TtsRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i], unsuported_parameter)
   end
 
   -- UI responds error resultCodes
   common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and UI responds all error resultCodes)")
   for i = 1, #ERROR_RESULTCODES do
-    Precondition()
+    -- Stop SDL and start again after testing every 5 resultCodes
+    if (i % 6 == 1) then
+      Precondition()
+    end
     UiRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i], unsuported_parameter)
   end
 
   -- TTS responds error resultCodes
   common_steps:AddNewTestCasesGroup("Check SetGlobalProperties(keyboardProperties." .. unsuported_parameter .. " is not supported and TTS responds all error resultCodes)")
   for i = 1, #ERROR_RESULTCODES do
-    Precondition()
+    -- Stop SDL and start again after testing every 5 resultCodes
+    if (i % 6 == 1) then
+      Precondition()
+    end
     TtsRespondsErrorResultCodes(unsupported_one_param_in_keyboard_properties, ERROR_RESULTCODES[i], unsuported_parameter)
   end
 
@@ -277,7 +290,14 @@ local function TCs_For_An_UnsportedParameter(unsupported_one_param_in_keyboard_p
   Precondition()
   -- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
   common_steps:Sleep("Sleep_10_seconds", 10)
-
+  
+  Test["Wait_for_default_UI.SetGlobalProperties_and_TTS.SetGlobalProperties"] = function(self)
+    EXPECT_HMICALL("TTS.SetGlobalProperties", {})
+    :Times(AnyNumber() )
+    EXPECT_HMICALL("UI.SetGlobalProperties", {})
+    :Times(AnyNumber() )
+  end
+      
   -- UI responds successful resultCodes
   for i = 1, #SUCCESS_RESULTCODES do
     UiRespondsSuccessfulResultCodes(unsupported_one_param_in_keyboard_properties, SUCCESS_RESULTCODES[i], unsuported_parameter)

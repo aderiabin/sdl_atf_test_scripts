@@ -200,28 +200,43 @@ local test_case_suffix = "during_timeout_10s"
 -- UI responds successful resultCodes
 for i = 1, #SUCCESS_RESULTCODES do
   common_steps:AddNewTestCasesGroup("Test case: UI responds SetGlobalProperties with resultCode " .. SUCCESS_RESULTCODES[i])
-  Precondition()
+  -- Stop SDL and start again after testing every 5 resultCodes
+  if (i % 6 == 1) then
+    Precondition()
+  end
+  
   UiRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
 end
 
 -- TTS responds successful resultCodes
 for i = 1, #SUCCESS_RESULTCODES do
   common_steps:AddNewTestCasesGroup("Test case: TTS responds SetGlobalProperties with resultCode " .. SUCCESS_RESULTCODES[i])
-  Precondition()
+  -- Stop SDL and start again after testing every 5 resultCodes
+  if (i % 6 == 1) then
+    Precondition()
+  end
+  
   TtsRespondsSuccessfulResultCodes(SUCCESS_RESULTCODES[i], test_case_suffix)
 end
 
 -- UI responds error resultCodes
 for i = 1, #ERROR_RESULTCODES do
   common_steps:AddNewTestCasesGroup("Test case: UI responds SetGlobalProperties with resultCode " .. ERROR_RESULTCODES[i])
-  Precondition()
+  -- Stop SDL and start again after testing every 5 resultCodes
+  if (i % 6 == 1) then
+    Precondition()
+  end
   UiRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
 end
 
 -- TTS responds error resultCodes
 for i = 1, #ERROR_RESULTCODES do
   common_steps:AddNewTestCasesGroup("Test case: TTS responds SetGlobalProperties with resultCode " .. ERROR_RESULTCODES[i])
-  Precondition()
+  -- Stop SDL and start again after testing every 5 resultCodes
+  if (i % 6 == 1) then
+    Precondition()
+  end
+
   TtsRespondsErrorResultCodes(ERROR_RESULTCODES[i], test_case_suffix)
 end
 
