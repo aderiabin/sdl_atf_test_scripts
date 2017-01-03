@@ -236,8 +236,19 @@ local function all_test_cases(test_case)
 
   -- Test case 2: SetGlobalProperties(all params of <keyboardProperties> struct are NOT supported) during ignition cycle
   Precondition()
-  -- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
-  common_steps:Sleep("Sleep_10_seconds", 10)
+  Test["Precondition_SDL sends TTS_and_UI.SetGlobalProperties in 10 seconds"] = function(self)
+    EXPECT_HMICALL("UI.SetGlobalProperties", {})
+    :Timeout(11000)
+    :Do(function(_,data)
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+
+    EXPECT_HMICALL("TTS.SetGlobalProperties", {})
+    :Timeout(11000)
+    :Do(function(_,data)
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+  end
   test_case_suffix = "after_finishing_timeout_10s_" .. test_case
   -- UI responds successful resultCodes
   for i = 1, #SUCCESS_RESULTCODES do

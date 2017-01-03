@@ -232,9 +232,21 @@ end
 -- Test case 2: SetGlobalProperties(empty <keyboardProperties>) during ignition cycle
 common_steps:AddNewTestCasesGroup("Test case: Mobile sends SetGlobalProperties(empty <keyboardProperties>) during ignition cycle and HMI responds with different resultCodes")
 Precondition()
+
 test_case_suffix = "after_finishing_timeout_10s"
--- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
-common_steps:Sleep("Sleep_10_seconds", 10)
+Test["Precondition_SDL sends TTS_and_UI.SetGlobalProperties in 10 seconds"] = function(self)
+  EXPECT_HMICALL("UI.SetGlobalProperties", {})
+  :Timeout(11000)
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+
+  EXPECT_HMICALL("TTS.SetGlobalProperties", {})
+  :Timeout(11000)
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+end
 
 -- UI responds successful resultCodes
 for i = 1, #SUCCESS_RESULTCODES do

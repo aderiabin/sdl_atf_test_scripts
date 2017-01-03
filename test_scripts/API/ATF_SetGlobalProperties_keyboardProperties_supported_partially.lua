@@ -288,14 +288,18 @@ local function TCs_For_An_UnsportedParameter(unsupported_one_param_in_keyboard_p
   -- Test case 2: SetGlobalProperties(at least one param of <keyboardProperties> is not supported per capabilities file) during ignition cycle
 
   Precondition()
-  -- Sleep 10 seconds as precondition to test case: SetGlobalProperties after 10s timeout
-  common_steps:Sleep("Sleep_10_seconds", 10)
-  
-  Test["Wait_for_default_UI.SetGlobalProperties_and_TTS.SetGlobalProperties"] = function(self)
-    EXPECT_HMICALL("TTS.SetGlobalProperties", {})
-    :Times(AnyNumber() )
+  Test["Precondition_SDL sends TTS_and_UI.SetGlobalProperties in 10 seconds"] = function(self)
     EXPECT_HMICALL("UI.SetGlobalProperties", {})
-    :Times(AnyNumber() )
+    :Timeout(11000)
+    :Do(function(_,data)
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+
+    EXPECT_HMICALL("TTS.SetGlobalProperties", {})
+    :Timeout(11000)
+    :Do(function(_,data)
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
   end
       
   -- UI responds successful resultCodes
