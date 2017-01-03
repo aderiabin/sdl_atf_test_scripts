@@ -999,9 +999,17 @@ end
 										syncFileName = arrFileName[j].fileName
 									})
 									
-
+                  --hmi side: expect BasicCommunication.OnFileRemoved request
+                  EXPECT_HMINOTIFICATION("BasicCommunication.OnFileRemoved",
+                  {
+                    syncFileName = "ON\nSCREEN_PRESETS"
+                  })
+                  :Timeout(iTimeout)
+                  :Times(0)
+                
 									--mobile side: expect DeleteFile response
-									EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA"})											
+									EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA"})
+                  :Timeout(iTimeout)                  
 								end
 								
 							end
