@@ -226,8 +226,7 @@ function CommonSteps:ChangeHMIToLimited(test_case_name, app_name)
   Test[test_case_name] = function(self)
     local cid = self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated",
       {
-        appID = common_functions:GetHmiAppId(app_name, self),
-        reason = "GENERAL"
+        appID = common_functions:GetHmiAppId(app_name, self)
       })
     local mobile_connection_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(app_name, self)
     self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
@@ -281,13 +280,18 @@ end
 function CommonSteps:IgnitionOff(test_case_name)
   Test[test_case_name] = function(self)
     local hmi_app_ids = common_functions:GetHmiAppIds(self)
+    local total_apps = #hmi_app_ids
     self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
-    :Times(#hmi_app_ids)
-    -- Fore stop SDL if it has not stopped.
-    StopSDL()
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
+    :Times(total_apps)
+    :Do(function(exp,data) -- ToDo: Remove Do .. end when defect: SDL is not stopped when IGNITION_OFF by ATF
+       if exp.occurences == total_apps then
+        StopSDL()
+       end
+    end)
   end
 end
+
 --------------------------------------------------------------------------------
 -- Ignition On: Start SDL, start HMI and add a mobile connection.
 -- @param test_case_name: Test name
@@ -510,5 +514,6 @@ function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
     os.execute("rm -rf " .. policy_file_temp)
   end
 end
+
 
 return CommonSteps
