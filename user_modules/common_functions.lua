@@ -16,8 +16,14 @@ end
 
 function CommonFunctions:DeletePolicyTable()
   CommonFunctions:CheckSdlPath()
-  os.remove(config.pathToSDL .. CommonFunctions:GetValueFromIniFile("AppStorageFolder") .. "/policy.sqlite")
-  os.remove(config.pathToSDL .. "policy.sqlite")
+  local policy_file = config.pathToSDL .. CommonFunctions:GetValueFromIniFile("AppStorageFolder") .. "/policy.sqlite"
+  if common_functions:IsFileExist(policy_file) then
+    os.remove(policy_file)
+  end
+  policy_file = config.pathToSDL .. "policy.sqlite"
+  if common_functions:IsFileExist(policy_file) then
+    os.remove(policy_file)
+  end
 end
 
 function CommonFunctions:DeleteLogsFiles()
