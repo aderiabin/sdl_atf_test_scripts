@@ -45,6 +45,8 @@ function module.hmiConnection:EXPECT_HMIRESPONSE(id, args)
       if(table2str(arguments):match('result')) then
         results_args = arguments.result
         results_args2 = arguments.result
+      elseif(table2str(arguments):match('error')) then
+        results_args = arguments.error
       end
       if results_args2 and results_args2.code then
         results_args2 = table.removeKey(results_args2, 'code')
@@ -63,10 +65,17 @@ function module.hmiConnection:EXPECT_HMIRESPONSE(id, args)
       if (not _res) then
         return _res,_err
       end
-      if func_name and results_args and data.result then
-        return compareValues(results_args, data.result, "result")
-      else
-        return compareValues(results_args, data.params, "params")
+      if results_args then
+        if data.result then
+          return compareValues(results_args, data.result, "result")
+        elseif data.params then
+          return compareValues(results_args, data.params, "params")
+        elseif data.error then
+          return compareValues(results_args, data.error, "error")
+        else
+          print("Error: result, params or error is not available in response")
+          return false
+        end
       end
     end)
   ret.event = event
