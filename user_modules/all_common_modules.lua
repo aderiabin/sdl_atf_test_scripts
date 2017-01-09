@@ -1,4 +1,4 @@
-Test = require('user_modules/connect_without_mobile_connection')
+Test = require('connecttest')
 common_functions = require('user_modules/common_functions')
 common_steps = require('user_modules/common_steps')
 json = require('json4lua/json/json')
@@ -15,6 +15,13 @@ expectations = require('expectations')
 Expectation = expectations.Expectation
 sdl = require('SDL')
 update_policy = require('user_modules/shared_testcases/testCasesForPolicyTable')
+
+-- Remove default precondition from connecttest.lua
+common_functions:RemoveTest("RunSDL", Test)
+common_functions:RemoveTest("InitHMI", Test)
+common_functions:RemoveTest("InitHMI_onReady", Test)
+common_functions:RemoveTest("ConnectMobile", Test)
+common_functions:RemoveTest("StartSession", Test)
 
 -------------------- Set default settings for ATF script --------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"

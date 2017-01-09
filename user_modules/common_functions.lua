@@ -772,5 +772,38 @@ function CommonFunctions:StoreHmiAppId(app_name, hmi_app_id, self)
 end 
 
 
+-----------------------------------------------------------------------------
+-- Remove a test function from Test module
+-- @param test_name: name of test function
+-- @param test_module: Test module that contains list of tests.
+-----------------------------------------------------------------------------
+function CommonFunctions:RemoveTest(test_name, test_module)
+  local test_function
+  for k_test_function, v_test_name in pairs(test_module.case_names) do
+    if v_test_name == test_name then
+      test_function = k_test_function
+      break
+    end
+  end
+  local test_number = #test_module.test_cases + 1
+  for i = 1, #test_module.test_cases do
+    if test_module.test_cases[i] == test_function then
+      test_number = i
+      break
+    end
+  end
+  -- remove test
+  if test_function then
+    test_module.case_names[test_function] = nil
+    for i = test_number, #test_module.test_cases do
+      if i == #test_module.test_cases then
+        test_module.test_cases[i] = nil
+      else
+        test_module.test_cases[i] = test_module.test_cases[i + 1]
+      end
+    end
+  end
+end
+
 
 return CommonFunctions
