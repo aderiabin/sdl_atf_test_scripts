@@ -281,6 +281,9 @@ function CommonSteps:IgnitionOff(test_case_name)
   Test[test_case_name] = function(self)
     local hmi_app_ids = common_functions:GetHmiAppIds(self)
     local total_apps = #hmi_app_ids
+    if total_apps == 0 then
+      common_functions:PrintError("[Warning]: There is no registered app.")
+    end
     self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
     :Times(total_apps)
@@ -406,6 +409,9 @@ function CommonSteps:KillAllSdlProcesses(test_case_name)
   test_case_name = test_case_name or "KillAllSDLProcesses"
   Test[test_case_name] = function(self)
     common_functions:KillAllSdlProcesses()
+    if common_functions:IsFileExist("sdl.pid") then
+      os.remove("sdl.pid")
+    end
   end
 end
 
