@@ -4,21 +4,7 @@ This script purpose: Common functions of all other scripts which are implemented
 ------------------------------------------------------------------------------------------------------
 ------------------------------------General Settings for Configuration--------------------------------
 ------------------------------------------------------------------------------------------------------
-config.defaultProtocolVersion = 2
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-Test = require('user_modules/connect_without_mobile_connection')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-local tcp = require('tcp_connection')
-local file_connection = require('file_connection')
-local mobile = require('mobile_connection')
-local common_functions = require('user_modules/shared_testcases/commonFunctions')
-local common_steps = require('user_modules/shared_testcases/commonSteps')
-local common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
-local common_testcases = require('user_modules/shared_testcases/commonTestCases')
-local sdl_storage_path = config.pathToSDL .. "storage/"
-local policy_table = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local common_multi_mobile_connections = require('user_modules/common_multi_mobile_connections')
+require('user_modules/all_common_modules')
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------Common Variables-----------------------------------------------
 ------------------------------------------------------------------------------------------------------
@@ -38,16 +24,17 @@ local CCS_informing_HMI_common_functions = {}
 function PreconditonSteps(mobile_connection_name, mobile_session_name_1, mobile_session_name_2)
   -- delete sdl_snapshot
   os.execute( "rm -f /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" )
-  -- delete app_info.dat, SmartDeviceLinkCore.log, TransportManager.log, ProtocolFordHandling.log, HmiFrameworkPlugin.log and policy.sqlite
-  common_steps:DeleteLogsFileAndPolicyTable()
-  common_multi_mobile_connections:PreconditionSteps("Start_SDL_and_Add_Mobile_Connection", 4)
+  Test["Delete Logs File And Policy Table"] = function(self) 
+    common_functions:DeleteLogsFileAndPolicyTable(true)
+  end
+  common_steps:PreconditionSteps("Start_SDL_and_Add_Mobile_Connection", 4)
   -- register and activate first application (appID = "0000001")
-  common_multi_mobile_connections:AddMobileSession("Add_Mobile_Session_1", mobile_connection_name, mobile_session_name_1)
-  common_multi_mobile_connections:RegisterApplication("Register_Application_1", mobile_session_name_1, config.application1.registerAppInterfaceParams)
-  common_multi_mobile_connections:ActivateApplication("Activate_Application_1", config.application1.registerAppInterfaceParams.appName)
+  common_steps:AddMobileSession("Add_Mobile_Session_1", mobile_connection_name, mobile_session_name_1)
+  common_steps:RegisterApplication("Register_Application_1", mobile_session_name_1, config.application1.registerAppInterfaceParams)
+  common_steps:ActivateApplication("Activate_Application_1", config.application1.registerAppInterfaceParams.appName)
   -- register second application (appID = "0000002")
-  common_multi_mobile_connections:AddMobileSession("Add_Mobile_Session_2", mobile_connection_name, mobile_session_name_2)
-  common_multi_mobile_connections:RegisterApplication("Register_Application_2", mobile_session_name_2, config.application2.registerAppInterfaceParams)
+  common_steps:AddMobileSession("Add_Mobile_Session_2", mobile_connection_name, mobile_session_name_2)
+  common_steps:RegisterApplication("Register_Application_2", mobile_session_name_2, config.application2.registerAppInterfaceParams)
 end
 
 --------------------------------------------------------------------------
@@ -203,8 +190,6 @@ function CCS_informing_HMI_common_functions:Validate_AllowedFunctions_Id(data, a
     if data.result.allowedFunctions[i].name == allowed_functions_name then
       if data.result.allowedFunctions[i].id ~= nil then 
         validate = true
-      else
-        common_functions:printError("Error: userConsent function: function group " .. allowed_functions_name .. " does not exist.") 
       end
       break
     end					

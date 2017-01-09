@@ -4,21 +4,7 @@ This script purpose: Checking GetListOfPermissions response when HMI request wit
 ------------------------------------------------------------------------------------------------------
 ------------------------------------General Settings for Configuration--------------------------------
 ------------------------------------------------------------------------------------------------------
-config.defaultProtocolVersion = 2
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-Test = require('user_modules/connect_without_mobile_connection')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-local tcp = require('tcp_connection')
-local file_connection = require('file_connection')
-local mobile = require('mobile_connection')
-local common_functions = require('user_modules/shared_testcases/commonFunctions')
-local common_steps = require('user_modules/shared_testcases/commonSteps')
-local common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
-local common_testcases = require('user_modules/shared_testcases/commonTestCases')
-local sdl_storage_path = config.pathToSDL .. "storage/"
-local policy_table = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local common_multi_mobile_connections = require('user_modules/common_multi_mobile_connections')
+require('user_modules/all_common_modules')
 local common_functions_ccs_informing_hmi = require('user_modules/ATF_Policies_CCS_informing_HMI_common_functions')
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------Common Variables-----------------------------------------------
@@ -109,7 +95,7 @@ end
 --   Check GetListOfPermissions response with empty ccsStatus array list
 --------------------------------------------------------------------------
 Test[TEST_NAME.."MainCheck_1_ccsStatus_is_EMPTY_&_GetListOfPermissions_with_appID"] = function(self)
-  hmi_app_id_1 = common_multi_mobile_connections:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+  hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   --hmi side: sending SDL.GetListOfPermissions request to SDL
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = hmi_app_id_1}) 
   -- hmi side: expect SDL.GetListOfPermissions response

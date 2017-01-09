@@ -4,21 +4,7 @@ This script purpose: Checking GetListOfPermissions response when HMI request wit
 ------------------------------------------------------------------------------------------------------
 ------------------------------------General Settings for Configuration--------------------------------
 ------------------------------------------------------------------------------------------------------
-config.defaultProtocolVersion = 2
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-Test = require('user_modules/connect_without_mobile_connection')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-local tcp = require('tcp_connection')
-local file_connection = require('file_connection')
-local mobile = require('mobile_connection')
-local common_functions = require('user_modules/shared_testcases/commonFunctions')
-local common_steps = require('user_modules/shared_testcases/commonSteps')
-local common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
-local common_testcases = require('user_modules/shared_testcases/commonTestCases')
-local sdl_storage_path = config.pathToSDL .. "storage/"
-local policy_table = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local common_multi_mobile_connections = require('user_modules/common_multi_mobile_connections')
+require('user_modules/all_common_modules')
 local common_functions_ccs_informing_hmi = require('user_modules/ATF_Policies_CCS_informing_HMI_common_functions')
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------Common Variables-----------------------------------------------
@@ -117,8 +103,8 @@ end
 --   HMI sends OnAppPermissionConsent with ccsStatus arrays
 --------------------------------------------------------------------------
 Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
-  hmi_app_id_1 = common_multi_mobile_connections:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  hmi_app_id_2 = common_multi_mobile_connections:GetHmiAppId(config.application2.registerAppInterfaceParams.appName, self)  
+  hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+  hmi_app_id_2 = common_functions:GetHmiAppId(config.application2.registerAppInterfaceParams.appName, self)  
 	-- hmi side: sending SDL.OnAppPermissionConsent for application 1
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
     ccsStatus = {
@@ -137,8 +123,8 @@ end
 --   Emulate HMI sends OnAppPermissionConsent with ccsStatus arrays by insert dirrectly data into database
 --------------------------------------------------------------------------
 Test[TEST_NAME .. "Precondition_Emulate_ccsStatus_added_into_database"] = function(self)
-  hmi_app_id_1 = common_multi_mobile_connections:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  hmi_app_id_2 = common_multi_mobile_connections:GetHmiAppId(config.application2.registerAppInterfaceParams.appName, self)
+  hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+  hmi_app_id_2 = common_functions:GetHmiAppId(config.application2.registerAppInterfaceParams.appName, self)
   local policy_file = config.pathToSDL .. "storage/policy.sqlite"
   local policy_file_temp = "/tmp/policy.sqlite"
 	os.execute("cp " .. policy_file .. " " .. policy_file_temp)
@@ -158,17 +144,8 @@ Test[TEST_NAME .. "Precondition_Emulate_ccsStatus_added_into_database"] = functi
   handler = io.popen(ful_sql_query, 'r')
   handler:close()
   os.execute("sleep 1")  
-	os.execute("cp " .. policy_file_temp .. " " .. policy_file) 
-  common_multi_mobile_connections:DelayedExp(2000)  
+	os.execute("cp " .. policy_file_temp .. " " .. policy_file)
 end
-
---------------------------------------------------------------------------
--- Precondition:
---   Check _internal_ccs_status is not empty after ccsStatus is added
---------------------------------------------------------------------------
-local sql_query = "select * from _internal_ccs_status"
-local error_message = "Couldn't find ccsStatus info in Local Policy Table."
-common_multi_mobile_connections:CheckPolicyTable(TEST_NAME .. "Precondition_Check_ccsStatus_is_saved_into_LocalPolicyTable", sql_query, true, error_message) 
 
 --------------------------------------------------------------------------
 -- Main check:
