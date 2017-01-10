@@ -15,7 +15,6 @@ expectations = require('expectations')
 Expectation = expectations.Expectation
 sdl = require('SDL')
 update_policy = require('user_modules/shared_testcases/testCasesForPolicyTable')
-common_functions_ccs_informing_hmi = require('user_modules/ATF_Policies_CCS_informing_HMI_common_functions')
 -- config.SDLStoragePath = config.pathToSDL .. "storage/"
 common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
 sdl_config = require('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
