@@ -85,7 +85,7 @@ Test[TEST_NAME.."Precondition_Update_Policy_Table"] = function(self)
         textBody = "textBody_test"
   }   
   -- create json file for Policy Table Update  
-  common_functions_ccs_informing_hmi:CreateJsonFileForPTU(data, "/tmp/ptu_update.json", "/tmp/ptu_update_tc2.json")
+  common_functions_ccs_informing_hmi:CreateJsonFileForPTU(data, "/tmp/ptu_update.json")
   -- update policy table
   common_functions_ccs_informing_hmi:UpdatePolicy(self, "/tmp/ptu_update.json")
 end

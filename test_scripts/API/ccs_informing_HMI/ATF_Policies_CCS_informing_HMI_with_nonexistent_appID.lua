@@ -90,7 +90,7 @@ Test[TEST_NAME.."Precondition_Update_Policy_Table"] = function(self)
     groups = {"Base-4", "Group002", "Group003"}
   }  
   -- create json file for Policy Table Update  
-  common_functions_ccs_informing_hmi:CreateJsonFileForPTU(data, "/tmp/ptu_update.json", "/tmp/ptu_update_debug.json")
+  common_functions_ccs_informing_hmi:CreateJsonFileForPTU(data, "/tmp/ptu_update.json")
   -- update policy table
   common_functions_ccs_informing_hmi:UpdatePolicy(self, "/tmp/ptu_update.json")
 end
