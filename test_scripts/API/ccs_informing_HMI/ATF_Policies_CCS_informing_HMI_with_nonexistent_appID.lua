@@ -95,50 +95,17 @@ Test[TEST_NAME.."Precondition_Update_Policy_Table"] = function(self)
   common_functions_ccs_informing_hmi:UpdatePolicy(self, "/tmp/ptu_update.json")
 end
 
--- TODO[nhphi]: 
--- Replace Test[TEST_NAME .. "Precondition_Emulate_ccsStatus_added_into_database"] function
--- by Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] function
--- when ccsStatus is supported by OnAppPermissionConsent
---[[
 --------------------------------------------------------------------------
 -- Precondition:
 --   HMI sends OnAppPermissionConsent with ccsStatus arrays
 --------------------------------------------------------------------------
 Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
-  hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-  hmi_app_id_2 = common_functions:GetHmiAppId(config.application2.registerAppInterfaceParams.appName, self)  
-	-- hmi side: sending SDL.OnAppPermissionConsent for applications
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-    ccsStatus = {{entityType = 1, entityID = 1, status = "ON"}}, appID = hmi_app_id_1, consentedFunctions = nil, source = "GUI"})  
-	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-    ccsStatus = {{entityType = 2, entityID = 2, status = "OFF"},{entityType = 3, entityID = 3, status = "ON"}}, appID = hmi_app_id_2, consentedFunctions = nil, source = "GUI"})     
-end
---]]
---------------------------------------------------------------------------
--- Precondition:
---   Emulate HMI sends OnAppPermissionConsent with ccsStatus arrays by insert dirrectly data into database
---------------------------------------------------------------------------
-Test[TEST_NAME .. "Precondition_Emulate_ccsStatus_added_into_database"] = function(self)
-  local policy_file = config.pathToSDL .. "storage/policy.sqlite"
-  local policy_file_temp = "/tmp/policy.sqlite"
-	os.execute("cp " .. policy_file .. " " .. policy_file_temp)
-  -- insert ccsStatus = {entityType = 1, entityID = 1, status = "ON"}
-  sql_query = "insert into _internal_ccs_status (entity_type, entity_id, on_off) values (1,1,'ON'); "
-  ful_sql_query = "sqlite3 " .. policy_file_temp .. " \"" .. sql_query .. "\""
-  handler = io.popen(ful_sql_query, 'r')
-  handler:close()
-  -- insert ccsStatus = {entityType = 2, entityID = 2, status = "OFF"}
-  sql_query = "insert into _internal_ccs_status (entity_type, entity_id, on_off) values (2,2,'OFF'); "
-  ful_sql_query = "sqlite3 " .. policy_file_temp .. " \"" .. sql_query .. "\""
-  handler = io.popen(ful_sql_query, 'r')
-  handler:close()
-  -- insert ccsStatus = {entityType = 3, entityID = 3, status = "ON"}
-  sql_query = "insert into _internal_ccs_status (entity_type, entity_id, on_off) values (3,3,'ON'); "
-  ful_sql_query = "sqlite3 " .. policy_file_temp .. " \"" .. sql_query .. "\""
-  handler = io.popen(ful_sql_query, 'r')
-  handler:close()
-  os.execute("sleep 1")  
-	os.execute("cp " .. policy_file_temp .. " " .. policy_file)
+    ccsStatus = {
+      {entityType = 1, entityID = 1, status = "ON"}, 
+      {entityType = 2, entityID = 2, status = "OFF"},
+      {entityType = 3, entityID = 3, status = "ON"}}, 
+    source = "GUI"})  
 end
 
 --------------------------------------------------------------------------
@@ -161,11 +128,10 @@ Test[TEST_NAME.."MainCheck_GetListOfPermissions_with_nonexistent_appID"] = funct
     }
   })
   :ValidIf(function(_,data)
-    if #data.result.ccsStatus == 3 then validate = true else validate = false end
-    validate1 = common_functions_ccs_informing_hmi:Validate_ccsStatus_EntityType_EntityId(data, 1, 1)
-    validate2 = common_functions_ccs_informing_hmi:Validate_ccsStatus_EntityType_EntityId(data, 2, 2)
-    validate3 = common_functions_ccs_informing_hmi:Validate_ccsStatus_EntityType_EntityId(data, 3, 3)
-    return (validate and validate1 and validate2 and validate3)
+    return #data.result.ccsStatus == 3 and
+    common_functions_ccs_informing_hmi:Validate_ccsStatus_EntityType_EntityId(data, 1, 1) and
+    common_functions_ccs_informing_hmi:Validate_ccsStatus_EntityType_EntityId(data, 2, 2) and
+    common_functions_ccs_informing_hmi:Validate_ccsStatus_EntityType_EntityId(data, 3, 3) 
   end)       
 end
 

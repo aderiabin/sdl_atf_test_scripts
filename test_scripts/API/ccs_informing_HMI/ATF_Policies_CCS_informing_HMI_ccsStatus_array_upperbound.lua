@@ -63,7 +63,7 @@ Test[TEST_NAME .. "Precondition_Update_Policy_Table"] = function(self)
     table.insert(data.policy_table.app_policies["0000001"].groups,i,"Group"..tostring(i))
   end   
   -- create json file for Policy Table Update  
-  common_functions_ccs_informing_hmi:CreateJsonFileForPTU(data, "/tmp/ptu_update.json", "/tmp/ptu_update_debug.json")
+  common_functions_ccs_informing_hmi:CreateJsonFileForPTU(data, "/tmp/ptu_update.json")
   -- update policy table
   common_functions_ccs_informing_hmi:UpdatePolicy(self, "/tmp/ptu_update.json")
 end
@@ -81,11 +81,6 @@ Test[TEST_NAME .. "Precondition_Prepare_ccsStatus_and_allowedFunctions_arrays"] 
   end  
 end 
 
--- TODO[nhphi]: 
--- Replace Test[TEST_NAME .. "Precondition_Emulate_ccsStatus_added_into_database"] function
--- by Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] function
--- when ccsStatus is supported by OnAppPermissionConsent
---[[
 --------------------------------------------------------------------------
 -- Precondition:
 --   HMI sends OnAppPermissionConsent with ccsStatus arrays
@@ -93,25 +88,8 @@ end
 Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)  
   hmi_app_id = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
 	-- hmi side: sending SDL.OnAppPermissionConsent for application 1
-	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {ccsStatus = ccsstatus_list, appID = hmi_app_id, consentedFunctions = nil, source = "GUI"})  
-end
---]]
---------------------------------------------------------------------------
--- Precondition:
---   Emulate HMI sends OnAppPermissionConsent with ccsStatus arrays by insert dirrectly data into database
---------------------------------------------------------------------------
-Test[TEST_NAME .. "Precondition_Emulate_ccsStatus_added_into_database"] = function(self)
-  local policy_file = config.pathToSDL .. "storage/policy.sqlite"
-  local policy_file_temp = "/tmp/policy.sqlite"
-	os.execute("cp " .. policy_file .. " " .. policy_file_temp)
-  for i=1, max_ccsstatus_array do
-    sql_query = "insert into _internal_ccs_status (entity_type, entity_id, on_off) values (" .. tostring(ccsstatus_list[i].entityType) .. "," .. tostring(ccsstatus_list[i].entityID) .. ",'" .. tostring(ccsstatus_list[i].status) .. "'); "
-    ful_sql_query = "sqlite3 " .. policy_file_temp .. " \"" .. sql_query .. "\""
-    handler = io.popen(ful_sql_query, 'w')
-    handler:close()
-  end
-  os.execute("sleep 1")  
-	os.execute("cp " .. policy_file_temp .. " " .. policy_file) 
+	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", 
+      {ccsStatus = ccsstatus_list, appID = hmi_app_id, source = "GUI"})  
 end
 
 --------------------------------------------------------------------------
@@ -129,12 +107,8 @@ Test[TEST_NAME .. "MainCheck_GetListOfPermissions_with_maximum_of_ccsStatus_and_
     }
   })
   :ValidIf(function(_,data)  
-      if #data.result.ccsStatus == max_ccsstatus_array and #data.result.allowedFunctions == max_allowedfunctions_array
-      then 
-        return true 
-      else
-        return false
-      end
+    return #data.result.ccsStatus == max_ccsstatus_array and 
+        #data.result.allowedFunctions == max_allowedfunctions_array
   end)
 end
 

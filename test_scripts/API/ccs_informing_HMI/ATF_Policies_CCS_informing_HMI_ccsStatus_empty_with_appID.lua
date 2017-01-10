@@ -110,8 +110,7 @@ Test[TEST_NAME.."MainCheck_1_ccsStatus_is_EMPTY_&_GetListOfPermissions_with_appI
     }
   })
   :ValidIf(function(_,data)
-    local validate1 = common_functions_ccs_informing_hmi:Validate_AllowedFunctions_Id(data, "ConsentGroup001")
-    return validate1
+    return common_functions_ccs_informing_hmi:Validate_AllowedFunctions_Id(data, "ConsentGroup001")
   end)
   :Do(function(_,data)
     id_group = data.result.allowedFunctions[1].id
@@ -148,8 +147,7 @@ Test[TEST_NAME.."MainCheck_2_ccsStatus_is_EMPTY_&_GetListOfPermissions_with_appI
     }
   })
   :ValidIf(function(_,data)
-    local validate1 = common_functions_ccs_informing_hmi:Validate_AllowedFunctions_Id(data, "ConsentGroup001")
-    return validate1
+    return common_functions_ccs_informing_hmi:Validate_AllowedFunctions_Id(data, "ConsentGroup001")
   end)
 end
 
