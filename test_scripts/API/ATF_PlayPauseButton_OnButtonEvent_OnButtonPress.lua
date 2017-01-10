@@ -1,5 +1,33 @@
--------------------------------------Required Shared Libraries---------------------------------------
+-----------------Precondition: Create connecttest for adding PLAY_PAUSE button---------------
+function Connecttest_Adding_PlayPause_Button()
+  local FileName = "connecttest_playpause.lua"		
+  os.execute(  'cp ./modules/connecttest.lua  ./user_modules/'  .. tostring(FileName))		
+  f = assert(io.open('./user_modules/'  .. tostring(FileName), "r"))
+  fileContent = f:read("*all")
+  f:close()
+  local pattern1 = "button_capability%s-%(%s-\"PRESET_0\"%s-[%w%s%{%}.,\"]-%),"                    		
+  local pattern1Result = fileContent:match(pattern1)
+  local StringToReplace = 'button_capability("PRESET_0"),' .. "\n " .. 'button_capability("PLAY_PAUSE"),'	
+  if pattern1Result == nil then 
+    print(" \27[31m button_capability function is not found in /user_modules/" .. tostring(FileName) .. " \27[0m ")
+  else	
+    fileContent  =  string.gsub(fileContent, pattern1, StringToReplace)
+  end
+  f = assert(io.open('./user_modules/' .. tostring(FileName), "w+"))
+  f:write(fileContent)
+  f:close()
+end
+Connecttest_Adding_PlayPause_Button()
+
+-----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
+Test = require('user_modules/connecttest_playpause')
+-- Remove default precondition from connecttest_playpause.lua
+common_functions:RemoveTest("RunSDL", Test)
+common_functions:RemoveTest("InitHMI", Test)
+common_functions:RemoveTest("InitHMI_onReady", Test)
+common_functions:RemoveTest("ConnectMobile", Test)
+common_functions:RemoveTest("StartSession", Test)
 
 -----------------------------------------Common Variables--------------------------------------------
 local MEDIA_APP = config.application1.registerAppInterfaceParams
@@ -112,3 +140,7 @@ function TestOnButtonEventOnButtonPress()
   OnButtonPressWithPressModeInvalid(BUTTON_NAME .. "_Button_With_Press_Mode_Invalid: ")
 end
 TestOnButtonEventOnButtonPress()
+
+----------------------------------------Postcondition----------------------------------------
+common_steps:UnregisterApp("Postcondition_UnregisterApp", MEDIA_APP.appName)
+common_steps:StopSDL("Postcondition_StopSDL")
