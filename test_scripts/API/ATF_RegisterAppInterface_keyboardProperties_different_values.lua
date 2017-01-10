@@ -8,6 +8,12 @@ require('user_modules/all_common_modules')
 local hmi_capabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 local app = config.application1.registerAppInterfaceParams
 
+common_functions:DeleteLogsFileAndPolicyTable()
+local  file_name  = "app_info.dat"
+if common_functions:IsFileExist(config.pathToSDL .. file_name) then
+  os.remove(config.pathToSDL .. file_name)
+end
+
 -- TC1
 common_steps:AddNewTestCasesGroup("TC1: RegisterAppInterface(keyboardProperties) in case languageSupported has more values then other parameters")
 -- Update keyboardPropertiesSupported in hmi_capabilities.json
@@ -86,8 +92,14 @@ end
 Test["RegisterAppInterface_keyboardProperties_languageSupported"] = function(self)
   local app = config.application1.registerAppInterfaceParams
   local cid = self.mobileSession:SendRPC("RegisterAppInterface", app)
+  common_functions:StoreApplicationData("mobileSession", app.appName, app, _, self)
+
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
     {application = {appName = app.appName}})
+ :Do(function(_,data)
+    common_functions:StoreHmiAppId(app.appName, data.params.application.appID, self)
+  end)
+
   EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS",
       keyboardProperties = custom_keyboard_properties})
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "NONE",
@@ -142,8 +154,14 @@ common_steps:AddMobileSession("Precondition_AddMobileSession")
 Test["RegisterAppInterface_keyboardProperties_keyboardLayoutSupported"] = function(self)
   local app = config.application1.registerAppInterfaceParams
   local cid = self.mobileSession:SendRPC("RegisterAppInterface", app)
+  common_functions:StoreApplicationData("mobileSession", app.appName, app, _, self)
+
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
     {application = {appName = app.appName}})
+ :Do(function(_,data)
+    common_functions:StoreHmiAppId(app.appName, data.params.application.appID, self)
+  end)
+
   EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS",
       keyboardProperties = keyboard_layout_supported_values})
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "NONE",
