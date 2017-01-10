@@ -466,7 +466,7 @@ end
 --------------------------------------------------------------------------------
 function CommonSteps:PutFile(test_case_name, file_name)
   test_case_name = test_case_name or "PutFile_" .. tostring(file_name)
-  Test[testCaseName] = function(self)
+  Test[test_case_name] = function(self)
     local CorIdPutFile = self.mobileSession:SendRPC(
       "PutFile",
       {
@@ -520,6 +520,4 @@ function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
     os.execute("rm -rf " .. policy_file_temp)
   end
 end
-
-
 return CommonSteps
