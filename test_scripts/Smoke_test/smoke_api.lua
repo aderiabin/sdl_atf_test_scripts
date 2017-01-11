@@ -1,7 +1,7 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local storagePath = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local textPromtValue = {"Please speak one of the following commands,", "Please say a command,"}
 local audibleState
 if config.application1.registerAppInterfaceParams.isMediaApplication == true or
@@ -1265,7 +1265,7 @@ end
 -------------------------------------------------------------------------------
 -- Precondtion:UpdateHmiCapabilities using for SendLocation
 local HmiCapabilities = config.pathToSDL .. "hmi_capabilities.json"
-commonPreconditions:BackupFile("hmi_capabilities.json")
+common_preconditions:BackupFile("hmi_capabilities.json")
 f = assert(io.open(HmiCapabilities, "r"))
 fileContent = f:read("*all")
 fileContentTextFields = fileContent:match("%s-\"%s?textFields%s?\"%s-:%s-%[[%w%d%s,:%{%}\"]+%]%s-,?")
@@ -2544,7 +2544,7 @@ function Test:PerformAudioPassThru_PositiveCase()
 	:Times(1)
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 	:ValidIf (function(_,data)
-		if common_functions:IsFileExist(config.SDLStoragePath.."/".."audio.wav") ~= true then
+		if common_functions:IsFileExist(config.pathToSDL .. "storage/".."/".."audio.wav") ~= true then
 			print(" \27[36m Can not found file: audio.wav \27[0m ")
 			return false
 		else
@@ -2589,7 +2589,7 @@ function Test:EndAudioPassThru_PositiveCase()
 	end)
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 	:ValidIf (function(_,data)
-		if common_functions:IsFileExist(config.SDLStoragePath.."/".."audio.wav") ~= true then
+		if common_functions:IsFileExist(config.pathToSDL .. "storage/".."/".."audio.wav") ~= true then
 			print(" \27[36m Can not found file: audio.wav \27[0m ")
 			return false
 		else
@@ -2692,7 +2692,7 @@ function Test:SystemRequest_PositiveCase()
 	local pt_file = "./files/PTU_ForSystemRequest.json"
 	local cid = self.mobileSession:SendRPC("SystemRequest", request, pt_file)
 	EXPECT_HMICALL("BasicCommunication.SystemRequest", {
-		fileName = SystemFilesPath .. "/" .. request.fileName,
+		fileName = sdl_config:GetValue("SystemFilesPath") .. "/" .. request.fileName,
 		requestType = request.requestType,
 		appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
 	}
@@ -2878,5 +2878,5 @@ end
 -------------------------------------------Postconditions-------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 function Test:RestoreHmiCapabilities()
-	commonPreconditions:RestoreFile("hmi_capabilities.json")
+	common_preconditions:RestoreFile("hmi_capabilities.json")
 end

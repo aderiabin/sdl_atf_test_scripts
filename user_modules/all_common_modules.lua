@@ -15,7 +15,6 @@ expectations = require('expectations')
 Expectation = expectations.Expectation
 sdl = require('SDL')
 update_policy = require('user_modules/shared_testcases/testCasesForPolicyTable')
--- config.SDLStoragePath = config.pathToSDL .. "storage/"
 common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
 sdl_config = require('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
 -- Remove default precondition from connecttest.lua
