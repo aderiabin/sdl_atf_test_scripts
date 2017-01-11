@@ -1,6 +1,6 @@
 -----------------Precondition: Create connecttest for adding PLAY_PAUSE button---------------
+local FileName = "connecttest_playpause.lua"		
 function Connecttest_Adding_PlayPause_Button()
-  local FileName = "connecttest_playpause.lua"		
   os.execute(  'cp ./modules/connecttest.lua  ./user_modules/'  .. tostring(FileName))		
   f = assert(io.open('./user_modules/'  .. tostring(FileName), "r"))
   fileContent = f:read("*all")
@@ -144,3 +144,10 @@ TestOnButtonEventOnButtonPress()
 ----------------------------------------Postcondition----------------------------------------
 common_steps:UnregisterApp("Postcondition_UnregisterApp", MEDIA_APP.appName)
 common_steps:StopSDL("Postcondition_StopSDL")
+function Test:Delete_Connecttest_Adding_PlayPause_File()
+	local f=io.open("./user_modules/"  .. tostring(FileName),"r")
+	if f ~= nil then
+		io.close(f)		
+		os.remove("./user_modules/"  .. tostring(FileName))
+  end
+end
