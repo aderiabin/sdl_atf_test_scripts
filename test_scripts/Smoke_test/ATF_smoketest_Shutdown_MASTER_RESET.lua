@@ -37,7 +37,7 @@ function Test:ShutDown_MASTER_RESET()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { unexpectedDisconnect = false })
   -- [TODO][nhphi] Temporary remove until defect about OnSDLClose is fixed.
   -- EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  common_functions:DelayedExp(2000)
+  common_functions:DelayedExp(1000)
 end
 
 function Test:Stop_SDL_After_ShutDown_MASTER_RESET()
