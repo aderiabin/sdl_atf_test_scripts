@@ -89,7 +89,8 @@ Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(se
   hmi_app_id = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
 	-- hmi side: sending SDL.OnAppPermissionConsent for application 1
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", 
-      {ccsStatus = ccsstatus_list, appID = hmi_app_id, source = "GUI"})  
+      {ccsStatus = ccsstatus_list, appID = hmi_app_id, source = "GUI"})
+  common_functions:DelayedExp(2000)      
 end
 
 --------------------------------------------------------------------------
