@@ -288,7 +288,9 @@ Test["GetDeviceConnectionStatus_device_omit_LocalPolicy_have_101_devices"] = fun
   :ValidIf (function(_,data)
       local count = #data.result.device
       if count ~= 100 then
-        self:FailTestCase("Actual elements not 100: "..count)
+        self:FailTestCase("Expected result: 100 devices are returned. Actual result: " ..tostring (count) .. " devices are returned")
+      else
+        return true
       end
     end)
 end
