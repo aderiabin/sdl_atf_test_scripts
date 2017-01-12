@@ -51,7 +51,7 @@ local function GetDeviceConnectionStatusWithInvalid_Id(test_case_name)
         local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {device = {
           { id = invalid_character[i].value, name = "Samsung"}
       }})
-	  EXPECT_HMIRESPONSE(request_id, {error = {code = 11, message = "TBD", data = {method = "SDL.GetDeviceConnectionStatus"}}})
+	  EXPECT_HMIRESPONSE(request_id, {error = {code = 11, data = {method = "SDL.GetDeviceConnectionStatus"}, message = "HMIDeactivate is active"}})
     end
   end
 end
@@ -63,7 +63,7 @@ local function GetDeviceConnectionStatusWithInvalid_Name(test_case_name)
         local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {device = {
           { id = "1" , name = invalid_character[i].value}
       }})
-      EXPECT_HMIRESPONSE(request_id, {error = {code = 11, message = "TBD", data = {method = "SDL.GetDeviceConnectionStatus"}}})
+      EXPECT_HMIRESPONSE(request_id, {error = {code = 11, data = {method = "SDL.GetDeviceConnectionStatus"}, message = "HMIDeactivate is active"}})
     end
   end
 end
@@ -75,7 +75,7 @@ local function GetDeviceConnectionStatusWithInvalid_usbTransportStatus(test_case
         local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {device = {
           { id = "1" , name = "Samsung", usbTransportStatus = invalid_values_usbTransportStatus[i].value}
       }})
-      EXPECT_HMIRESPONSE(request_id, {error = {code = 11, message = "TBD", data = {method = "SDL.GetDeviceConnectionStatus"}}})
+      EXPECT_HMIRESPONSE(request_id, {error = {code = 11, data = {method = "SDL.GetDeviceConnectionStatus"}, message = "HMIDeactivate is active"}})
     end
   end
 end
@@ -87,7 +87,7 @@ local function GetDeviceConnectionStatusWithInvalid_transportType(test_case_name
         local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {device = {
           { id = "1" , name = "Samsung", usbTransportStatus = invalid_values_transporttype[i].value}
       }})
-      EXPECT_HMIRESPONSE(request_id, {error = {code = 11, message = "TBD", data = {method = "SDL.GetDeviceConnectionStatus"}}})
+      EXPECT_HMIRESPONSE(request_id, {error = {code = 11, data = {method = "SDL.GetDeviceConnectionStatus"}, message = "HMIDeactivate is active"}})
     end
   end
 end
@@ -99,7 +99,7 @@ local function GetDeviceConnectionStatusWithInvalid_issdlallowed(test_case_name)
         local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {device = {
           { id = "1" , name = "Samsung", isSDLAllowed = invalid_values_issdlallowed[i].value}
       }})
-      EXPECT_HMIRESPONSE(request_id, {error = {code = 11, message = "TBD", data = {method = "SDL.GetDeviceConnectionStatus"}}})
+     EXPECT_HMIRESPONSE(request_id, {error = {code = 11, data = {method = "SDL.GetDeviceConnectionStatus"}, message = "HMIDeactivate is active"}})
     end
   end
 end
@@ -108,20 +108,27 @@ end
 local function GetDeviceConnectionStatusWithInvalidJson(test_case_name)
   Test[test_case_name .. "_InvalidJSon"] = function(self)
     local request_id = self.hmiConnection:Send('{"params":{"device":[{"name":"Samsung","id":"1"}]},"id":55,"method":"SDL.GetDeviceConnectionStatus","jsonrpc":"2.0"}')
-    EXPECT_HMIRESPONSE(55, {result = {code = 11, method = "SDL.GetDeviceConnectionStatus"}})
+    EXPECT_HMIRESPONSE(request_id, {error = {code = 11, data = {method = "SDL.GetDeviceConnectionStatus"}, message = "HMIDeactivate is active"}})
+    :Times(0)
   end
 end
 
 -- Check GetDeviceConnectionStatus API when sending with 1 device param and this record is existed in DB
 -- @record: record which will be query from HMI
-local function GetDeviceConnectionStatusWith1FoundDeviceParam(test_case_name, record)
+local function GetDeviceConnectionStatusWith1FoundDeviceParam(test_case_name, record, flag)
   Test[test_case_name] = function(self)
       local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {device = {
         { id = tostring(record.id), name = record.name, transportType = record.transport_type, usbTransportStatus = record.usb_transport_status}
     }})
+    if flag == nil then
       EXPECT_HMIRESPONSE(request_id, {device = {
         {id = tostring(record.id), name = record.name, transportType = record.transport_type, usbTransportStatus = record.usb_transport_status }
     }})
+    else
+    EXPECT_HMIRESPONSE(request_id, {device = {
+        {id = tostring(record.id), name = record.name }
+    }})
+    end
   end
 end
 
@@ -159,19 +166,19 @@ end
 
 -- Check GetDeviceConnectionStatus API when sending with 100 devices param
 local function GetDeviceConnectionStatusWith100DevicesParam(test_case_name)
-  Test[test_case_name] = function(self)
+Test[test_case_name] = function(self)
     local list_device = {}
-    for i = 1, 25 do
-      list_device[i] = {id = i, name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "DISABLED"}
+    for i = 101, 125 do
+      list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "DISABLED"}
     end
-    for i = 26, 50 do
-      list_device[i] = {id = i, name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "ENABLED"}
+    for i = 126, 150 do
+      list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "ENABLED"}
     end
-    for i = 51, 75 do
-      list_device[i] = {id = i, name = "Samsung", transportType = "BLUETOOTH", usbTransportStatus = "ENABLED"}
+    for i = 151, 175 do
+      list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "BLUETOOTH", usbTransportStatus = "ENABLED"}
     end
-    for i = 76, 100 do
-      list_device[i] = {id = i, name = "Samsung", transportType = "WIFI", usbTransportStatus = "ENABLED"}
+    for i = 176, 200 do
+      list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "WIFI", usbTransportStatus = "ENABLED"}
     end
     local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {device = list_device})
     EXPECT_HMIRESPONSE(request_id, {device = list_device})
@@ -240,17 +247,17 @@ end
 common_steps:StopSDL("StopForUpdateLPT")
 -- Prepare and insert 100 records to DB to check GetDeviceConnectionStatus when there are 100 records in DB
 local one_hundred_records = {}
-for i = 1, 25 do
-  one_hundred_records[i] = {id = i, name = "Samsung", transport_type = "USB_AOA", usb_transport_status = "DISABLED"}
+for i = 101, 125 do
+  one_hundred_records[i-100] = {id = tostring(i), name = "Samsung", transport_type = "USB_AOA", usb_transport_status = "DISABLED"}
 end
-for i = 26, 50 do
-  one_hundred_records[i] = {id = i, name = "Samsung", transport_type = "USB_AOA", usb_transport_status = "ENABLED"}
+for i = 126, 150 do
+  one_hundred_records[i-100] = {id = tostring(i), name = "Samsung", transport_type = "USB_AOA", usb_transport_status = "ENABLED"}
 end
-for i = 51, 75 do
-  one_hundred_records[i] = {id = i, name = "Samsung", transport_type = "BLUETOOTH", usb_transport_status = "ENABLED"}
+for i = 151, 175 do
+  one_hundred_records[i-100] = {id = tostring(i), name = "Samsung", transport_type = "BLUETOOTH", usb_transport_status = "ENABLED"}
 end
-for i = 76, 100 do
-  one_hundred_records[i] = {id = i, name = "Samsung", transport_type = "WIFI", usb_transport_status = "ENABLED"}
+for i = 176, 200 do
+  one_hundred_records[i-100] = {id = tostring(i), name = "Samsung", transport_type = "WIFI", usb_transport_status = "ENABLED"}
 end
 
 AddRecordsIntoLPT("Case_1", one_hundred_records)
@@ -259,17 +266,17 @@ common_steps:PreconditionSteps("Precondition", 3)
 Test["GetDeviceConnectionStatus_device_omit_LocalPolicy_have_100_devices"] = function(self)
   local request_id = self.hmiConnection:SendRequest("SDL.GetDeviceConnectionStatus", {})
   local list_device = {}
-  for i = 1, 25 do
-    list_device[i] = {id = i, name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "DISABLED"}
+  for i = 101, 125 do
+    list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "DISABLED"}
   end
-  for i = 26, 50 do
-    list_device[i] = {id = i, name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "ENABLED"}
+  for i = 126, 150 do
+    list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "USB_AOA", usbTransportStatus = "ENABLED"}
   end
-  for i = 51, 75 do
-    list_device[i] = {id = i, name = "Samsung", transportType = "BLUETOOTH", usbTransportStatus = "ENABLED"}
+  for i = 151, 175 do
+    list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "BLUETOOTH", usbTransportStatus = "ENABLED"}
   end
-  for i = 76, 100 do
-    list_device[i] = {id = i, name = "Samsung", transportType = "WIFI", usbTransportStatus = "ENABLED"}
+  for i = 176, 200 do
+    list_device[i-100] = {id = tostring(i), name = "Samsung", transportType = "WIFI", usbTransportStatus = "ENABLED"}
   end
   EXPECT_HMIRESPONSE(request_id, {device = list_device})
 end
@@ -285,7 +292,7 @@ Test["GetDeviceConnectionStatus_device_omit_LocalPolicy_have_101_devices"] = fun
   :ValidIf (function(_,data)
     local count = #data.result.device
     if count ~= 100 then
-      self:FailTestCase("Actual elements not 100")
+      self:FailTestCase("Actual elements not 100: "..count)
     end
   end)
 end
