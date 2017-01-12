@@ -60,7 +60,7 @@ Test[TEST_NAME_OFF.."Precondition_Update_Policy_Table"] = function(self)
     textBody = "textBody_test"
   }
   -- create json file for Policy Table Update
-  common_functions_ccs_off:CreateJsonFileForPTU(data, "/tmp/ptu_update.json", "/tmp/ptu_update_debug.json")
+  common_functions_ccs_off:CreateJsonFileForPTU(data, "/tmp/ptu_update.json")
   -- update policy table
   common_functions_ccs_off:UpdatePolicy(self, "/tmp/ptu_update.json")
 end
@@ -91,7 +91,6 @@ Test[TEST_NAME_OFF .. "Precondition_HMI_sends_OnAllowSDLFunctionality"] = functi
   --hmi side: send request SDL.OnAllowSDLFunctionality
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
     {allowed = false, source = "GUI"})
-  common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
@@ -110,48 +109,7 @@ Test[TEST_NAME_OFF .. "Precondition_HMI_sends_OnAppPermissionConsent"] = functio
       local validate_result = common_functions_ccs_off:ValidateHMIPermissions(data,
         "SubscribeWayPoints")
       return not validate_result
-    end)  
-  :Times(1)
-  common_functions:DelayedExp(2000)
-end
-
---------------------------------------------------------------------------
--- Main check:
--- Check device_consent_group in Policy Table: is_consented = 0
---------------------------------------------------------------------------
-Test[TEST_NAME_OFF .. "MainCheck_Check_Device_Consent_Group"] = function(self)
-  local sql_query = "SELECT is_consented FROM device_consent_group WHERE device_id = '" .. config.deviceMAC .. "' and functional_group_id = 'DataConsent-2';"
-  local result = common_functions_ccs_off:QueryPolicyTable(policy_file, sql_query)
-  print(" \27[33m device consent = " .. tostring(result) .. ". \27[0m ")
-  if result ~= "0" then
-    self.FailTestCase("Incorrect consent status.")
-  end
-end
-
---------------------------------------------------------------------------
--- Main check:
--- Check consent_group in Policy Table: is_consented = 1
---------------------------------------------------------------------------
-Test[TEST_NAME_OFF .. "MainCheck_Check_Consent_Group"] = function(self)
-  local sql_query = "SELECT is_consented FROM consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
-  local result = common_functions_ccs_off:QueryPolicyTable(policy_file, sql_query)
-  print(" \27[33m group consent = " .. tostring(result) .. ". \27[0m ")
-  if result ~= "1" then
-    self.FailTestCase("Incorrect consent status.")
-  end
-end
-
---------------------------------------------------------------------------
--- Main check:
--- Check ccs_consent_group in Policy Table: is_consented = 1
---------------------------------------------------------------------------
-Test[TEST_NAME_OFF .. "MainCheck_Check_Ccs_Consent_Group"] = function(self)
-  local sql_query = "SELECT is_consented FROM ccs_consent_group WHERE application_id = '0000001' and functional_group_id = 'Group001';"
-  local result = common_functions_ccs_off:QueryPolicyTable(policy_file, sql_query)
-  print(" \27[33m ccs consent = " .. tostring(result) .. ". \27[0m ")
-  if result ~= "1" then
-    self.FailTestCase("Incorrect ccs consent status.")
-  end
+    end)
 end
 
 --------------------------------------------------------------------------
