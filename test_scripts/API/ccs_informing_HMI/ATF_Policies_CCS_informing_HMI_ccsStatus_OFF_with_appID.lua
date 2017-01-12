@@ -101,7 +101,9 @@ Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(se
       {entityType = 1, entityID = 127, status = "OFF"},
       {entityType = 127, entityID = 1, status = "OFF"},
       {entityType = 127, entityID = 127, status = "OFF"}},
-    source = "GUI"}) 
+    source = "GUI"})
+  -- delay to make sure database is already updated
+  common_functions:DelayedExp(2000)
 end
 
 
