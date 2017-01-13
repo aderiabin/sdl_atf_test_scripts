@@ -126,6 +126,8 @@ Test[TEST_NAME .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(se
 	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", 
     {appID = hmi_app_id_1, 
     consentedFunctions = {{name = "ConsentGroup001", id = id_group, allowed = true}}, source = "GUI"})
+  -- delay to make sure database is already updated
+  common_functions:DelayedExp(2000)
 end
 
 --------------------------------------------------------------------------
