@@ -203,10 +203,6 @@ local function CheckAppFullIsPostponedWhenEmergencyIsStartedAfterRegisteredApp()
   end
 end
 CheckAppFullIsPostponedWhenEmergencyIsStartedAfterRegisteredApp()
--- Stop and Start SDL again to avoid an ATF issue related to corID
-common_steps:IgnitionOff("Ignition_Off")
-common_steps:IgnitionOn("Ignition_On")
-common_steps:AddMobileSession("Add_Session", _, mobile_session_name)
 
 ---------------------------------------------------------------------------------------------
 -- Requirement summary: Resumption for single application (hmiLevel=LIMITED) is postponed
