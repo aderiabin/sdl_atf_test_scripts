@@ -151,8 +151,5 @@
 ./test_scripts/API/ATF_OnDeviceConnectionStatus_Valid.lua
 ./test_scripts/API/ATF_GetDeviceConnectionStatus.lua
 ./test_scripts/Smoke_test/ATF_Smoke_testing_of_transport.lua
-./test_scripts/Smoke_test/ATF_smoketest_Shutdown_IGNITION_OFF.lua
-./test_scripts/Smoke_test/ATF_smoketest_Shutdown_MASTER_RESET.lua
 ./test_scripts/Smoke_test/ATF_Smoke_testing_resumption_one_app.lua
 ./test_scripts/Smoke_test/ATF_Smoke_testing_resumption_many_apps.lua
-./test_scripts/Smoke_test/smoke_api.lua
