@@ -20,11 +20,6 @@ local keyboard_properties = {
 local hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
 for i = 1, #hmi_levels do
   common_steps:AddNewTestCasesGroup("Check timer 10s is started when RegisterAppInterface responds WARNINGS and default HMI level is " .. hmi_levels[i])
-  common_steps:StopSDL("Precondition_Stop_SDL")
-  common_steps:RemoveFileInSdlBinFolder("Precondition_Remove_app_info.dat", "app_info.dat")
-  Test["Precondition_RemoveExistedLPT"] = function (self)
-    common_functions:DeletePolicyTable()
-  end
   Test["Precondition_Update_sdl_preloaded_pt.json_default_hmi_" .. hmi_levels[i]] = function (self)
     local json_file = config.pathToSDL .. "sdl_preloaded_pt.json"
     local parent_item = {"policy_table", "app_policies"}
@@ -38,6 +33,14 @@ for i = 1, #hmi_levels do
       groups = {"Base-4"}
     }
     common_functions:AddItemsIntoJsonFile(json_file, parent_item, added_json_items)
+    -- delay to make sure sdl_preloaded_pt.json is already updated
+    common_functions:DelayedExp(1000)
+  end
+
+  common_steps:StopSDL("Precondition_Stop_SDL")
+  common_steps:RemoveFileInSdlBinFolder("Precondition_Remove_app_info.dat", "app_info.dat")
+  Test["Precondition_RemoveExistedLPT"] = function (self)
+    common_functions:DeletePolicyTable()
   end
   -- a session is added.
   common_steps:PreconditionSteps("Precondition", 5)
