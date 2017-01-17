@@ -113,7 +113,7 @@ end
 -- Main check:
 --   Check GetListOfPermissions response with ccsStatus array list
 --------------------------------------------------------------------------
-Test[TEST_NAME .. "MainCheck_ccsStatus_is_ON_&_GetListOfPermissions_with_appID"] = function(self)
+Test[TEST_NAME .. "MainCheck_ccsStatus_ON_And_GetListOfPermissions_with_appID"] = function(self)
   --hmi side: sending SDL.GetListOfPermissions request to SDL for application 1
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = hmi_app_id_1}) 
   -- hmi side: expect SDL.GetListOfPermissions response

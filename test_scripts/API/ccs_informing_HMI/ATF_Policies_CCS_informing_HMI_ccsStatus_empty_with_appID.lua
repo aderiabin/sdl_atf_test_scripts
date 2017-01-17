@@ -94,7 +94,7 @@ end
 -- Main check 1:
 --   Check GetListOfPermissions response with empty ccsStatus array list
 --------------------------------------------------------------------------
-Test[TEST_NAME.."MainCheck_1_ccsStatus_is_EMPTY_&_GetListOfPermissions_with_appID"] = function(self)
+Test[TEST_NAME.."MainCheck_1_ccsStatus_EMPTY_And_GetListOfPermissions_with_appID"] = function(self)
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   --hmi side: sending SDL.GetListOfPermissions request to SDL
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = hmi_app_id_1}) 
@@ -134,7 +134,7 @@ end
 -- Main check 2:
 --   Check GetListOfPermissions response with empty ccsStatus array list
 --------------------------------------------------------------------------
-Test[TEST_NAME.."MainCheck_2_ccsStatus_is_EMPTY_&_GetListOfPermissions_with_appID"] = function(self)
+Test[TEST_NAME.."MainCheck_2_ccsStatus_EMPTY_And_GetListOfPermissions_with_appID"] = function(self)
   --hmi side: sending SDL.GetListOfPermissions request to SDL
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = hmi_app_id_1}) 
   -- hmi side: expect SDL.GetListOfPermissions response
