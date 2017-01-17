@@ -29,6 +29,12 @@ local common_testcases = require('user_modules/shared_testcases/commonTestCases'
 local common_steps = require('user_modules/shared_testcases/commonSteps')
 local config = require('config')
 
+function commonFunctionsForCRQ26401:Wait()
+  Test["Wait..."] = function(self)
+    os.execute("sleep 3")
+  end
+end
+
 -----------------------------------------------------------------------------
 -- Update value of MixingAudioSupported to true/false
 -- @param test_case_name: main test name
@@ -293,6 +299,7 @@ function commonFunctionsForCRQ26401:RestartSdlInitHmiConnectMobileActivateApp(te
   Test[test_case_name.."_StartSdl"] = function(self)
     StartSDL(config.pathToSDL, config.ExitOnCrash)
   end
+  commonFunctionsForCRQ26401:Wait()
   Test[test_case_name.."_InitHmi"] = function(self)
     self:initHMI()
   end
@@ -405,6 +412,7 @@ function commonFunctionsForCRQ26401:RestartSdlInitHmiConnectMobile(test_case_nam
   Test[test_case_name.."_StartSdl"] = function(self)
     StartSDL(config.pathToSDL, config.ExitOnCrash)
   end
+  commonFunctionsForCRQ26401:Wait()
   Test[test_case_name.."_InitHmi"] = function(self)
     self:initHMI()
   end
@@ -692,6 +700,7 @@ function commonFunctionsForCRQ26401:StopStartSdlInitHmiConnectMobile(test_case_n
   Test[test_case_name.."_StartSdl"] = function(self)
     StartSDL(config.pathToSDL, config.ExitOnCrash)
   end
+  commonFunctionsForCRQ26401:Wait()
   Test[test_case_name.."_InitHmi"] = function(self)
     self:initHMI()
   end
@@ -759,6 +768,33 @@ function commonFunctionsForCRQ26401:RestoreFile(file_name)
   Test["RestoreIniFile"] = function(self)
     common_preconditions:RestoreFile(file_name)
   end
+end
+
+
+function commonFunctionsForCRQ26401:UnregisterApp(test_case_name)
+  Test[test_case_name .. "_UnregisterApp1"] = function(self)
+  --mobile side: UnregisterAppInterface request 
+  local CorIdUAI = self.mobileSession:SendRPC("UnregisterAppInterface",{}) 
+  --hmi side: expect OnAppUnregistered notification 
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
+  --mobile side: UnregisterAppInterface response 
+  self.mobileSession:ExpectResponse(CorIdUAI, { success = true, resultCode = "SUCCESS"})
+  :Timeout(200)
+  end
+  
+  Test[test_case_name .. "_UnregisterApp2"] = function(self)
+  --mobile side: UnregisterAppInterface request 
+  local CorIdUAI = self.mobileSession2:SendRPC("UnregisterAppInterface",{}) 
+  --hmi side: expect OnAppUnregistered notification 
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
+  --mobile side: UnregisterAppInterface response 
+  self.mobileSession2:ExpectResponse(CorIdUAI, { success = true, resultCode = "SUCCESS"})
+  :Timeout(200)
+  end
+end
+
+function commonFunctionsForCRQ26401:PostCondition(test_case_name)  
+  commonFunctionsForCRQ26401:UnregisterApp(test_case_name) 
 end
 
 return commonFunctionsForCRQ26401

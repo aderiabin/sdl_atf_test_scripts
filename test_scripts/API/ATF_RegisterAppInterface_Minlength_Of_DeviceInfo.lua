@@ -8,7 +8,7 @@ local function UnregisterApplicationSessionOne(self)
 	local CorIdUAI = self.mobileSession:SendRPC("UnregisterAppInterface",{}) 
 	
 	--hmi side: expect OnAppUnregistered notification 
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.applications["SyncProxyTester"], unexpectedDisconnect = false})
+	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
 	
 	--mobile side: UnregisterAppInterface response 
 	EXPECT_RESPONSE(CorIdUAI, { success = true, resultCode = "SUCCESS"})

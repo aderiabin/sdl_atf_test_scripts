@@ -33,8 +33,9 @@ local CommonSteps = {}
 --------------------------------------------------------------------------------
 function CommonSteps:AddMobileConnection(test_case_name, mobile_connection_name)
   Test[test_case_name] = function(self)
+    mobile_connection_name = mobile_connection_name or "mobileConnection"
     local tcpConnection = tcp.Connection(config.mobileHost, config.mobilePort)
-    local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
+    local fileConnection = file_connection.FileConnection("mobile_" .. mobile_connection_name .. ".out", tcpConnection)    
     self[mobile_connection_name] = mobile.MobileConnection(fileConnection)
     event_dispatcher:AddConnection(self[mobile_connection_name])
     self[mobile_connection_name]:Connect()
@@ -100,7 +101,9 @@ end
 -- @param app_name: application name will be closed session
 --------------------------------------------------------------------------------
 function CommonSteps:CloseMobileSessionByAppName(test_case_name, app_name)
-  CommonSteps:CloseMobileSession_InternalUsed(app_name, self)
+  Test[test_case_name] = function(self)
+    CommonSteps:CloseMobileSession_InternalUsed(app_name, self)
+  end  
 end
 
 -- COMMON FUNCTIONS FOR SERVICES
@@ -178,6 +181,7 @@ app_name_n = {hmiLevel = "BACKGROUND", systemContext = "MAIN", audioStreamingSta
 function CommonSteps:ActivateApplication(test_case_name, app_name, expected_level, expected_on_hmi_status_for_other_applications)
   Test[test_case_name] = function(self)
     expected_level = expected_level or "FULL"
+    app_name = app_name or config.application1.registerAppInterfaceParams.appName
     local hmi_app_id = common_functions:GetHmiAppId(app_name, self)
     local audio_streaming_state = "NOT_AUDIBLE"
     if common_functions:IsMediaApp(app_name, self) then
@@ -222,8 +226,7 @@ function CommonSteps:ChangeHMIToLimited(test_case_name, app_name)
   Test[test_case_name] = function(self)
     local cid = self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated",
       {
-        appID = common_functions:GetHmiAppId(app_name, self),
-        reason = "GENERAL"
+        appID = common_functions:GetHmiAppId(app_name, self)
       })
     local mobile_connection_name, mobile_session_name = common_functions:GetMobileConnectionNameAndSessionName(app_name, self)
     self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
@@ -277,19 +280,27 @@ end
 function CommonSteps:IgnitionOff(test_case_name)
   Test[test_case_name] = function(self)
     local hmi_app_ids = common_functions:GetHmiAppIds(self)
+    local total_apps = #hmi_app_ids
+    if total_apps == 0 then
+      common_functions:PrintError("[Warning]: There is no registered app.")
+    end
     self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
-    :Times(#hmi_app_ids)
-    -- Fore stop SDL if it has not stopped.
-    StopSDL()
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
+    :Times(total_apps)
+    :Do(function(exp,data) -- ToDo: Remove Do .. end when defect: SDL is not stopped when IGNITION_OFF by ATF
+       if exp.occurences == total_apps then
+        StopSDL()
+       end
+    end)
   end
 end
+
 --------------------------------------------------------------------------------
 -- Ignition On: Start SDL, start HMI and add a mobile connection.
 -- @param test_case_name: Test name
 --------------------------------------------------------------------------------
 function CommonSteps:IgnitionOn(test_case_name)
-  CommonSteps:KillAllSdlProcesses()
+  CommonSteps:KillAllSdlProcesses(test_case_name .. "_KillAllSdlProcessesIfExist")
   CommonSteps:StartSDL(test_case_name .. "_StartSDL")
   CommonSteps:InitializeHmi(test_case_name.."_InitHMI")
   CommonSteps:HmiRespondOnReady(test_case_name.."_InitHMI_onReady")
@@ -366,9 +377,7 @@ function CommonSteps:PreconditionSteps(test_case_name, number_of_precondition_st
   local mobile_connection_name = "mobileConnection"
   local mobile_session_name = "mobileSession"
   local app = config.application1.registerAppInterfaceParams
-
-  common_functions:KillAllSdlProcesses()
-
+  CommonSteps:KillAllSdlProcesses(test_case_name .. "_KillAllSdlProcessesIfExist")
   if number_of_precondition_steps >= 1 then
     CommonSteps:StartSDL(test_case_name .. "_StartSDL")
   end
@@ -400,6 +409,9 @@ function CommonSteps:KillAllSdlProcesses(test_case_name)
   test_case_name = test_case_name or "KillAllSDLProcesses"
   Test[test_case_name] = function(self)
     common_functions:KillAllSdlProcesses()
+    if common_functions:IsFileExist("sdl.pid") then
+      os.remove("sdl.pid")
+    end
   end
 end
 
@@ -454,7 +466,7 @@ end
 --------------------------------------------------------------------------------
 function CommonSteps:PutFile(test_case_name, file_name)
   test_case_name = test_case_name or "PutFile_" .. tostring(file_name)
-  Test[testCaseName] = function(self)
+  Test[test_case_name] = function(self)
     local CorIdPutFile = self.mobileSession:SendRPC(
       "PutFile",
       {
@@ -487,6 +499,13 @@ function CommonSteps:Sleep(test_case_name, sec)
   end
 end
 
+function CommonSteps:RemoveFileInSdlBinFolder(test_case_name, file_name)
+  Test[test_case_name] = function(self)
+    if common_functions:IsFileExist(config.pathToSDL .. file_name) then
+      os.remove(config.pathToSDL .. file_name)
+    end
+  end
+end                
 -- Execute query to insert/ update/ delete data to LPT 
 function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
   Test[test_case_name] = function(self)
@@ -501,5 +520,4 @@ function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
     os.execute("rm -rf " .. policy_file_temp)
   end
 end
-
 return CommonSteps

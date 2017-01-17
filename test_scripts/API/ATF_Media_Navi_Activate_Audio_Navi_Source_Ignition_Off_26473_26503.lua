@@ -139,6 +139,7 @@ function_crq_26401:ResumeNaviApp("LIMITED")
 -- function_crq_26401:StopAudioStreaming(test_case_name,2,"FULL")
 -- function_crq_26401:StartVideoServiceAndStreaming(test_case_name,2,"FULL")
 -- function_crq_26401:StopVideoStreaming(test_case_name,2,"FULL")
+function_crq_26401:PostCondition(test_case_name)
 
 ---------------------------------------------------------------------------------------------
 -- Case 2: Check Media app is resumed to FULL audible and Navi app to LIMITED audible. Value of MixingAudioSupported is false. Reason off is IGNITION_OFF
@@ -168,6 +169,7 @@ function_crq_26401:StopStartSdlInitHmiConnectMobile(test_case_name)
 function_crq_26401:ResumeMediaApp("FULL")
 -- 9. Check navi app is resumed to LIMITED
 function_crq_26401:ResumeNaviApp("LIMITED")
+function_crq_26401:PostCondition(test_case_name)
 
 ---------------------------------------------------------------------------------------------
 -- Case 3: Check Media app is resumed to LIMITED audible and Navi app to FULL audible. Value of MixingAudioSupported is true. Reason off is IGNITION_OFF
@@ -201,6 +203,7 @@ function_crq_26401:ResumeNaviApp("FULL")
 -- function_crq_26401:StopAudioStreaming(test_case_name,2,"LIMITED")
 -- function_crq_26401:StartVideoServiceAndStreaming(test_case_name,2,"LIMITED")
 -- function_crq_26401:StopVideoStreaming(test_case_name,2,"LIMITED")
+function_crq_26401:PostCondition(test_case_name)
 
 ---------------------------------------------------------------------------------------------
 -- Case 4: Check Media app is resumed to LIMITED audible and Navi app to FULL audible. Value of MixingAudioSupported is false. Reason off is IGNITION_OFF
@@ -228,6 +231,7 @@ function_crq_26401:StopStartSdlInitHmiConnectMobile(test_case_name)
 function_crq_26401:ResumeMediaApp("LIMITED")
 -- 8. Check navi app is resumed to FULL
 function_crq_26401:ResumeNaviApp("FULL")
+function_crq_26401:PostCondition(test_case_name)
 
 ---------------------------------------------------------------------------------------------
 -- Case 5: Check Media app is resumed to LIMITED audible and Navi app to LIMITED audible. Value of MixingAudioSupported is true. Reason off is IGNITION_OFF
@@ -263,6 +267,7 @@ function_crq_26401:ResumeNaviApp("LIMITED")
 -- function_crq_26401:StopAudioStreaming(test_case_name,2,"LIMITED")
 -- function_crq_26401:StartVideoServiceAndStreaming(test_case_name,2,"LIMITED")
 -- function_crq_26401:StopVideoStreaming(test_case_name,2,"LIMITED")
+function_crq_26401:PostCondition(test_case_name)
 
 ---------------------------------------------------------------------------------------------
 -- Case 6: Check Media app is resumed to LIMITED audible and Navi app to LIMITED audible. Value of MixingAudioSupported is false. Reason off is IGNITION_OFF
@@ -292,6 +297,7 @@ function_crq_26401:StopStartSdlInitHmiConnectMobile(test_case_name)
 function_crq_26401:ResumeMediaApp("LIMITED")
 -- 9. Check navi app is resumed to LIMITED
 function_crq_26401:ResumeNaviApp("LIMITED")
+function_crq_26401:PostCondition(test_case_name)
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Postconditions-------------------------------------

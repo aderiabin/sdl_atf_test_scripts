@@ -16,8 +16,14 @@ end
 
 function CommonFunctions:DeletePolicyTable()
   CommonFunctions:CheckSdlPath()
-  os.remove(config.pathToSDL .. CommonFunctions:GetValueFromIniFile("AppStorageFolder") .. "/policy.sqlite")
-  os.remove(config.pathToSDL .. "policy.sqlite")
+  local policy_file = config.pathToSDL .. CommonFunctions:GetValueFromIniFile("AppStorageFolder") .. "/policy.sqlite"
+  if common_functions:IsFileExist(policy_file) then
+    os.remove(policy_file)
+  end
+  policy_file = config.pathToSDL .. "policy.sqlite"
+  if common_functions:IsFileExist(policy_file) then
+    os.remove(policy_file)
+  end
 end
 
 function CommonFunctions:DeleteLogsFiles()
@@ -216,6 +222,34 @@ function CommonFunctions:AddItemsIntoJsonFile(json_file, parent_item, added_json
   file:write(data)
   file:close()
 end
+
+--------------------------------------------------------------------------------
+-- Get parameter's value from json file
+-- @param json_file: file name of a JSON file
+-- @param path_to_parameter: full path of parameter
+-- Example: path for Location1 parameter: {"policy", functional_groupings, "Location1"}
+--------------------------------------------------------------------------------
+function CommonFunctions:GetParameterValueInJsonFile(json_file, path_to_parameter)
+  local file = io.open(json_file, "r")
+  if not file then 
+    common_functions:PrintError("Open " .. json_file .. " unsuccessfully")
+    return nil
+  end
+  local json_data = file:read("*all")
+  file:close()
+  if json_data == "" then 
+    common_functions:PrintError("There is no data in " .. json_file .. " file")
+    return nil
+  end
+  local json = require("modules/json")
+  local data = json.decode(json_data) 
+  local parameter = data
+  for i = 1, #path_to_parameter do
+    parameter = parameter[path_to_parameter[i]]
+  end
+  return parameter
+end
+
 --------------------------------------------------------------------------------
 -- Remove items into json file
 -- @param json_file: file name of a JSON file to be removed items
@@ -307,6 +341,7 @@ end
 -- @param removed_items: it is a array of items will be removed
 --------------------------------------------------------------------------------
 function CommonFunctions:QueryPolicyDataBase(sdl_query)
+  sdl_query = "\"" .. sdl_query .. "\""
   -- Look for policy.sqlite file
   local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
   local policy_file2 = config.pathToSDL .. "policy.sqlite"
@@ -316,14 +351,17 @@ function CommonFunctions:QueryPolicyDataBase(sdl_query)
   elseif CommonFunctions:IsFileExist(policy_file2) then
     policy_file = policy_file2
   else
-    common_functions:printError("policy.sqlite file is not exist")
+    common_functions:PrintError("policy.sqlite file is not exist")
   end
   if policy_file then
-    local ful_sql_query = "sqlite3 " .. policy_file .. " " .. sdl_query
+    local temp_file = config.pathToSDL .. "temp_policy.sqlite"
+    os.execute("cp -f " .. policy_file .. " " .. temp_file)
+    local ful_sql_query = "sqlite3 " .. temp_file .. " " .. sdl_query
     local handler = io.popen(ful_sql_query, 'r')
     os.execute("sleep 1")
     local result = handler:read( '*l' )
     handler:close()
+    os.execute("mv -f " .. temp_file .. " " .. policy_file)
     return result
   end
 end
@@ -732,5 +770,40 @@ function CommonFunctions:StoreHmiAppId(app_name, hmi_app_id, self)
   local mobile_connection_name, mobile_session_name = CommonFunctions:GetMobileConnectionNameAndSessionName(app_name, self)
   self.mobile_connections[mobile_connection_name][mobile_session_name][app_name].hmi_app_id = hmi_app_id
 end 
+
+
+-----------------------------------------------------------------------------
+-- Remove a test function from Test module
+-- @param test_name: name of test function
+-- @param test_module: Test module that contains list of tests.
+-----------------------------------------------------------------------------
+function CommonFunctions:RemoveTest(test_name, test_module)
+  local test_function
+  for k_test_function, v_test_name in pairs(test_module.case_names) do
+    if v_test_name == test_name then
+      test_function = k_test_function
+      break
+    end
+  end
+  local test_number = #test_module.test_cases + 1
+  for i = 1, #test_module.test_cases do
+    if test_module.test_cases[i] == test_function then
+      test_number = i
+      break
+    end
+  end
+  -- remove test
+  if test_function then
+    test_module.case_names[test_function] = nil
+    for i = test_number, #test_module.test_cases do
+      if i == #test_module.test_cases then
+        test_module.test_cases[i] = nil
+      else
+        test_module.test_cases[i] = test_module.test_cases[i + 1]
+      end
+    end
+  end
+end
+
 
 return CommonFunctions

@@ -363,14 +363,7 @@ function commonSteps:RegisterAppInterface(TestCaseName)
 		end)
 		
 		--mobile side: expect response
-		self.mobileSession:ExpectResponse(CorIdRegister, 
-		{
-			syncMsgVersion = 
-			{
-				majorVersion = 4,
-				minorVersion = 0
-			}
-		})
+		self.mobileSession:ExpectResponse(CorIdRegister)
 		:Timeout(12000)
 
 		--mobile side: expect notification

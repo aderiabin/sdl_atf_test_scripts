@@ -1,4 +1,4 @@
-Test = require('user_modules/connect_without_mobile_connection')
+Test = require('connecttest')
 common_functions = require('user_modules/common_functions')
 common_steps = require('user_modules/common_steps')
 json = require('json4lua/json/json')
@@ -14,7 +14,15 @@ config = require('config')
 expectations = require('expectations')
 Expectation = expectations.Expectation
 sdl = require('SDL')
-
+update_policy = require('user_modules/shared_testcases/testCasesForPolicyTable')
+common_preconditions = require('user_modules/shared_testcases/commonPreconditions')
+sdl_config = require('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
+-- Remove default precondition from connecttest.lua
+common_functions:RemoveTest("RunSDL", Test)
+common_functions:RemoveTest("InitHMI", Test)
+common_functions:RemoveTest("InitHMI_onReady", Test)
+common_functions:RemoveTest("ConnectMobile", Test)
+common_functions:RemoveTest("StartSession", Test)
 -------------------- Set default settings for ATF script --------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
@@ -27,7 +35,6 @@ os.execute("kill -9 $(ps aux | grep -e smartDeviceLinkCore | awk '{print$2}')")
 if common_functions:IsFileExist(config.pathToSDL  .. "app_info.dat") then
   os.execute("rm -rf " .. config.pathToSDL  .. "app_info.dat")
 end
-
 local path_to_sdl_without_bin = string.gsub(config.pathToSDL, "bin/", "")
 local sdl_bin_bk = path_to_sdl_without_bin .. "sdl_bin_bk/"
 if common_functions:IsDirectoryExist(sdl_bin_bk) == false then
