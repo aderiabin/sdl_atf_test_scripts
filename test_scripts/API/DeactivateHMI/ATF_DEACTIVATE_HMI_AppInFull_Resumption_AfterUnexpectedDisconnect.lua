@@ -42,7 +42,7 @@ common_steps:ActivateApplication("Precondition_Activate_App", media_app.appName)
 -- 2. App is unexpected disconnected and than connected
 common_steps:CloseMobileSession("Close_Mobile_Session",mobile_session)
 
--- 3. After app registration activate Carplay/GAL on HU and than deactivate Carplay/GAL (during 3 seconds after RAI)
+-- 3. After app registration activate Carplay/GAL and than deactivate Carplay/GAL (during 3 seconds after RAI)
 common_steps:AddMobileSession("Add_Mobile_Session", _, mobile_session)
 common_steps:RegisterApplication("Register_App", mobile_session, media_app)
 
@@ -50,11 +50,8 @@ function Test:Start_DeactivateHmi()
   self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= true, eventName="DEACTIVATE_HMI"})
 end
 
-function Test:Stop_DeactivateHmi()
-  function to_run()
-    self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
-  end
-  RUN_AFTER(to_run, 1000)
+function Test:Stop_DeactivateHmi()  
+	self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
 end
 
 function Test:Check_App_Is_Resumed_Successful()

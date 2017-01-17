@@ -17,7 +17,7 @@
 -- Steps:
 -- -- 1. Register media app and activate it
 -- -- 2. Make IGN_OFF-ON
--- -- 3. After app registration activate Carplay/GAL (during 3 seconds after RAI)
+-- -- 3. After app registration activate Carplay/GAL(during 3 seconds after RAI)
 -- -- 4. Wait more than 5 seconds and deactivate Carplay/GAL
 -- Expected result
 -- -- 1. SDL sends UpdateDeviceList with appropriate deviceID
@@ -35,10 +35,11 @@ require('user_modules/all_common_modules')
 resume_timeout = 5000
 local mobile_session = "mobileSession"
 media_app = common_functions:CreateRegisterAppParameters(
-  {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
+    {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
 --------------------------------------Preconditions------------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
-common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
+common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", 
+    "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
 common_steps:PreconditionSteps("Precondition", 5)
 -----------------------------------------------Steps------------------------------------------
 --1. Register media app and activate it
@@ -54,7 +55,8 @@ common_steps:AddMobileSession("Add_Mobile_Session", _, mobile_session)
 common_steps:RegisterApplication("Register_App", mobile_session, media_app)
 
 function Test:Start_DeactivateHmi()
-  self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= true, eventName="DEACTIVATE_HMI"})
+  self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",
+	    {isActive= true, eventName="DEACTIVATE_HMI"})
 end
 
 function Test:Check_App_Is_Not_Resumed_After_ResumingTimeout()
@@ -67,7 +69,8 @@ end
 
 -- 4. Wait more than 5 seconds and deactivate Carplay/GAL
 function Test:Stop_DeactivateHmi()  
-	self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
+	self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",
+	    {isActive= false, eventName="DEACTIVATE_HMI"})
 end
 
 function Test:Check_App_Is_Resumed_Successful()
@@ -75,7 +78,8 @@ function Test:Check_App_Is_Resumed_Successful()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-  self[mobile_session]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+  self[mobile_session]:ExpectNotification("OnHMIStatus", 
+	    {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
 
 -------------------------------------------Postcondition-------------------------------------

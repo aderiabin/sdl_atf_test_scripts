@@ -59,11 +59,8 @@ function Test:Start_DeactivateHmi()
   self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= true, eventName="DEACTIVATE_HMI"})
 end
 
-function Test:Stop_DeactivateHmi()
-  function to_run()
-    self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
-  end
-  RUN_AFTER(to_run, 1000)
+function Test:Stop_DeactivateHmi()  
+	self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
 end
 
 function Test:Check_App_Is_Resumed_Successful()

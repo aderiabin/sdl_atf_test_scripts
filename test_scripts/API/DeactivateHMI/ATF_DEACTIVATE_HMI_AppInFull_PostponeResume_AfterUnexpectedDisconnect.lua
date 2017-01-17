@@ -13,8 +13,8 @@
 -- Steps:
 -- -- 1. Register media app and activate it
 -- -- 2. Disconnect and then connect transport
--- -- 3. After app registration Activate Carplay/GAL on HU (during 3 seconds after RAI)
--- -- 4. Wait more than 5 seconds and deactivate Carplay/GAL on HU
+-- -- 3. After app registration Activate Carplay/GAL(during 3 seconds after RAI)
+-- -- 4. Wait more than 5 seconds and deactivate Carplay/GAL
 -- Expected result
 -- -- 1. SDL sends UpdateDeviceList with appropriate deviceID
 -- -- 2. App is unexpected disconnected and than connected
@@ -45,7 +45,7 @@ common_steps:ActivateApplication("Precondition_Activate_App", media_app.appName)
 -- 2. App is unexpected disconnected and than connected
 common_steps:CloseMobileSession("Close_Mobile_Session",mobile_session)
 
--- 3. After app registration Activate Carplay/GAL on HU (during 3 seconds after RAI)
+-- 3. After app registration Activate Carplay/GAL (during 3 seconds after RAI)
 common_steps:AddMobileSession("Add_Mobile_Session", _, mobile_session)
 common_steps:RegisterApplication("Register_App", mobile_session, media_app)
 
@@ -61,12 +61,9 @@ function Test:Check_App_Is_Not_Resumed_After_ResumingTimeout()
   self[mobile_session]:ExpectNotification("OnHMIStatus"):Times(0)
 end
 
--- 4. Wait more than 5 seconds and deactivate Carplay/GAL on HU
-function Test:Stop_DeactivateHmi()
-  function to_run()
-    self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
-  end
-  RUN_AFTER(to_run, 1000)
+-- 4. Wait more than 5 seconds and deactivate Carplay/GAL
+function Test:Stop_DeactivateHmi()  
+	self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
 end
 
 function Test:Check_App_Is_Resumed_Successful()

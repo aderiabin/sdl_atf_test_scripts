@@ -1,25 +1,38 @@
 -----------------------------------Test cases----------------------------------------
--- Checks that SDL postpones resumption of media app that was in FULL before unexpected disconnect
--- if SDL receives BasicCommunication.OnEventChanged("DEACTIVATE_HMI","isActive":true)
--- notification before app's RAI and receives BasicCommunication.OnEventChanged("DEACTIVATE_HMI","isActive":false)
--- notification after "ApplicationResumingTimeout".
+-- Checks resumption of HMI Level when application is running on SDL in FULL
+-- and disconnects due to activation of CarPlay an then re-connects after its deactivation.
+-- The HMI level is stored and postponed 
+-- when SDL receives BasicCommunication.OnEventChanged ("DEACTIVATE_HMI","isActive":true) notification 
+-- and then resumed after SDL receives BasicCommunication.OnEventChanged ("eventName":"DEACTIVATE_HMI","isActive":false) notification.
+-- SDL must send BC.ActivateApp to HMI in case app must be resumed to FULL
 -- Precondition:
--- -- 1. Default HMI level = NONE.
--- -- 2. Core and HMI are started.
--- -- 3. These values are configured in .ini file:
--- -- -- AppSavePersistentDataTimeout =10;
--- -- -- ResumptionDelayBeforeIgn = 30;
--- -- -- ResumptionDelayAfterIgn = 30;
+-- -- 1. SDL is started
+-- -- 2. HMI is started
+-- -- 3. App is registered
+-- -- 4. App is in "FULL" and "AUDIBLE" HMI Level. 
 -- Steps:
--- -- 1. Register media app and activate it
--- -- 2. Disconnect and then connect transport
--- -- 3. Activate Carplay/GAL on HU
--- -- 4. Connect transport and register app from step 1 and wait 5 seconds
+-- -- 1. Activate Carplay/GAL
+-- -- 2. Device disconnects
+-- -- 3. Device reconnects
+-- -- 4. Deactivate Activate Carplay/GAL
+-- -- 5. Device disconnects
+-- -- 6. Device reconnects
 -- Expected result
--- -- 1. SDL sends UpdateDeviceList with appropriate deviceID
--- -- 2. App is unexpected disconnected and than connected
--- -- 3. HMI sends BasicCommunication.OnEventChanged("eventName":"DEACTIVATE_HMI","isActive":true) to SDL
--- -- 4. App is registered, ApplicationResumingTimeout is expired. SDL postpones resumption
+-- -- 1. SDL receives BasicCommunication.OnEventChanged("eventName":"DEACTIVATE_HMI","isActive":true) from HMI.
+-- -- -- SDL sends OnHMIStatus (“HMILevel: BACKGROUND, audioStreamingState: NOT_AUDIBLE”) 
+-- -- 2. SDL sends BasicCommunication.OnAppUnregistered ("unexpectedDisconnect = true)"
+-- -- 3. SDL receives RegisterAppInterface (SUCCESS)
+-- -- -- SDL sends OnAppRegistered
+-- -- -- SDL sends OnHMIStatus (“HMILevel: NONE, audioStreamingState: NOT_AUDIBLE”) this is the default HMI level (NONE)
+-- -- -- SDL postpones HMI level resumption and stores postponedHMILevel=FULL (not current)
+-- -- 4. SDL receives BasicCommunication.OnEventChanged("eventName":"DEACTIVATE_HMI","isActive":false) from HMI
+-- -- -- SDL sends OnHMIStatus (“HMILevel: FULL, audioStreamingState: NOT_AUDIBLE)
+-- -- 5. SDL sends BasicCommunication.OnAppUnregistered ("unexpectedDisconnect = true"
+-- -- 6. SDL receives RegisterAppInterface (SUCCESS)
+-- -- -- SDL sends OnAppRegistered
+-- -- -- SDL resumes (stored) postponed HMILevel FULL
+-- -- -- SDL sends BasicCommunication.ActivateApp
+-- -- -- SDL sends OnHMIStatus (“HMILevel: FULL, audioStreamingState: AUDIBLE”)
 -- Postcondition
 -- -- 1.UnregisterApp
 -- -- 2.StopSDL
@@ -29,37 +42,34 @@ require('user_modules/all_common_modules')
 resume_timeout = 5000
 local mobile_session = "mobileSession"
 media_app = common_functions:CreateRegisterAppParameters(
-  {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
+    {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
 --------------------------------------Preconditions------------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
-common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
+common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", 
+    "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
 common_steps:PreconditionSteps("Precondition", 5)
------------------------------------------------Steps------------------------------------------
---1. Register media app and activate it
 common_steps:RegisterApplication("Precondition_Register_App", mobile_session, media_app)
 common_steps:ActivateApplication("Precondition_Activate_App", media_app.appName)
-
--- 2. App is unexpected disconnected and than connected
-common_steps:CloseMobileSession("Close_Mobile_Session",mobile_session)
-
--- 3. Activate Carplay/GAL on HU
+-----------------------------------------------Steps------------------------------------------
+-- 1. Activate Carplay/GAL
 function Test:Start_DeactivateHmi()
-  self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= true, eventName="DEACTIVATE_HMI"})
+  self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",
+	    {isActive= true, eventName="DEACTIVATE_HMI"})
 end
 
--- 4. Connect transport and register app from step 1 and wait 5 seconds
+-- 2. Device disconnects
+common_steps:CloseMobileSession("Close_Mobile_Session",mobile_session)
+
+-- 3. Device reconnects
 common_steps:AddMobileSession("Add_Mobile_Session", _, mobile_session)
 common_steps:RegisterApplication("Register_App", mobile_session, media_app)
 
 function Test:Check_App_Is_Not_Resumed_After_ResumingTimeout()
   common_functions:DelayedExp(resume_timeout + 1000)
-  EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnResumeAudioSource"):Times(0)
-  local mobile_conenction_name, mobile_session = common_functions:GetMobileConnectionNameAndSessionName(media_app.appName, self)
   self[mobile_session]:ExpectNotification("OnHMIStatus"):Times(0)
 end
 
--- 4. Wait more than 5 seconds and deactivate Carplay/GAL on HU
+-- 4. Deactivate Activate Carplay/GAL
 function Test:Stop_DeactivateHmi()
   function to_run()
     self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
@@ -72,9 +82,25 @@ function Test:Check_App_Is_Resumed_Successful()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-  self[mobile_session]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+  self[mobile_session]:ExpectNotification("OnHMIStatus", 
+	    {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
 
+-- 5. Device disconnects
+common_steps:CloseMobileSession("Close_Mobile_Session",mobile_session)
+
+-- 6. Device reconnects
+common_steps:AddMobileSession("Add_Mobile_Session", _, mobile_session)
+common_steps:RegisterApplication("Register_App", mobile_session, media_app)
+
+function Test:Check_App_Is_Resumed_Successful()
+  EXPECT_HMICALL("BasicCommunication.ActivateApp")
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+    end)
+  self[mobile_session]:ExpectNotification("OnHMIStatus", 
+	    {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+end
 -------------------------------------------Postcondition-------------------------------------
 common_steps:UnregisterApp("UnRegister_App", media_app.appName)
 common_steps:StopSDL("StopSDL")

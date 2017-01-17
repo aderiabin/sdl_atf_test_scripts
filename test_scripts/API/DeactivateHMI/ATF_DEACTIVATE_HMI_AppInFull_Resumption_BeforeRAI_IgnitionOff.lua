@@ -17,7 +17,7 @@
 -- Steps:
 -- -- 1. Register media app and activate it
 -- -- 2. Make IGN_OFF-ON
--- -- 3. Activate Carplay/GAL
+-- -- 3. Activate Carplay/GAL on HU
 -- -- 4. Register app and deactivate Carplay/GAL (during 3 seconds after RAI)
 -- Expected result
 -- -- 1. SDL sends UpdateDeviceList with appropriate deviceID
@@ -36,10 +36,11 @@ require('user_modules/all_common_modules')
 resume_timeout = 7000
 local mobile_session = "mobileSession"
 media_app = common_functions:CreateRegisterAppParameters(
-  {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
+    {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
 --------------------------------------Preconditions------------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
-common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
+common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", 
+    "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
 common_steps:PreconditionSteps("Precondition", 5)
 -----------------------------------------------Steps------------------------------------------
 --1. Register media app and activate it
@@ -50,17 +51,21 @@ common_steps:ActivateApplication("Precondition_Activate_App", media_app.appName)
 common_steps:IgnitionOff("Precondition_Ignition_Off")
 common_steps:IgnitionOn("Precondition_Ignition_On")
 
--- 3. Activate Carplay/GAL
+-- 3. Activate Carplay/GAL on HU
 function Test:Start_DeactivateHmi()
-  self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= true, eventName="DEACTIVATE_HMI"})
+  self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",
+	    {isActive= true, eventName="DEACTIVATE_HMI"})
 end
 
 -- 4. Register app and deactivate Carplay/GAL (during 3 seconds after RAI)
 common_steps:AddMobileSession("Add_Mobile_Session", _, mobile_session)
 common_steps:RegisterApplication("Register_App", mobile_session, media_app)
 
-function Test:Stop_DeactivateHmi()  
-	self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
+function Test:Stop_DeactivateHmi()
+  function to_run()
+    self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
+  end
+  RUN_AFTER(to_run, 1000)
 end
 
 function Test:Check_App_Is_Resumed_Successful()
@@ -68,7 +73,8 @@ function Test:Check_App_Is_Resumed_Successful()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-  self[mobile_session]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+  self[mobile_session]:ExpectNotification("OnHMIStatus", 
+	    {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
 
 -------------------------------------------Postcondition-------------------------------------
