@@ -13,7 +13,7 @@
 -- Steps:
 -- -- 1. Register media app and activate it
 -- -- 2. Disconnect and then connect transport
--- -- 3. Activate Carplay/GAL on HU
+-- -- 3. Activate Carplay/GAL
 -- -- 4. Connect transport and register app and deactivate Carplay/GAL(during 3 seconds after RAI)
 -- Expected result
 -- -- 1. SDL sends UpdateDeviceList with appropriate deviceID
@@ -45,7 +45,7 @@ common_steps:ActivateApplication("Precondition_Activate_App", media_app.appName)
 -- 2. App is unexpected disconnected and than connected
 common_steps:CloseMobileSession("Close_Mobile_Session",mobile_session)
 
--- 3. Activate Carplay/GAL on HU
+-- 3. Activate Carplay/GAL
 function Test:Start_DeactivateHmi()
   self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",
 	    {isActive= true, eventName="DEACTIVATE_HMI"})

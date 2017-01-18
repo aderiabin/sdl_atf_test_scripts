@@ -17,7 +17,7 @@
 -- Steps:
 -- -- 1. Register media app and activate it
 -- -- 2. Make IGN_OFF-ON
--- -- 3. Activate Carplay/GAL on HU
+-- -- 3. Activate Carplay/GAL
 -- -- 4. Register app and deactivate Carplay/GAL (during 3 seconds after RAI)
 -- Expected result
 -- -- 1. SDL sends UpdateDeviceList with appropriate deviceID
@@ -51,7 +51,7 @@ common_steps:ActivateApplication("Precondition_Activate_App", media_app.appName)
 common_steps:IgnitionOff("Precondition_Ignition_Off")
 common_steps:IgnitionOn("Precondition_Ignition_On")
 
--- 3. Activate Carplay/GAL on HU
+-- 3. Activate Carplay/GAL
 function Test:Start_DeactivateHmi()
   self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",
 	    {isActive= true, eventName="DEACTIVATE_HMI"})

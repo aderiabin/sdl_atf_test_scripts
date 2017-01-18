@@ -53,7 +53,7 @@ common_steps:ActivateApplication("Precondition_Activate_App", media_app.appName)
 common_steps:IgnitionOff("Precondition_Ignition_Off")
 common_steps:IgnitionOn("Precondition_Ignition_On")
 
--- 3. Activate Carplay/GAL on HU)
+-- 3. Activate Carplay/GAL
 function Test:StartDeactivateHmi()
   self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",
 	    {isActive= true, eventName="DEACTIVATE_HMI"})
@@ -70,7 +70,7 @@ function Test:CheckAppIsNotResumedAfterResumingTimeout()
   self[mobile_session]:ExpectNotification("OnHMIStatus"):Times(0)
 end
 
--- 5. Deactivate Carplay/GAL on HU
+-- 5. Deactivate Carplay/GAL
 function Test:Stop_DeactivateHmi()
   function to_run()
     self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged",{isActive= false, eventName="DEACTIVATE_HMI"})
