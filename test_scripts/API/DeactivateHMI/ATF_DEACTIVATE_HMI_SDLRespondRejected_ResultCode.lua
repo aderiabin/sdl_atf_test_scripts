@@ -36,11 +36,11 @@ function Test:Verify_App_Change_To_BACKGROUND_Incase_HmiLevel_Is_FULL_And_Deacti
 	    {hmiLevel="BACKGROUND", audioStreamingState="NOT_AUDIBLE", systemContext = "MAIN"})
 end
 
-function Test:Verify_REJECTED_resultCode_When_Deactivate_Is_True_And_Register_App()
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", 
-	    config.application1.registerAppInterfaceParams)
-  self.mobileSession:ExpectResponse(CorIdRAI, 
-	    {success = false, resultCode = "APPLICATION_REGISTERED_ALREADY"})
+function Test:Verify_REJECTED_resultCode_When_Deactivate_Is_True_And_Activate_App()  
+	local hmi_app_id = common_functions:GetHmiAppId(app_name, self)
+	local cid = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id})
+	self.hmiConnection:SendResponse(cid, 
+	    {error = {code = 4, data = {method = "SDL.ActivateApp"}, message = "HMIDeactivate is active"}})
 end
 
 -------------------------------------------Postcondition-------------------------------------
