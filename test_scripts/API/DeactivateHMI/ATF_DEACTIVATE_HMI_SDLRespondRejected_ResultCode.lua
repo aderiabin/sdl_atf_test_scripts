@@ -39,8 +39,7 @@ end
 function Test:Verify_REJECTED_resultCode_When_Deactivate_Is_True_And_Activate_App()  
 	local hmi_app_id = common_functions:GetHmiAppId(app_name, self)
 	local cid = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id})
-	self.hmiConnection:SendResponse(cid, 
-	    {error = {code = 4, data = {method = "SDL.ActivateApp"}, message = "HMIDeactivate is active"}})
+	EXPECT_HMIRESPONSE(cid, {error = {code = 4, message = "HMIDeactivate is active", data = {method = "SDL.ActivateApp"}}})
 end
 
 -------------------------------------------Postcondition-------------------------------------
