@@ -1,10 +1,9 @@
 -----------------------------------Test cases----------------------------------------
 -- Check that In case an application (Media) was in LIMITED
 -- when SDL got BasicCommunication.OnEventChanged("DEACTIVATE_HMI","isActive":true) from HMI
--- and SDL receives BasicCommunication.OnEventChanged("DEACTIVATE_HMI","isActive":false) ,
--- SDL must send OnHMIStatus (“HMILevel: LIMITED, audioStreamingState: NOT_AUDIBLE”) to such application.
--- and SDL receives BasicCommunication.OnEventChanged("DEACTIVATE_HMI","isActive":true) from HMI, 
 -- SDL must send OnHMIStatus (“HMILevel: BACKGROUND, audioStreamingState: NOT_AUDIBLE”) to such application.
+-- and then SDL receives BasicCommunication.OnEventChanged("DEACTIVATE_HMI","isActive":false) from HMI,
+-- SDL must send OnHMIStatus (“HMILevel: LIMITED, audioStreamingState: NOT_AUDIBLE”) to such application.
 -- Precondition:
 -- -- 1. SDL is started
 -- -- 2. HMI is started

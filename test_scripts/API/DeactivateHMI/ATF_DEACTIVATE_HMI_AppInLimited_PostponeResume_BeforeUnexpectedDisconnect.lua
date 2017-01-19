@@ -45,6 +45,7 @@ media_app = common_functions:CreateRegisterAppParameters(
     {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
 --------------------------------------Preconditions------------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
+-- update ApplicationResumingTimeout with the time enough to check app is (not) resumed
 common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", 
     "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
 common_steps:PreconditionSteps("Precondition", 5)
@@ -89,6 +90,7 @@ end
 
 -- 5. Device disconnects
 common_steps:CloseMobileSession("Close_Mobile_Session",mobile_session)
+
 -- 6. Device reconnects
 common_steps:AddMobileSession("Add_Mobile_Session", _, mobile_session)
 common_steps:RegisterApplication("Register_App", mobile_session, media_app)

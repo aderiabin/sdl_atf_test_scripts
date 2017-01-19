@@ -1,14 +1,14 @@
 -----------------------------------Test cases----------------------------------------
--- Check that in case an application_1 (Media) is in FULL HMILevel
--- and application_2 (Non-Media) is in LIMITED HMILevel
+-- Check that in case an application_1 (Media) is in LIMITED HMILevel
+-- and application_2 (Non-Media) is in FULL HMILevel
 -- and SDL receives BasicCommunication.OnEventChanged("DEACTIVATE_HMI","isActive":true) from HMI
 -- SDL must send OnHMIStatus (“HMILevel: BACKGROUND, audioStreamingState: NOT_AUDIBLE”) to such applications.
 -- Precondition:
 -- -- 1. SDL is started
 -- -- 2. HMI is started
 -- -- 3. App_1 (Media) and App_2 (Non-Media)
--- -- 4. App_1 is in "FULL" HMI Level
--- -- 5. App_2 is in "LIMITED" HMI Level.
+-- -- 4. App_1 is in "LIMITED" HMI Level
+-- -- 5. App_2 is in "FULL" HMI Level.
 -- Steps:
 -- -- 1. Connect mobile
 -- -- 2. Activate Carplay/GAL
@@ -17,8 +17,8 @@
 -- -- 1. SDL sends UpdateDeviceList with appropriate deviceID
 -- -- 2. SDL receives BC.OnEventChanged("eventName":"DEACTIVATE_HMI","isActive":true) from HMI.
 -- -- -- SDL send OnHMIStatus (“HMILevel: BACKGROUND, audioStreamingState: NOT_AUDIBLE”) to both apps
--- -- 3. SDL send to App_1 OnHMIStatus (HMILevel: FULL, audioStreamingState:<current_state>)
--- -- -- SDL send to App_2 OnHMIStatus (HMILevel: LIMITED, audioStreamingState:<current_state>)
+-- -- 3. SDL send to App_1 OnHMIStatus (HMILevel: LIMITED, audioStreamingState:<current_state>)
+-- -- -- SDL send to App_2 OnHMIStatus (HMILevel: FULL, audioStreamingState:<current_state>)
 -- Postcondition
 -- -- 1.UnregisterApp
 -- -- 2.StopSDL

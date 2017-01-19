@@ -1,10 +1,10 @@
 -----------------------------------Test cases----------------------------------------
--- Checks resumption of HMI Level when application is running on SDL in FULL
--- and disconnects due to activation of CarPlay an then re-connects after its deactivation.
--- The HMI level is stored and postponed 
--- when SDL receives BasicCommunication.OnEventChanged ("DEACTIVATE_HMI","isActive":true) notification 
--- and then resumed after SDL receives BasicCommunication.OnEventChanged ("eventName":"DEACTIVATE_HMI","isActive":false) notification.
--- SDL must send BC.ActivateApp to HMI in case app must be resumed to FULL
+-- Checks that resumption of HMI Level does not happen
+-- when application is running on SDL in FULL
+-- and disconnects due to activation of CarPlay an then re-connects after IGNITION_OFF.
+-- The HMI level is stored and postponed
+-- when SDL receives BasicCommunication.OnEventChanged ("DEACTIVATE_HMI","isActive":true) notification.
+-- The HMILevel is not resumed after IGNITION_OFF and the default HMILevel NONE is used
 -- Precondition:
 -- -- 1. SDL is started
 -- -- 2. HMI is started
@@ -19,7 +19,7 @@
 -- Expected result
 -- -- 1. SDL receives BasicCommunication.OnEventChanged("eventName":"DEACTIVATE_HMI","isActive":true) from HMI.
 -- -- -- SDL sends OnHMIStatus (“HMILevel: BACKGROUND, audioStreamingState: NOT_AUDIBLE”) 
--- -- 2. SDL sends BasicCommunication.OnAppUnregistered ("unexpectedDisconnect = true)"
+-- -- 2. SDL sends BasicCommunication.OnAppUnregistered (unexpectedDisconnect = true)
 -- -- 3. SDL receives RegisterAppInterface (SUCCESS)
 -- -- -- SDL sends OnAppRegistered
 -- -- -- SDL sends OnHMIStatus (“HMILevel: NONE, audioStreamingState: NOT_AUDIBLE”) this is the default HMI level (NONE)
@@ -42,6 +42,7 @@ media_app = common_functions:CreateRegisterAppParameters(
     {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
 --------------------------------------Preconditions------------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
+-- update ApplicationResumingTimeout with the time enough to check app is (not) resumed
 common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", 
     "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
 common_steps:PreconditionSteps("Precondition", 5)

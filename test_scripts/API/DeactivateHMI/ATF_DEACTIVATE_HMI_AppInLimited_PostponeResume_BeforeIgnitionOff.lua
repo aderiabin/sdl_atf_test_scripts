@@ -1,15 +1,15 @@
 -----------------------------------Test cases----------------------------------------
--- Checks resumption of HMI Level when application is running on SDL in LIMITED
--- and disconnects due to activation of CarPlay an then re-connects after its deactivation.
+-- Checks that resumption of HMI Level does not happen 
+-- when application is running on SDL in LIMITED 
+-- and disconnects due to activation of CarPlay an then re-connects after IGNITION_OFF.
 -- The HMI level is stored and postponed 
--- when SDL receives BasicCommunication.OnEventChanged ("DEACTIVATE_HMI","isActive":true) notification 
--- and then resumed after SDL receives BasicCommunication.OnEventChanged ("eventName":"DEACTIVATE_HMI","isActive":false) notification.
--- SDL must send BC.ActivateApp to HMI in case app must be resumed to LIMITED
+-- when SDL receives BasicCommunication.OnEventChanged ("DEACTIVATE_HMI","isActive":true) notification.
+-- The HMILevel is not resumed after IGNITION_OFF and the default HMILevel NONE is used
 -- Precondition:
 -- -- 1. SDL is started
 -- -- 2. HMI is started
--- -- 3. App is registered
--- -- 4. App is in "LIMITED" and "AUDIBLE" HMI Level. 
+-- -- 3. App is registered via BT.
+-- -- 4. App is in "LIMITED" and "AUDIBLE" HMI Level.  
 -- Steps:
 -- -- 1. Activate Carplay/GAL
 -- -- 2. Device disconnects
@@ -42,6 +42,7 @@ media_app = common_functions:CreateRegisterAppParameters(
     {appID = "1", appName = "MEDIA", isMediaApplication = true, appHMIType = {"MEDIA"}})
 --------------------------------------Preconditions------------------------------------------
 common_steps:BackupFile("Backup Ini file", "smartDeviceLink.ini")
+-- update ApplicationResumingTimeout with the time enough to check app is (not) resumed
 common_steps:SetValuesInIniFile("Update ApplicationResumingTimeout value", 
     "%p?ApplicationResumingTimeout%s? = %s-[%d]-%s-\n", "ApplicationResumingTimeout", resume_timeout)
 common_steps:PreconditionSteps("Precondition", 5)
