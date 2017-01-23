@@ -5,7 +5,7 @@ local api_loader = require("modules/api_loader")
 local mobile_api = api_loader.init("data/MOBILE_API.xml")
 local interface_schema = mobile_api.interface["Ford Sync RAPI"]
 
---! @brief Function which returnes unordered key set from any table
+--! @brief Function which returns unordered key set from any table
 --! @param table - table from which we are going to get keys
 function module.GetUnorderedTableKeyset(source_table)
   local keyset = {}
