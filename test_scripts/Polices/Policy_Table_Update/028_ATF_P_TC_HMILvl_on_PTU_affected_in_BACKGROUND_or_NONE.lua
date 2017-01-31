@@ -24,8 +24,8 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonFunctions = require("user_modules/shared_testcases_genivi/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases_genivi/commonSteps")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -180,11 +180,12 @@ local function check_file_exists(name)
 end
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/shared_testcases_genivi/connecttest")
 require("user_modules/AppTypes")
 
 ptu_table = ptsToTable("files/ptu.json")

@@ -27,11 +27,11 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
+local commonFunctions = require('user_modules/shared_testcases_genivi/commonFunctions')
+local commonTestCases = require('user_modules/shared_testcases_genivi/commonTestCases')
+local testCasesForPolicyTable = require('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -41,11 +41,12 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
+commonFunctions:cleanup_environment()
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)

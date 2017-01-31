@@ -29,12 +29,13 @@ config.application1.registerAppInterfaceParams.isMediaApplication = true
 config.application1.registerAppInterfaceParams.appID = "1234567"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
-local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases_genivi/commonPreconditions')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
@@ -73,7 +74,7 @@ end
 SetPermissionsForDefault()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 

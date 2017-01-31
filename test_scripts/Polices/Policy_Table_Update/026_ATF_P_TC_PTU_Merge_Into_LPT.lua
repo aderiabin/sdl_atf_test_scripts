@@ -25,9 +25,9 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
 local mobileSession = require("mobile_session")
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonFunctions = require("user_modules/shared_testcases_genivi/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases_genivi/commonSteps")
+local testCasesForPolicyTable = require('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
 
 --[[ Local Variables ]]
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
@@ -60,11 +60,12 @@ local function is_table_equal(t1, t2)
 end
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/shared_testcases_genivi/connecttest")
 require("user_modules/AppTypes")
 
 --[[ Preconditions ]]

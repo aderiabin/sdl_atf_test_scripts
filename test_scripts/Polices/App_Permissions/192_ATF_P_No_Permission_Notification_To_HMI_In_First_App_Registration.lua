@@ -21,12 +21,13 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
-local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases_genivi/commonPreconditions')
+local commonTestCases = require ('user_modules/shared_testcases_genivi/commonTestCases')
 
 --[[ General Preconditions before ATF starts ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 

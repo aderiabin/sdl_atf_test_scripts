@@ -18,15 +18,16 @@
 ---------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 local config = require('config')
 require('user_modules/AppTypes')
 config.defaultProtocolVersion = 2

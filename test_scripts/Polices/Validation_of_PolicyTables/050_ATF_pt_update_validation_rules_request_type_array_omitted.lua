@@ -25,17 +25,18 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local mobile_session = require('mobile_session')
 local config = require('config')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 
 require('cardinalities')
 require('user_modules/AppTypes')

@@ -24,15 +24,16 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
-local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local commonFunctions = require("user_modules/shared_testcases_genivi/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases_genivi/commonSteps")
+local testCasesForPolicyTable = require("user_modules/shared_testcases_genivi/testCasesForPolicyTable")
+local commonTestCases = require("user_modules/shared_testcases_genivi/commonTestCases")
 
 --[[ Local Variables ]]
 local hmiLevels = { }
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
@@ -51,7 +52,7 @@ config.application3.registerAppInterfaceParams.isMediaApplication = false
 config.application4.registerAppInterfaceParams.isMediaApplication = true
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/shared_testcases_genivi/connecttest")
 require("user_modules/AppTypes")
 
 --[[ Preconditions ]]

@@ -19,15 +19,16 @@
 
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases_genivi/testCasesForPolicySDLErrorsStops')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 local config = require('config')
 require('cardinalities')
 require('user_modules/AppTypes')

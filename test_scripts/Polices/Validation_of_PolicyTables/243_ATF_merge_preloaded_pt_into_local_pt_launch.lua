@@ -19,14 +19,15 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
-local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases_genivi/commonPreconditions')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
 local json = require("modules/json")
 
 config.defaultProtocolVersion = 2
 
+commonFunctions:cleanup_environment()
 
 --[[ Local Variables ]]
 local TESTED_DATA = {
@@ -226,7 +227,7 @@ commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
 prepareInitialPreloadedPT()
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 local config = require('config')
 require('user_modules/AppTypes')
 
