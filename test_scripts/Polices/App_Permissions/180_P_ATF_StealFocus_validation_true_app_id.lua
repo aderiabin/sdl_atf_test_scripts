@@ -19,10 +19,10 @@ config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonFunctions = require('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
+local testCasesForPolicyTable = require('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
 
 --[[ Local Functions ]]
 local function SendOnSystemContext(self, ctx)
@@ -30,11 +30,12 @@ local function SendOnSystemContext(self, ctx)
 end
 
 --[[ General Precondition before ATF start]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/ptu_general_default_steal_focus_true.json")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 

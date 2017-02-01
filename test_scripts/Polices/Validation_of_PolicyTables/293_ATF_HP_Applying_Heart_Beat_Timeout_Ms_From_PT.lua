@@ -25,16 +25,17 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
-local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
+local commonPreconditions = require ('user_modules/shared_testcases_genivi/commonPreconditions')
 
 --[[ Local Variables ]]
 local HBTime_max
 local HBTime_min
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/ptu_heart_beat_timeout_ms_app_1234567.json")

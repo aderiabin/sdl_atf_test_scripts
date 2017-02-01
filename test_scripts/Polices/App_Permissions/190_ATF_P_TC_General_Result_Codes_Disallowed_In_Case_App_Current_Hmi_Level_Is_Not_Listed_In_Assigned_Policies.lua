@@ -24,17 +24,18 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
+local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases_genivi/testCasesForPolicyAppIdManagament")
+local commonFunctions = require("user_modules/shared_testcases_genivi/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases_genivi/commonSteps")
+local testCasesForPolicyTable = require("user_modules/shared_testcases_genivi/testCasesForPolicyTable")
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/shared_testcases_genivi/connecttest")
 require("user_modules/AppTypes")
 
 --[[ Preconditions ]]

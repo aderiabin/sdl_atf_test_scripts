@@ -15,18 +15,19 @@
 -- SDL continue working as assigned
 ---------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
+local testCasesForPolicyTable = require('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
+local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases_genivi/testCasesForPolicySDLErrorsStops')
 
 --[[ General Precondition before ATF start]]
 config.defaultProtocolVersion = 2
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/PTU_ValidationRules/sdl_preloaded_pt_without_optional_params.json")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require("user_modules/AppTypes")
 
 --[[ Test ]]

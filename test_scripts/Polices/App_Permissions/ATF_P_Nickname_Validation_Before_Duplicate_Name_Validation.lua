@@ -22,12 +22,16 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
+
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+
+--[[Precondition]]
+commonFunctions:cleanup_environment()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 local mobile_session = require('mobile_session')
 

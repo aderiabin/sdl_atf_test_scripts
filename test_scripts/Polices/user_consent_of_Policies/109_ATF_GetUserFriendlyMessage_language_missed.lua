@@ -21,10 +21,10 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
+local testCasesForPolicyTable = require('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
 
 --[[ Local variables ]]
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
@@ -35,11 +35,12 @@ local textBody = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("con
 local label = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.DataConsent.languages.en-us.label")
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PTU_GetUserFriendlyMessage_without_DE_DE.json")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 

@@ -17,16 +17,17 @@
 -- SDL continue working as assigned
 ---------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases_genivi/testCasesForPolicySDLErrorsStops')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require("user_modules/AppTypes")
 
 --[[ Test ]]

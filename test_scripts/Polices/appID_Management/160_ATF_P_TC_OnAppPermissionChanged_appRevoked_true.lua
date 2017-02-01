@@ -24,9 +24,12 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 --[[ Required Shared libraries ]]
 -- local mobileSession = require("mobile_session")
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
+local commonFunctions = require('user_modules/shared_testcases_genivi/commonFunctions')
 local json = require("modules/json")
+
+
+commonFunctions:cleanup_environment()
 
 --[[ Local Variables ]]
 local ptu_table
@@ -62,7 +65,7 @@ commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]

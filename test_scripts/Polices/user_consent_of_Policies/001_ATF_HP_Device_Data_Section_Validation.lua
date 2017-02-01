@@ -38,15 +38,16 @@
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 
 --[[ Required Shared libraries ]]
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 require('user_modules/AppTypes')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 

@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
 -- Description:
 -- Application with appID intends to be registered on SDL, device with deviceID the application is running on is connected to HU.
 -- 1. Used preconditions:
@@ -31,13 +31,14 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
-local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
-local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases_genivi/commonPreconditions')
+local commonTestCases = require ('user_modules/shared_testcases_genivi/commonTestCases')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_connect_device.lua")
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed

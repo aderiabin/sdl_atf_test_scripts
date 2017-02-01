@@ -23,15 +23,16 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:cleanup_environment()
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 
 function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPermissionsChange()

@@ -23,10 +23,10 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
+local testCasesForPolicyTable = require('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
+local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
 
 --[[ General Precondition before ATF start ]]
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -34,11 +34,12 @@ config.defaultProtocolVersion = 2
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
+commonFunctions:cleanup_environment()
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
