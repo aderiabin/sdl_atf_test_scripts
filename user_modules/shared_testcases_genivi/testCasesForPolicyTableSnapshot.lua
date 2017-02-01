@@ -221,10 +221,15 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".carrier", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".max_number_rfcom_ports", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".connection_type", elem_required = "required"}
-        --TODO(istoimenova): Update when "[GENIVI] SDL must support "Mobile Apps via USB" setting for each Android device " is implemented
-        --omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".usb_transport_enabled", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".usb_transport_status", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.input", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.time_stamp", elem_required = "required"}
+        if(app_IDs ~= nil) then
+        for j = 1, #app_IDs do
+          omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records."..app_IDs[j]..".time_stamp", elem_required = "optional"}
+          omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records."..app_IDs[j]..".input", elem_required = "required"}
+        end
+        end
       end
 
       --TODO(istoimenova): Clarification for the section - exist only if application has consented groups?
