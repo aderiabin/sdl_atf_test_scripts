@@ -313,3 +313,4 @@
 ./test_scripts/Polices/build_options/001_ATF_P_TC_SDL_Build_DEXTENDED_POLICY_EXTERNAL_PROPRIETARY.lua
 ./test_scripts/API/ATF_AddCommand_INVALID_DATA_Incorrect_JSON.lua
 ./test_scripts/API/ATF_AddCommand_INVALID_DATA_Mandatory_Param_Missing.lua
+./test_scripts/API/ATF_AddCommand_Success_PositiveRequestCheckWithAllParameters.lua
