@@ -130,3 +130,4 @@
 ./test_scripts/Smoke_test/ATF_Smoke_testing_resumption_many_apps.lua
 ./test_scripts/API/ATF_AddCommand_INVALID_DATA_Incorrect_JSON.lua
 ./test_scripts/API/ATF_AddCommand_INVALID_DATA_Mandatory_Param_Missing.lua
+./test_scripts/API/ATF_AddCommand_Success_PositiveRequestCheckWithAllParameters.lua
