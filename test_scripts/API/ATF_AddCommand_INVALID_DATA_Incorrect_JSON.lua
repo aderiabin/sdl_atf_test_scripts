@@ -17,25 +17,25 @@ common_steps:PutFile("Precondition_Put_File", icon_name)
 -- respond with resultCode "INVALID_DATA" and success:"false" value. 
 ----------------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Incorrect_JSON()
-	local msg = 
-	{
-		-- serviceType = <Remote Procedure Call>
-		serviceType      = 7,
-		-- default frameInfo for SingleFrameType
-		frameInfo        = 0,
-		-- rpcType = <Request>
-		rpcType          = 0,
-		-- rpcFunctionId = <AddCommandID>
-		rpcFunctionId    = 5,
-		rpcCorrelationId = self.mobileSession.correlationId,
-		-- incorrect JSON in payload: missing ':' after "cmdID"
-		payload          = '{"cmdID" 55,"vrCommands":["synonym1","synonym2"],"menuParams":{"position":1000,"menuName":"Item To Add"},' ..
-						   '"cmdIcon":{"value":"action.png","imageType":"DYNAMIC"}}'
-	}
-	self.mobileSession:Send(msg)
+  local msg = 
+  {
+    -- serviceType = <Remote Procedure Call>
+    serviceType      = 7,
+    -- default frameInfo for SingleFrameType
+    frameInfo        = 0,
+    -- rpcType = <Request>
+    rpcType          = 0,
+    -- rpcFunctionId = <AddCommandID>
+    rpcFunctionId    = 5,
+    rpcCorrelationId = self.mobileSession.correlationId,
+    -- incorrect JSON in payload: missing ':' after "cmdID"
+    payload          = '{"cmdID" 55,"vrCommands":["synonym1","synonym2"],"menuParams":{"position":1000,"menuName":"Item To Add"},' ..
+               '"cmdIcon":{"value":"action.png","imageType":"DYNAMIC"}}'
+  }
+  self.mobileSession:Send(msg)
 
-	EXPECT_RESPONSE(self.mobileSession.correlationId, { success = false, resultCode = "INVALID_DATA" })
-	:Timeout(5000)
+  EXPECT_RESPONSE(self.mobileSession.correlationId, { success = false, resultCode = "INVALID_DATA" })
+  :Timeout(5000)
 end
 -------------------------------------------Postcondition-------------------------------------
 common_steps:UnregisterApp("UnRegister_App", app.appName)

@@ -16,100 +16,100 @@ common_steps:PutFile("Precondition_Put_File", "icon.png")
 -- respond with resultCode:"INVALID_DATA" and success:"false" value. 
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_cmdIDMissing()
-	local cid = self.mobileSession:SendRPC("AddCommand",
-	{
-		menuParams = 	
-		{ 
-			-- parentID = 1,
-			position = 0,
-			menuName ="Command1"
-		}, 
-		vrCommands = 
-		{ 
-			"Voicerecognitioncommandone"
-		}, 
-		cmdIcon = 	
-		{ 
-			value ="icon.png",
-			imageType ="DYNAMIC"
-		}
-	})		
-	
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  local cid = self.mobileSession:SendRPC("AddCommand",
+  {
+    menuParams =  
+    { 
+      -- parentID = 1,
+      position = 0,
+      menuName ="Command1"
+    }, 
+    vrCommands = 
+    { 
+      "Voicerecognitioncommandone"
+    }, 
+    cmdIcon =   
+    { 
+      value ="icon.png",
+      imageType ="DYNAMIC"
+    }
+  })    
+  
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_menuParamsMenuNameMissing()
-	local cid = self.mobileSession:SendRPC("AddCommand",
-	{
-		cmdID = 123,
-		menuParams = 	
-		{ 
-			parentID = 1,
-			position = 0
-		}, 
-		vrCommands = 
-		{ 
-			"VRCommandonepositive",
-			"VRCommandonepositivedouble"
-		}, 
-		cmdIcon = 	
-		{ 
-			value ="icon.png",
-			imageType ="DYNAMIC"
-		}
-	})		
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  local cid = self.mobileSession:SendRPC("AddCommand",
+  {
+    cmdID = 123,
+    menuParams =  
+    { 
+      parentID = 1,
+      position = 0
+    }, 
+    vrCommands = 
+    { 
+      "VRCommandonepositive",
+      "VRCommandonepositivedouble"
+    }, 
+    cmdIcon =   
+    { 
+      value ="icon.png",
+      imageType ="DYNAMIC"
+    }
+  })    
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_cmdIconValueMissing()
-	local cid = self.mobileSession:SendRPC("AddCommand",
-	{
-		cmdID = 224,
-		menuParams = 	
-		{ 
-			parentID = 1,
-			position = 0,
-			menuName ="Command224"
-		}, 
-		vrCommands = 
-		{ 
-			"CommandTwoTwoFour"
-		},
-		cmdIcon = 	
-		{
-			imageType ="DYNAMIC"
-		}
-	})
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-end					
+  local cid = self.mobileSession:SendRPC("AddCommand",
+  {
+    cmdID = 224,
+    menuParams =  
+    { 
+      parentID = 1,
+      position = 0,
+      menuName ="Command224"
+    }, 
+    vrCommands = 
+    { 
+      "CommandTwoTwoFour"
+    },
+    cmdIcon =   
+    {
+      imageType ="DYNAMIC"
+    }
+  })
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+end         
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_cmdIconImageTypeMissing()
-	local cid = self.mobileSession:SendRPC("AddCommand",
-	{
-		cmdID = 225,
-		menuParams = 	
-		{ 
-			parentID = 1,
-			position = 0,
-			menuName ="Command225"
-		}, 
-		vrCommands = 
-		{ 
-			"CommandTwoTwoFive"
-		},
-		cmdIcon = 	
-		{
-			value ="icon.png"
-		}
-	})
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  local cid = self.mobileSession:SendRPC("AddCommand",
+  {
+    cmdID = 225,
+    menuParams =  
+    { 
+      parentID = 1,
+      position = 0,
+      menuName ="Command225"
+    }, 
+    vrCommands = 
+    { 
+      "CommandTwoTwoFive"
+    },
+    cmdIcon =   
+    {
+      value ="icon.png"
+    }
+  })
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 -------------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_AllParamsMissing()
-	local cid = self.mobileSession:SendRPC("AddCommand",
-	{
-	})		
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  local cid = self.mobileSession:SendRPC("AddCommand",
+  {
+  })    
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 ---------------------------------------------------------------------------------------------
 
