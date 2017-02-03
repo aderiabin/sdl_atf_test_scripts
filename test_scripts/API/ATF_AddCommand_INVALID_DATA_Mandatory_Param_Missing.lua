@@ -15,7 +15,7 @@ common_steps:PutFile("Precondition_Put_File", "icon.png")
 -- SDL must:
 -- respond with resultCode:"INVALID_DATA" and success:"false" value. 
 -----------------------------------------------------------------------------------------
-function Test:AddCommand_INVALID_DATA_cmdIDMissing()
+function Test:AddCommand_INVALID_DATA_Mandatory_cmdIDMissing()
   local cid = self.mobileSession:SendRPC("AddCommand",
   {
     menuParams =  
@@ -38,7 +38,7 @@ function Test:AddCommand_INVALID_DATA_cmdIDMissing()
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 -----------------------------------------------------------------------------------------
-function Test:AddCommand_INVALID_DATA_menuParamsMenuNameMissing()
+function Test:AddCommand_INVALID_DATA_Mandatory_menuParamsMenuNameMissing()
   local cid = self.mobileSession:SendRPC("AddCommand",
   {
     cmdID = 123,
@@ -61,7 +61,7 @@ function Test:AddCommand_INVALID_DATA_menuParamsMenuNameMissing()
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 -----------------------------------------------------------------------------------------
-function Test:AddCommand_INVALID_DATA_cmdIconValueMissing()
+function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconValueMissing()
   local cid = self.mobileSession:SendRPC("AddCommand",
   {
     cmdID = 224,
@@ -83,7 +83,7 @@ function Test:AddCommand_INVALID_DATA_cmdIconValueMissing()
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end         
 -----------------------------------------------------------------------------------------
-function Test:AddCommand_INVALID_DATA_cmdIconImageTypeMissing()
+function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconImageTypeMissing()
   local cid = self.mobileSession:SendRPC("AddCommand",
   {
     cmdID = 225,

@@ -3,11 +3,10 @@ require('user_modules/all_common_modules')
 
 -------------------------------------Common Variables ---------------------------------------
 local app = config.application1.registerAppInterfaceParams
-local icon_name      = "action.png"
 
 ---------------------------------------Preconditions---------------------------------------
 common_steps:PreconditionSteps("Start_SDL_To_Activate_Application", 7)
-common_steps:PutFile("Precondition_Put_File", icon_name)
+common_steps:PutFile("Precondition_Put_File", "action.png")
 
 ------------------------------------------Tests-----------------------------------------------
 -- This script covers the following requirement:
@@ -17,20 +16,21 @@ common_steps:PutFile("Precondition_Put_File", icon_name)
 -- respond with resultCode "INVALID_DATA" and success:"false" value. 
 ----------------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Incorrect_JSON()
+  local rpc_service_type = 7
+  local single_frame_frame_info_type = 0
+  local request_rpc_type = 0
+  local add_command_function_id = 5
+  local incorrect_json_missing_colon_after_cmd_id = '{"cmdID" 55,"vrCommands":["synonym1","synonym2"],' ..
+    '"menuParams":{"position":1000,"menuName":"Item To Add"},"cmdIcon":{"value":"action.png","imageType":"DYNAMIC"}}'
+
   local msg = 
   {
-    -- serviceType = <Remote Procedure Call>
-    serviceType      = 7,
-    -- default frameInfo for SingleFrameType
-    frameInfo        = 0,
-    -- rpcType = <Request>
-    rpcType          = 0,
-    -- rpcFunctionId = <AddCommandID>
-    rpcFunctionId    = 5,
+    serviceType      = rpc_service_type,
+    frameInfo        = single_frame_frame_info_type,
+    rpcType          = request_rpc_type,
+    rpcFunctionId    = add_command_function_id,
     rpcCorrelationId = self.mobileSession.correlationId,
-    -- incorrect JSON in payload: missing ':' after "cmdID"
-    payload          = '{"cmdID" 55,"vrCommands":["synonym1","synonym2"],"menuParams":{"position":1000,"menuName":"Item To Add"},' ..
-               '"cmdIcon":{"value":"action.png","imageType":"DYNAMIC"}}'
+    payload          = incorrect_json_missing_colon_after_cmd_id
   }
   self.mobileSession:Send(msg)
 
