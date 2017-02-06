@@ -20,7 +20,6 @@ function Test:AddCommand_INVALID_DATA_Mandatory_cmdIDMissing()
   {
     menuParams =  
     { 
-      -- parentID = 1,
       position = 0,
       menuName ="Command1"
     }, 
