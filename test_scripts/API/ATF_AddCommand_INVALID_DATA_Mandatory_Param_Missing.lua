@@ -35,6 +35,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_cmdIDMissing()
   })    
   
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  :Timeout(5000)
 end
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Mandatory_menuParamsMenuNameMissing()
@@ -58,6 +59,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_menuParamsMenuNameMissing()
     }
   })    
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  :Timeout(5000)
 end
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconValueMissing()
@@ -80,6 +82,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconValueMissing()
     }
   })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  :Timeout(5000)
 end         
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconImageTypeMissing()
@@ -102,6 +105,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconImageTypeMissing()
     }
   })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  :Timeout(5000)
 end
 -------------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_AllParamsMissing()
@@ -109,6 +113,7 @@ function Test:AddCommand_INVALID_DATA_AllParamsMissing()
   {
   })    
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  :Timeout(5000)
 end
 ---------------------------------------------------------------------------------------------
 
