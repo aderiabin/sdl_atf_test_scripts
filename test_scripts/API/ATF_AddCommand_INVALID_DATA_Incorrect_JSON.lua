@@ -1,6 +1,6 @@
 ---------------------------------Required Shared Libraries-----------------------------------
 require('user_modules/all_common_modules')
-
+local consts = require('user_modules/consts')
 -------------------------------------Common Variables ---------------------------------------
 local app = config.application1.registerAppInterfaceParams
 
@@ -35,7 +35,7 @@ function Test:AddCommand_INVALID_DATA_Incorrect_JSON()
   self.mobileSession:Send(msg)
 
   EXPECT_RESPONSE(self.mobileSession.correlationId, { success = false, resultCode = "INVALID_DATA" })
-  :Timeout(5000)
+  :Timeout(consts.sdl_to_mobile_default_timeout)
 end
 -------------------------------------------Postcondition-------------------------------------
 common_steps:UnregisterApp("UnRegister_App", app.appName)
