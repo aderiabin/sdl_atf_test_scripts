@@ -45,6 +45,7 @@ require('cardinalities')
 local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 require('user_modules/AppTypes')
+local utils = require('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
@@ -195,7 +196,15 @@ function Test:Validate_Snapshot_Values()
 
       local result = true
       for k,v in pairs(valuesFromPTS) do
-        if v ~= verificationValues[k] then
+        if k == "deviceConsentTimeStamp" then 
+          date = valuesFromPTS["deviceConsentTimeStamp"]
+          pts_epoch_seconds = os.time(ConvertTZDateToTable(date))
+          os_eposh_seconds = os.time(ConvertTZDateToTable(consentDeviceSystemTimeStamp))
+          if pts_epoch_seconds < os_eposh_seconds then 
+            print("Wrong value from snapshot " .. k .. "! Expected: " .. consentDeviceSystemTimeStamp .. " Actual: " .. date)
+            return false
+          end
+        elseif v ~= verificationValues[k] then
           -- local stringLog = "Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v
           print("Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v)
           result = false
