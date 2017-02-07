@@ -1,6 +1,6 @@
 -------------------------------------Required Shared Libraries-------------------------------
 require('user_modules/all_common_modules')
-
+local consts = require('user_modules/consts')
 ------------------------------------ Common Variables ---------------------------------------
 local app = config.application1.registerAppInterfaceParams
 
@@ -35,7 +35,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_cmdIDMissing()
   })    
   
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  :Timeout(5000)
+  :Timeout(consts.sdl_to_mobile_default_timeout)
 end
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Mandatory_menuParamsMenuNameMissing()
@@ -59,7 +59,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_menuParamsMenuNameMissing()
     }
   })    
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  :Timeout(5000)
+  :Timeout(consts.sdl_to_mobile_default_timeout)
 end
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconValueMissing()
@@ -82,7 +82,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconValueMissing()
     }
   })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  :Timeout(5000)
+  :Timeout(consts.sdl_to_mobile_default_timeout)
 end         
 -----------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconImageTypeMissing()
@@ -105,7 +105,7 @@ function Test:AddCommand_INVALID_DATA_Mandatory_cmdIconImageTypeMissing()
     }
   })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  :Timeout(5000)
+  :Timeout(consts.sdl_to_mobile_default_timeout)
 end
 -------------------------------------------------------------------------------------------
 function Test:AddCommand_INVALID_DATA_AllParamsMissing()
@@ -113,7 +113,7 @@ function Test:AddCommand_INVALID_DATA_AllParamsMissing()
   {
   })    
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  :Timeout(5000)
+  :Timeout(consts.sdl_to_mobile_default_timeout)
 end
 ---------------------------------------------------------------------------------------------
 
