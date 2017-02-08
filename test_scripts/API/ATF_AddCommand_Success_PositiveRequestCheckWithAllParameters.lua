@@ -42,22 +42,27 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
         menuName ="Commandpositive"
       }
     })
+
   :ValidIf(function(_, data)
 
-if(data.params.cmdIcon.imageType == "DYNAMIC") then
-        return true
-      else
-        userPrint("[31m imageType of menuIcon is WRONG. Expected: DYNAMIC; Real: " .. data.params.cmdIcon.imageType .. " ")
+    local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+    local value_icon = path .. "icon.png" 
+    
+    if not string.find(data.params.cmdIcon.value, value_icon) then
+        local msg1 = "value of menuIcon is WRONG. Expected: ~".. value_icon .. "; Real: " .. data.params.cmdIcon.value 
+        common_functions:UserPrint(color, msg)
         return false
-      end
-if(string.find(data.params.cmdIcon.value, value_Icon) ) then
-        return true
-      else
-        userPrint("[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. " ")
+     end   
+    
+    if not (data.params.cmdIcon.imageType == "DYNAMIC") then
+        local color = 31
+        local msg = "imageType of menuIcon is WRONG. Expected: DYNAMIC; Real: " .. data.params.cmdIcon.imageType
+        common_functions:UserPrint(color, msg)
         return false
-      end
-    end)
-  :Do(function(_, data)
+   end
+    return true
+  end)
+  :Do(function(a, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   EXPECT_HMICALL("VR.AddCommand",
