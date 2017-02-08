@@ -44,10 +44,16 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
     })
   :ValidIf(function(_, data)
 
-      if(data.params.cmdIcon.imageType == "DYNAMIC") then
+if(data.params.cmdIcon.imageType == "DYNAMIC") then
         return true
       else
-        print("\27[31m imageType of menuIcon is WRONG. Expected: DYNAMIC; Real: " .. data.params.cmdIcon.imageType .. "\27[0m")
+        userPrint("[31m imageType of menuIcon is WRONG. Expected: DYNAMIC; Real: " .. data.params.cmdIcon.imageType .. " ")
+        return false
+      end
+if(string.find(data.params.cmdIcon.value, value_Icon) ) then
+        return true
+      else
+        userPrint("[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. " ")
         return false
       end
     end)
