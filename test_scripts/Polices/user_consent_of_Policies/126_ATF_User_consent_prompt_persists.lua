@@ -22,6 +22,7 @@
 ---[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
+local json = require("json")
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
@@ -49,7 +50,7 @@ local function Get_RPCs()
   testCasesForPolicyTableSnapshot:extract_preloaded_pt()
 
   for i = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
-    if ( string.sub(testCasesForPolicyTableSnapshot.preloaded_elements[i].name,1,string.len("functional_groupings.Base-4.rpcs.")) == "functional_groupings.Base-4.rpcs." ) then
+    if ( string.sub(testCasesForPolicyTableSnapshot.preloaded_elements[i].name, 1, string.len("functional_groupings.Base-4.rpcs.")) == "functional_groupings.Base-4.rpcs." ) then
       local str = string.match(testCasesForPolicyTableSnapshot.preloaded_elements[i].name, "functional_groupings%.Base%-4%.rpcs%.(%S+)%.%S+%.%S+")
       if(#RPC_Base4 == 0) then
         RPC_Base4[#RPC_Base4 + 1] = str
@@ -175,11 +176,27 @@ function Test:Precondition_IsPermissionsConsentNeeded_false_on_app_activation()
 
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
+local file_snapshot = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = file_snapshot})
   :Do(function()
-      local app_permission = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID)
-      if(app_permission ~= 0) then
-        self:FailTestCase("Consented gropus are assigned to application")
+      local file  = io.open(file_snapshot, "r")
+      local json_data = file:read("*all") 
+      file:close()
+
+      local pts_table = json.decode(json_data)
+      if not pts_table["policy_table"]["device_data"] then
+        self:FailTestCase("device_data doesn't exist in snapshot")
+      end
+      
+      if not pts_table["policy_table"]["device_data"][config.deviceMAC] then
+        self:FailTestCase("deviceMAC doesn't exist in snapshot")
+      end
+      if not pts_table["policy_table"]["device_data"][config.deviceMAC]["user_consent_records"] then
+        self:FailTestCase("user_consent_records doesn't exist in snapshot")
+      end
+      
+      if  pts_table["policy_table"]["device_data"][config.deviceMAC]["user_consent_records"][config.application1.registerAppInterfaceParams.appID]  then
+        self:FailTestCase("AppID must not exist in snapshot as no user consent for app was given")
       end
     end)
 end
@@ -297,14 +314,35 @@ function Test:Precondition_PTU_user_consent_prompt_present()
   end
 
   function Test.TestStep_verify_PermissionConsent()
+    local file_snapshot = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"
     local is_test_passed = true
-    local app_permission_Location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Location-1")
-    local app_permission_Notifications = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Notifications")
-    if(app_permission_Location ~= 0) then
+    local file  = io.open(file_snapshot, "r")
+    local json_data = file:read("*all") 
+    file:close()
+
+    local pts_table = json.decode(json_data)
+    if not pts_table["policy_table"]["device_data"] then
+      self:FailTestCase("device_data doesn't exist in snapshot")
+    end
+      
+    if not pts_table["policy_table"]["device_data"][config.deviceMAC] then
+      self:FailTestCase("deviceMAC doesn't exist in snapshot")
+    end
+    if not pts_table["policy_table"]["device_data"][config.deviceMAC]["user_consent_records"] then
+      self:FailTestCase("user_consent_records doesn't exist in snapshot")
+    end
+      
+    if not pts_table["policy_table"]["device_data"][config.deviceMAC]["user_consent_records"][config.application1.registerAppInterfaceParams.appID]  then
+      self:FailTestCase("AppID must exist in snapshot's user_consent_records as user consent for app was given")
+    end
+    
+    local app_permission_Location = pts_table["policy_table"]["device_data"][config.deviceMAC]["user_consent_records"][config.application1.registerAppInterfaceParams.appID]["consent_groups"]["Location-1"]
+    local app_permission_Notifications = pts_table["policy_table"]["device_data"][config.deviceMAC]["user_consent_records"][config.application1.registerAppInterfaceParams.appID]["consent_groups"]["Notifications"]
+    if(app_permission_Location) then
       commonFunctions:printError("Location-1 is assigned user_consent_records")
       is_test_passed = false
     end
-    if(app_permission_Notifications == 0) then
+    if(not app_permission_Notifications) then
       commonFunctions:printError("Notifications is not assigned user_consent_records")
       is_test_passed = false
     elseif(app_permission_Notifications ~= true) then
@@ -316,9 +354,14 @@ function Test:Precondition_PTU_user_consent_prompt_present()
 
   --Notification is allowed by user
   function Test:TestStep_New_functional_grouping_applied_Alert_allowed()
-    local RequestAlert = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
-
-    EXPECT_RESPONSE(RequestAlert, {success = false, resultCode = "GENERIC_ERROR"})
+    local RequestAlertCorId = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
+    EXPECT_HMICALL("UI.Alert", {alertStrings = {{fieldName = "alertText1", fieldText = "alertText1"}} })
+      :Do(function(_, data)
+            InternalAlertId = data.id
+            self.hmiConnection:SendResponse(InternalAlertId, "UI.Alert", "SUCCESS", { })
+          end)
+    --mobile side: Alert response
+    EXPECT_RESPONSE(RequestAlertCorId, { success = true, resultCode = "SUCCESS" })
   end
 
   --Location-1 is disallowed by user
