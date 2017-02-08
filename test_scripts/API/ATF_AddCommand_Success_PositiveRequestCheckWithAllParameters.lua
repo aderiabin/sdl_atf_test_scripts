@@ -5,12 +5,16 @@
 
 require('user_modules/all_common_modules')
 
+-- -------------------------------------------Common Variables----------------------------------
+
+local image_file_name = "icon.png"
+
 -- -------------------------------------------Preconditions-------------------------------------
 
 common_steps:PreconditionSteps("Preconditions",7)
-common_steps:PutFile("PutFile", "icon.png")
+common_steps:PutFile("PutFile", image_file_name)
 
--- -----------------------------------------Body---------------------------------------
+-- -----------------------------------------------Body-------------------------------------------
 
 function Test:AddCommand_PositiveCaseWithAllParameters()
   local cid = self.mobileSession:SendRPC("AddCommand",
@@ -28,7 +32,7 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
       },
       cmdIcon =
       {
-        value ="icon.png",
+        value =image_file_name,
         imageType ="DYNAMIC"
       }
     })
@@ -45,10 +49,10 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
 
   :ValidIf(function(_, data)
 
-    local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-    local value_icon = path .. "icon.png" 
-    
-    if not string.find(data.params.cmdIcon.value, value_icon) then
+    local full_path_icon  = table.concat({config.pathToSDL, "storage/", config.application1.registerAppInterfaceParams.appID, 
+          "_", config.deviceMAC, "/", image_file_name})
+ 
+    if data.params.cmdIcon.value ~= full_path_icon then
         local color = 31
         local msg1 = "value of menuIcon is WRONG. Expected: ~".. value_icon .. "; Real: " .. data.params.cmdIcon.value 
         common_functions:UserPrint(color, msg1)
@@ -83,6 +87,7 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
+
 
 -- -------------------------------------------Postcondition-------------------------------------
 
