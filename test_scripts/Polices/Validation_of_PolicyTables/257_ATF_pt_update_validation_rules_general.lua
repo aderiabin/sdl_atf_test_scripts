@@ -98,13 +98,6 @@ function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
     self.mobileSession)
 end
 
-function Test:TestStep_CheckSDLLogError()
-  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Errors: policy_table.policy_table.module_config.preloaded_date: should be omitted in PT_UPDATE")
-  if (result == false) then
-    self:FailTestCase("Error: message 'Errors: policy_table.policy_table.module_config.preloaded_date: should be omitted in PT_UPDATE' is not observed in smartDeviceLink.log.")
-  end
-end
-
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
