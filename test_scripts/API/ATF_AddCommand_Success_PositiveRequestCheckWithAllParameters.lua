@@ -49,8 +49,9 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
     local value_icon = path .. "icon.png" 
     
     if not string.find(data.params.cmdIcon.value, value_icon) then
+        local color = 31
         local msg1 = "value of menuIcon is WRONG. Expected: ~".. value_icon .. "; Real: " .. data.params.cmdIcon.value 
-        common_functions:UserPrint(color, msg)
+        common_functions:UserPrint(color, msg1)
         return false
      end   
     
@@ -75,6 +76,7 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
         "VRCommandonepositivedouble"
       }
     })
+  
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
