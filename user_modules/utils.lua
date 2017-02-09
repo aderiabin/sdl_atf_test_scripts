@@ -1,4 +1,6 @@
-function GetUnorderedTableKeyset(table)
+local module = { }
+
+function module.GetUnorderedTableKeyset(table)
   local keyset={}
   local n = 0
 
@@ -9,14 +11,16 @@ function GetUnorderedTableKeyset(table)
   return keyset
 end
 
-function ConvertTZDateToTable(tz_date)
+function module.ConvertTZDateToTable(tz_date)
   local tz_table = {year = 0, month = 0, day = 0, hour = 0, min = 0, sec = 0}
   local keyset = {"year", "month", "day", "hour", "min", "sec"}
-  count = 1
+  local count = 1
   for element in string.gmatch(tz_date,'%d+') do
     tz_table[keyset[count]] = element
     count = count + 1
   end
   return tz_table
 end
+
+return module
 
