@@ -53,7 +53,7 @@ local TESTED_DATA = {
         steal_focus = false,
         priority = "NONE",
         default_hmi = "NONE",
-        groups = {"Base-6", "Base-4"}
+        groups = {"Navigation-1", "Base-4"}
       },
       pre_DataConsent =
       {
@@ -61,7 +61,7 @@ local TESTED_DATA = {
         steal_focus = false,
         priority = "NONE",
         default_hmi = "NONE",
-        groups = {"Base-6"}
+        groups = {"Navigation-1"}
       }
     }
   },
@@ -167,7 +167,7 @@ local function prepareInitialPreloadedPT()
   local initialUpdaters = {
     function(data)
       for key,_ in pairs(data.policy_table.functional_groupings) do
-        if key ~= "Base-4" and key ~= "Base-6" and key ~= "BaseBeforeDataConsent" then
+        if key ~= "Base-4" and key ~= "Navigation-1" and key ~= "BaseBeforeDataConsent" then
           data.policy_table.functional_groupings[key] = nil
         end
       end
@@ -322,7 +322,7 @@ function Test:TestStep_VerifyInitialLocalPT()
     },
     {
       query = 'select name from functional_group',
-      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Base-6"}
+      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Navigation-1"}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -352,7 +352,7 @@ function Test:TestStep_VerifyNewLocalPT()
     },
     {
       query = 'select name from functional_group',
-      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Base-6", "Location-1"}
+      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Navigation-1", "Location-1"}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -366,5 +366,3 @@ testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition()
   StopSDL()
 end
-
-return Test
