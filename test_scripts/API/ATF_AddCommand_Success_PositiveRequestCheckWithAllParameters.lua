@@ -13,7 +13,7 @@ local image_file_name = "icon.png"
 
 common_steps:PreconditionSteps("Preconditions",7)
 common_steps:PutFile("PutFile", image_file_name)
-common_preconditions:SendLocationPreconditionUpdateHMICap()
+common_functions:CheckSdlPath()
 
 -- -----------------------------------------------Body-------------------------------------------
 
