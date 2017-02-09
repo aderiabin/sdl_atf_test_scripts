@@ -54,7 +54,7 @@ function Test:SendRPC_Alert()
 end
 
 function Test:SendRPC_SendLocation()
-  local corId = self.mobileSession:SendRPC("SendLocation", {})
+  local corId = self.mobileSession:SendRPC("SendLocation", {longitudeDegrees = 0, latitudeDegrees = 0})
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
