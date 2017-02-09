@@ -55,7 +55,7 @@ function Test:AddCommand_PositiveCaseWithAllParameters()
  
     if data.params.cmdIcon.value ~= full_path_icon then
         local color = 31
-        local msg1 = "value of menuIcon is WRONG. Expected: ~".. value_icon .. "; Real: " .. data.params.cmdIcon.value 
+        local msg1 = "value of menuIcon is WRONG. Expected: ~".. full_path_icon.. "; Real: " .. data.params.cmdIcon.value 
         common_functions:UserPrint(color, msg1)
         return false
      end   
