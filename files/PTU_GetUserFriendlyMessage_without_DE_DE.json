@@ -41,7 +41,7 @@
 			},
 			"Base-4" : {
 				"rpcs" : {
-				
+
 				"ReadDID": {
 				"hmi_levels": [
 				"BACKGROUND",
@@ -49,8 +49,8 @@
 				"LIMITED"
 				]
 				}
-				, 
-				
+				,
+
 				"GetDTCs": {
 				"hmi_levels": [
 				"BACKGROUND",
@@ -58,8 +58,8 @@
 				"LIMITED"
 				]
 				}
-				, 
-				
+				,
+
 				"DiagnosticMessage": {
 				"hmi_levels": [
 				"BACKGROUND",
@@ -67,8 +67,8 @@
 				"LIMITED"
 				]
 				}
-				, 
-				
+				,
+
 				"SubscribeVehicleData": {
 				"hmi_levels": [
 				"BACKGROUND",
@@ -76,8 +76,8 @@
 				"LIMITED"
 				]
 				}
-				, 
-				
+				,
+
 				"GetVehicleData": {
 				"hmi_levels": [
 				"BACKGROUND",
@@ -85,8 +85,8 @@
 				"LIMITED"
 				]
 				}
-				, 
-				
+				,
+
 				"UnsubscribeVehicleData": {
 				"hmi_levels": [
 				"BACKGROUND",
@@ -94,7 +94,7 @@
 				"LIMITED"
 				]
 				}
-				, 
+				,
 					"AddCommand" : {
 						"hmi_levels" : ["BACKGROUND",
 							"FULL",
@@ -1378,11 +1378,11 @@
 						"en-gb" : {
 							"textBody" : "Would you like to enable Mobile Apps on SYNC? To use Mobile Apps with SYNC, SYNC will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SYNC will send your VIN and SYNC module number to Ford U.S. \r\n\r\nUpdates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SYNC Settings menu. See your Owner Guide for more information."
 						},
-						"en-us" : {
-							"line1" : "Enable Mobile Apps",
-							"line2" : "on SYNC? (Uses Data)",
-							"textBody" : "Would you like to enable Mobile Apps on SYNC?\r\n\r\nTo use Mobile Apps with SYNC, SYNC will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SYNC will send your VIN and SYNC module number to Ford U.S.\r\n\r\nUpdates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SYNC Settings menu. See your Owner Guide for more information."
-						},
+						"en-us": {
+                                                       "line1": "Enable Mobile Apps",
+                                                       "line2": "on SYNC? (Uses Data)",
+                                                       "textBody": "Would you like to enable Mobile Apps on SYNC?\r\n\r\nIf you enable the use of mobile apps from your mobile device on SYNC, you agree that SYNC can periodically use your device’s data plan to send and receive data that keeps your settings current and enables app functionality. Data sent to Ford U.S. includes your VIN and SYNC module number. Standard rates may apply.\r\n\r\nTo change settings or turn off later, visit the SYNC mobile apps settings menu. See Owner Guide for more information. I agree and consent."
+                                                },
 						"es-mx" : {
 							"textBody" : "Para usar aplicaciones móviles con SYNC, este debe comunicarse con Ford al menos una vez al mes a través del plan de datos de su dispositivo móvil. Pueden aplicar tarifas normales. SYNC enviará su VIN y el número de módulo de SYNC a Ford de Estados Unidos de América. \n\nLas actualizaciones tienen el tamaño aproximado de un mensaje de correo electrónico, y la frecuencia de las actualizaciones depende del uso de su vehículo y de si se encuentran nuevas aplicaciones en su dispositivo. Para obtener más información, consulte la Guía del propietario. \n\nPresione Sí para permitir y No para denegar."
 						},
@@ -1602,7 +1602,7 @@
 						}
 					}
 				},
-				
+
 				"group1" : {
 					"languages" : {
 						"de-de" : {
@@ -2408,3 +2408,4 @@
 		}
 	}
 }
+

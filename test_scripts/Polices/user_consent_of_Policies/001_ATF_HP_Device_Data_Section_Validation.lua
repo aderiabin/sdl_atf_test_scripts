@@ -45,6 +45,7 @@ require('cardinalities')
 local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 require('user_modules/AppTypes')
+local utils = require('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
@@ -83,6 +84,20 @@ local function GetDataFromSnapshot(pathToFile)
     groupUserconsentTimeStamp = data.policy_table.device_data[MACHash].user_consent_records[appID].time_stamp,
     userConsentGroup = next(data.policy_table.device_data[MACHash].user_consent_records[appID].consent_groups, nil)}
   return res
+end
+
+local function CompareTimestamps(valuesFromPTS, verificationValues, key)
+  local date_from_pts = valuesFromPTS[key]
+  local date_from_os = verificationValues[key]
+  local pts_epoch_seconds = os.time(utils.ConvertTZDateToTable(date_from_pts))
+  local os_eposh_seconds = os.time(utils.ConvertTZDateToTable(date_from_os))
+  if pts_epoch_seconds  < os_eposh_seconds then
+    print("\nWrong snapshot value of \"" .. key .. "\" received!")
+    print("Expected: " .. date_from_os )
+    print("Actual:   " .. date_from_pts .. "\n")
+    return false
+  end
+  return true
 end
 
 --[[ Preconditions ]]
@@ -194,10 +209,13 @@ function Test:Validate_Snapshot_Values()
       }
 
       local result = true
-      for k,v in pairs(valuesFromPTS) do
-        if v ~= verificationValues[k] then
-          -- local stringLog = "Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v
-          print("Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v)
+      for k, v in pairs(valuesFromPTS) do
+        if k == "deviceConsentTimeStamp" or k == "groupUserconsentTimeStamp "then
+          result = result and CompareTimestamps(valuesFromPTS, verificationValues, k)
+        elseif v ~= verificationValues[k] then
+          print("\nWrong snapshot value of \"" .. k .. "\" received!")
+          print("Expected: " .. verificationValues[k] )
+          print("Actual:   " .. v .. "\n")
           result = false
         end
       end
