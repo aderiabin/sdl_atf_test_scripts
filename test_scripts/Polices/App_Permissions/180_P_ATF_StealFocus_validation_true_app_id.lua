@@ -86,7 +86,7 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
           type = "TEXT",
         }
       },
-      duration = 5000,
+      duration = 7000,
       playTone = true,
       progressIndicator = true,
       softButtons =
@@ -114,7 +114,7 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
         {fieldName = "alertText3", fieldText = "alertText3"}
       },
       alertType = "BOTH",
-      duration = 0,
+      duration = 7000,
       progressIndicator = true,
       softButtons =
       {
