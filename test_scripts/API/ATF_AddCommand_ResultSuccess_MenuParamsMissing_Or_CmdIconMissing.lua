@@ -1,0 +1,80 @@
+--Requirements: APPLINK-31632 Success result for positive request check
+
+--Description:
+--In case the request comes to SDL when the command has only VR menu. There are two cases in this
+--script: only VR menu and cnmId are present in the first way and in the second one cmdIcon
+--additionally present. The command should be added only to VR Commands Menu.
+--All parameters are in boundary conditions
+--SDL must respond with resultCode "Success" and success:"true" value.
+
+-- Preconditons:
+-- 1. Mobile application is registered and activated on HMI
+-- 2. Put file
+
+-- Performed steps:
+-- 1. Application sends "AddCommand" request which contains such parameters: cmdId, vrCommands,
+-- cmdIcon for the first case and cmdId, vrCommands for another case
+
+-- Expected result:
+-- 1. SDL responds with resultCode:"Success" and success: "true" value
+
+require('user_modules/all_common_modules')
+
+-- -------------------------------------------Common Variables----------------------------------
+
+local image_file_name = "icon.png"
+
+-- -------------------------------------------Preconditions-------------------------------------
+
+common_steps:PreconditionSteps("Preconditions",7)
+common_steps:PutFile("PutFile", image_file_name)
+
+-- ------------------------------------------Body-----------------------------------------------
+
+function AddCommand_VRCommandsOnly()
+  --mobile side: sending AddCommand request
+  for i = 1,2 do
+    local cid_parameters =
+    {
+      cmdID = i,
+      vrCommands =
+      {
+        "OnlyVRCommand" .. i
+      },
+      cmdIcon =
+      {
+        value ="icon.png",
+        imageType ="DYNAMIC"
+      }
+    }
+    if i == 1 then
+      full_name = "MenuParamsMissing"
+    end
+
+    if i == 2 then
+      full_name = "MenuParamsMissingCmdIconMissing"
+      cid_parameters.cmdIcon = nil
+    end
+
+    local functionName = "AddCommand_" .. full_name
+    Test[functionName] = function(self)
+      local cid = self.mobileSession:SendRPC("AddCommand", cid_parameters)
+      --we don't expect that this parameters comes in order to absence MenuParams
+      cid_parameters.cmdIcon = nil
+      --hmi side: expect VR.AddCommand request
+      EXPECT_HMICALL("VR.AddCommand", cid_parameters)
+
+      :Do(function(_,data)
+          --hmi side: sending response
+          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+        end)
+
+      EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+      EXPECT_NOTIFICATION("OnHashChange")
+    end
+  end
+end
+AddCommand_VRCommandsOnly()
+-- -------------------------------------------Postcondition-------------------------------------
+
+common_steps:StopSDL("StopSDL")
