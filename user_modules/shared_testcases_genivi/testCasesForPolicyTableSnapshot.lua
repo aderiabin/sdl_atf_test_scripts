@@ -1,6 +1,7 @@
 local testCasesForPolicyTableSnapshot = {}
 local commonFunctions = require('user_modules/shared_testcases_genivi/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
+local json = require('json')
 
 testCasesForPolicyTableSnapshot.preloaded_elements = {}
 testCasesForPolicyTableSnapshot.pts_elements = {}
@@ -111,6 +112,16 @@ local preloaded_pt_endpoints = {}
 -- flag: If is set to PROPRIETARY or HTTP will verify section SDL in DataDictionary
 -- in all other cases: (nil or EXTERNAL_PROPRIETARY) will check SDL + Ford DataDictionary
 function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_IDs, app_names, to_print, flag)
+
+  local snapshot_file_path = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'
+  local pts_data = io.open(snapshot_file_path, "r")
+  if pts_data then
+    local pts_string = pts_data:read("*all")
+    pts_data:close()
+    local pts_table = json.decode(pts_string)
+  end
+
+
   if ( flag == nil ) then flag = EXTERNAL_PROPRIETARY end
   local is_verification_passed = true
   preloaded_pt_endpoints = {}
@@ -211,6 +222,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
       end
     end
   end
+
   if(device_IDs ~= nil) then
     for i = 1, #device_IDs do
       if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
@@ -221,16 +233,34 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".carrier", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".max_number_rfcom_ports", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".connection_type", elem_required = "required"}
-        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".usb_transport_status", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".usb_transport_enabled", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.input", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.time_stamp", elem_required = "required"}
+
         if(app_IDs ~= nil) then
-        for j = 1, #app_IDs do
-          omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records."..app_IDs[j]..".time_stamp", elem_required = "optional"}
-          omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records."..app_IDs[j]..".input", elem_required = "required"}
-        end
-        end
+          for j = 1, #app_IDs do
+            local app_groups = {}
+            if pts_table then
+              local app_policy = pts_table["policy_table"]["app_policies"][app_IDs[j]]
+              if app_policy == "default" or app_policy == "pre_DataConsent" then
+                app_groups = pts_table["policy_table"]["app_policies"][app_policy]["groups"]
+              else
+                app_groups = app_policy["groups"]
+              end
+              if #app_groups > 0 then
+                for n = 1, #app_groups do
+                  if (pts_table["policy_table"]["functional_groupings"][app_groups[n]["user_consent_prompt"]]) then
+                    omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records."..app_IDs[j]..".time_stamp", elem_required = "optional"}
+                    omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records."..app_IDs[j]..".input", elem_required = "required"}
+                  end  
+                end
+              end
+            end
+          end
+        end 
       end
+    end
+  end
 
       --TODO(istoimenova): Clarification for the section - exist only if application has consented groups?
 --[[      if(app_IDs ~= nil) then
@@ -254,8 +284,8 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
           omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records."..app_IDs[j]..".input", elem_required = "required"}
         end
       end]]
-    end
-  end
+    --end
+  --end
 
   for i = 1, #omitted_preloaded_original do
     data_dictionary[#data_dictionary + 1] = omitted_preloaded_original[i]
