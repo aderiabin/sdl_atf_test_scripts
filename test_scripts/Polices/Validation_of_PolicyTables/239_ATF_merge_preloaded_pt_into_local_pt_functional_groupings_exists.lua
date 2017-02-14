@@ -101,7 +101,7 @@ local function prepareInitialPreloadedPT()
   local initialUpdaters = {
     function(data)
       for key,_ in pairs(data.policy_table.functional_groupings) do
-        if key ~= "Base-4" and key ~= "Base-6" and key ~= "BaseBeforeDataConsent" then
+        if key ~= "Base-4" and key ~= "Navigation-1" and key ~= "BaseBeforeDataConsent" then
           data.policy_table.functional_groupings[key] = nil
         end
       end
@@ -118,7 +118,7 @@ local function prepareNewPreloadedPT()
   local newUpdaters = {
     function(data)
       for key,_ in pairs(data.policy_table.functional_groupings) do
-        if key ~= "Base-4" and key ~= "Base-6" then
+        if key ~= "Base-4" and key ~= "Navigation-1" then
           data.policy_table.functional_groupings[key] = nil
         end
       end
@@ -254,7 +254,7 @@ function Test:TestStep_VerifyInitialLocalPT()
     },
     {
       query = 'select name from functional_group',
-      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Base-6"}
+      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Navigation-1"}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -284,7 +284,7 @@ function Test:TestStep_VerifyNewLocalPT()
     },
     {
       query = 'select name from functional_group',
-      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Base-6"}
+      expectedValues = {"BaseBeforeDataConsent", "Base-4", "Navigation-1"}
     }
   }
   if not self.checkLocalPT(checks) then
