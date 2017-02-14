@@ -7,10 +7,6 @@
 --All parameters are in boundary conditions
 --SDL must respond with resultCode "Success" and success:"true" value.
 
--- Preconditons:
--- 1. Mobile application is registered and activated on HMI
--- 2. Put file
-
 -- Performed steps:
 -- 1. Application sends "AddCommand" request which contains such parameters: cmdId, vrCommands,
 -- cmdIcon for the first case and cmdId, vrCommands for another case
@@ -30,9 +26,21 @@ common_steps:PreconditionSteps("Preconditions",7)
 common_steps:PutFile("PutFile", image_file_name)
 
 -- ------------------------------------------Body-----------------------------------------------
-
+function MissingParams(self, full_name, cid_parameters)
+local functionName = "AddCommand_" .. full_name
+    Test[functionName] = function(self)
+      local cid = self.mobileSession:SendRPC("AddCommand", cid_parameters)
+      --we don't expect that this parameters comes in order to absence MenuParams
+      cid_parameters.cmdIcon = nil
+      EXPECT_HMICALL("VR.AddCommand", cid_parameters)
+      :Do(function(_,data)
+         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+        end)
+      EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+      EXPECT_NOTIFICATION("OnHashChange")
+    end
+  end
 function AddCommand_VRCommandsOnly()
-  --mobile side: sending AddCommand request
   for i = 1,2 do
     local cid_parameters =
     {
@@ -49,29 +57,11 @@ function AddCommand_VRCommandsOnly()
     }
     if i == 1 then
       full_name = "MenuParamsMissing"
-    end
-
-    if i == 2 then
+    elseif i == 2 then
       full_name = "MenuParamsMissingCmdIconMissing"
       cid_parameters.cmdIcon = nil
     end
-
-    local functionName = "AddCommand_" .. full_name
-    Test[functionName] = function(self)
-      local cid = self.mobileSession:SendRPC("AddCommand", cid_parameters)
-      --we don't expect that this parameters comes in order to absence MenuParams
-      cid_parameters.cmdIcon = nil
-      --hmi side: expect VR.AddCommand request
-      EXPECT_HMICALL("VR.AddCommand", cid_parameters)
-
-      :Do(function(_,data)
-          --hmi side: sending response
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
-
-      EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-      EXPECT_NOTIFICATION("OnHashChange")
-    end
+   MissingParams(self, full_name, cid_parameters)  
   end
 end
 AddCommand_VRCommandsOnly()

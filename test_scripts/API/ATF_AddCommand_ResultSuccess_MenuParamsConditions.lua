@@ -6,9 +6,6 @@
 --All parameters are in boundary conditions
 --SDL must respond with resultCode "Success" and success:"true" value.
 
--- Preconditons:
--- 1. Mobile application is registered and activated on HMI
-
 -- Performed steps:
 -- 1. Application sends "AddCommand" request which contains such parameters: cmdId, menuParams
 -- for the first case and only cmdId and menuName from menuParams for another case
@@ -26,50 +23,43 @@ common_steps:PreconditionSteps("Preconditions",7)
 
 -- -----------------------------------------------Body-------------------------------------------
 
+
+function AdditionalParams(self, full_name, cid_parameters)
+  local functionName = "AddCommand_" .. full_name
+    Test[functionName] = function(self)
+      local cid = self.mobileSession:SendRPC("AddCommand",cid_parameters)
+      EXPECT_HMICALL("UI.AddCommand", cid_parameters)
+      :Do(function(_,data)
+         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+        end)
+      EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+      EXPECT_NOTIFICATION("OnHashChange")
+    end
+end
 function AddCommand_MenuParamsOnly()
-  --mobile side: sending AddCommand request
   for i = 1, 2 do
     local cid_parameters =
     {
       cmdID = i,
       menuParams =
       {
-        parentID = 0,
+       parentID = 0,
         position = i,
-        menuName = table.concat({"Command", i})
+        menuName = "Command1235"..i
       }
     }
-
     if i == 1 then
       full_name = "MenuParamsOnly"
-    end
-
-    if i == 2 then
+    elseif i == 2 then
       full_name = "MenuParamsWithoutConditional"
       parentID = nil
       position = nil
-    end
-
-    local functionName = "AddCommand_" .. full_name
-    Test[functionName] = function(self)
-
-      local cid = self.mobileSession:SendRPC("AddCommand",cid_parameters)
-
-      EXPECT_HMICALL("UI.AddCommand", cid_parameters)
-      :Do(function(_,data)
-          --hmi side: sending UI.AddCommand response
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
-
-      --mobile side: expect AddCommand response
-      EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-
-      --mobile side: expect OnHashChange notification
-      EXPECT_NOTIFICATION("OnHashChange")
-    end
-  end
+    end  
+      AdditionalParams(self, full_name, cid_parameters)
+   end
 end
 AddCommand_MenuParamsOnly()
+
 -- -------------------------------------------Postcondition-------------------------------------
 
 common_steps:StopSDL("StopSDL")

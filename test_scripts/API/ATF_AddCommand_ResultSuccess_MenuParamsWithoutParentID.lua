@@ -6,11 +6,6 @@
 --menu. All parameters are in boundary conditions.
 --SDL must respond with resultCode "Success" and success:"true" value.
 
--- Preconditons:
--- 1. Mobile application is registered and activated on HMI
--- 2. Put file
--- 3. Add function CheckSdlPath(), which check the path to SDL on CI
-
 -- Performed steps
 -- 1. Application sends "AddCommand" request which contains all parameters, exception
 -- ParentID inside menuParams
@@ -36,7 +31,6 @@ common_functions:CheckSdlPath()
 -- ------------------------------------------Body-----------------------------------------------
 
 function Test:AddCommand_MenuParamsWithoutParentID()
-  --mobile side: sending AddCommand request
   local cid = self.mobileSession:SendRPC("AddCommand",
     {
       cmdID = 1004,
@@ -56,8 +50,6 @@ function Test:AddCommand_MenuParamsWithoutParentID()
         imageType ="DYNAMIC"
       }
     })
-
-  --hmi side: expect UI.AddCommand request
   EXPECT_HMICALL("UI.AddCommand",
     {
       cmdID = 1004,
@@ -78,7 +70,7 @@ function Test:AddCommand_MenuParamsWithoutParentID()
         return false
       end
 
-      if not (data.params.cmdIcon.imageType == "DYNAMIC") then
+      if data.params.cmdIcon.imageType ~= "DYNAMIC" then
         local color = 31
         local msg = "imageType of menuIcon is WRONG. Expected: DYNAMIC; Real: " .. data.params.cmdIcon.imageType
         common_functions:UserPrint(color, msg)
@@ -87,11 +79,8 @@ function Test:AddCommand_MenuParamsWithoutParentID()
       return true
     end)
   :Do(function(_,data)
-      --hmi side: sending UI.AddCommand response
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-
-  --hmi side: expect VR.AddCommand request
   EXPECT_HMICALL("VR.AddCommand",
     {
       cmdID = 1004,
@@ -103,7 +92,6 @@ function Test:AddCommand_MenuParamsWithoutParentID()
       }
     })
   :Do(function(_,data)
-      --hmi side: sending response
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
 
