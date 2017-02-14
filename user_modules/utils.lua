@@ -1,18 +1,17 @@
 local module = {}
 
-local api_loader = require('modules/api_loader')
+local common_functions = require("user_modules/common_functions")
+local api_loader = require("modules/api_loader")
 local mobile_api = api_loader.init("data/MOBILE_API.xml")
 local interface_schema = mobile_api.interface["Ford Sync RAPI"]
 
 --! @brief Function which returnes unordered key set from any table
 --! @param table - table from which we are going to get keys
-function module.GetUnorderedTableKeyset(table)
-  local keyset={}
-  local n = 0
+function module.GetUnorderedTableKeyset(source_table)
+  local keyset = {}
 
-  for k,v in pairs(table) do
-    n=n+1
-    keyset[n]=k
+  for k in pairs(source_table) do
+      table.insert(keyset, k)
   end
   return keyset
 end
@@ -39,14 +38,17 @@ end
 --! @usage Function usage example: maxvalueMenuParams = module.GetStructValueFromMobileApi( "MenuParams", "parentID", "maxvalue")
 function module.GetStructValueFromMobileApi(struct_name, param_name, value_to_read)
   if not interface_schema.struct[struct_name] then
-    print ("\27[31mError : \27[0m")
-    print ("\27[31mStruct with name: \27[0m" .. struct_name .." \27[31mdoes not exist\27[0m")
-    return
+    common_functions:UserPrint(31, "Struct with name:", " ")
+    common_functions:UserPrint(0, struct_name, " ")
+    common_functions:UserPrint(31, "does not exist")
+    return nil
   end
   if not interface_schema.struct[struct_name].param[param_name] then
-    print ("\27[31mError : \27[0m")
-    print ("\27[31mParam with name: \27[0m" .. param_name .." \27[31mdoes not exist in structure: \27[0m" .. struct_name)
-    return
+    common_functions:UserPrint(31, "Param with name:", " ")
+    common_functions:UserPrint(0, param_name, " ")
+    common_functions:UserPrint(31, "does not exist in structure:", " ")
+    common_functions:UserPrint(0, struct_name)
+    return nil
   end
   return interface_schema.struct[struct_name].param[param_name][value_to_read]
 end
@@ -56,9 +58,10 @@ end
 --! @param Function usage example: maxlength = enum_size = module.GetEnumSizeFromMobileApi("AppInterfaceUnregisteredReason")
 function module.GetEnumSizeFromMobileApi(enum_name)
   if not interface_schema.enum[enum_name] then
-    print ("\27[31mError : \27[0m")
-    print ("\27[31mEnum with name: \27[0m" .. enum_name .." \27[31mdoes not exist\27[0m")
-    return
+    common_functions:UserPrint(31, "Enum with name:", " ")
+    common_functions:UserPrint(0, enum_name, " ")
+    common_functions:UserPrint(31, "does not exist")
+    return nil
   end
   return #module.GetUnorderedTableKeyset(interface_schema.enum[enum_name])
 end
@@ -71,19 +74,22 @@ end
 --! @param Function usage example: maxlength = module.GetFunctionValueFromMobileApi("request", "Show", "mainField2", "maxlength")
 function module.GetFunctionValueFromMobileApi(function_type, function_name, param_name, value_to_read)
   if not interface_schema.type[function_type] then
-    print ("\27[31mError : \27[0m")
-    print ("\27[31mFunction with type: \27[0m" .. function_type .." \27[31mdoes not exist\27[0m")
-    return
+    common_functions:UserPrint(31, "Function with type:", " ")
+    common_functions:UserPrint(0, function_type, " ")
+    common_functions:UserPrint(31, "does not exist")
+    return nil
   end
   if not interface_schema.type[function_type].functions[function_name] then
-    print ("\27[31mError : \27[0m")
-    print ("\27[31mFunction with name: \27[0m" .. function_name .." \27[31mdoes not exist\27[0m")
-    return
+    common_functions:UserPrint(31, "Function with name:", " ")
+    common_functions:UserPrint(0, function_name, " ")
+    common_functions:UserPrint(31, "does not exist")
+    return nil
   end
   if not interface_schema.type[function_type].functions[function_name].param[param_name] then
-    print ("\27[31mError : \27[0m")
-    print ("\27[31mParameter with name: \27[0m" .. param_name .." \27[31mdoes not exist in function\27[0m " .. function_name)
-    return
+    common_functions:UserPrint(31, "Parameter with name:", " ")
+    common_functions:UserPrint(0, param_name, " ")
+    common_functions:UserPrint(31, "does not exist")
+    return nil
   end
   return interface_schema.type[function_type].functions[function_name].param[param_name][value_to_read]
 end

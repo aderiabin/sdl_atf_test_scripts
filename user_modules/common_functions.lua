@@ -738,8 +738,9 @@ function CommonFunctions:CheckSdlPath()
 end
 
 
-function CommonFunctions:UserPrint(color, message)
-  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+function CommonFunctions:UserPrint(color, message, delimeter)
+  delimeter = delimeter or "\n"
+  io.write("\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m", delimeter)
 end
 
 function CommonFunctions:CreateIntegersArray(value, size)
