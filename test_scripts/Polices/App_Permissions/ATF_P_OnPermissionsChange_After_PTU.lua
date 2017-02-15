@@ -96,12 +96,14 @@ function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPe
               end
               RUN_AFTER(to_run, 800)
               self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+
               EXPECT_NOTIFICATION("OnPermissionsChange", {})
               :ValidIf(function(_,data1)
                   local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Base-8", true)
                   if commonFunctions:is_table_equal(tableOfPolicyPermissions, data1.payload.permissionItem) then
                     return true
                   else
+                    print("Tables are not equal.")
                     return false
                   end
                 end)
