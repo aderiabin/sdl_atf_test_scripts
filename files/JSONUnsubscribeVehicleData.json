@@ -121,7 +121,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "SubscribeVehicleData": {
@@ -149,7 +150,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "UnsubscribeVehicleData": {
@@ -177,7 +179,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "OnVehicleData": {
@@ -205,7 +208,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "AddCommand": {
@@ -519,7 +523,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "OnVehicleData": {
@@ -547,7 +552,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "SubscribeVehicleData": {
@@ -575,7 +581,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "UnsubscribeVehicleData": {
@@ -603,7 +610,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           }
         }
@@ -634,7 +642,8 @@
               "myKey",
               "prndl",
               "rpm",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "OnVehicleData": {
@@ -662,7 +671,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "SubscribeVehicleData": {
@@ -690,7 +700,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
 
           },
@@ -719,7 +730,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           }
         }
@@ -773,7 +785,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "SubscribeVehicleData": {
@@ -801,7 +814,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "UnsubscribeVehicleData": {
@@ -829,7 +843,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           }
         }
@@ -955,7 +970,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           },
           "UnsubscribeVehicleData": {
@@ -983,7 +999,8 @@
               "headLampStatus",
               "engineTorque",
               "accPedalPosition",
-              "steeringWheelAngle"
+              "steeringWheelAngle",
+			  "eCallInfo", "airbagStatus", "emergencyEvent", "clusterModeStatus", "myKey"
             ]
           }
         }
