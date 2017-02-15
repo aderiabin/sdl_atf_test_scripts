@@ -1,4 +1,4 @@
---Requirements: APPLINK-31632 Success result for positive request check
+--Requirements: APPLINK-19333
 
 --Description:
 --In case the request comes to SDL when the command has only VR menu. There are two cases in this

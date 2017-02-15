@@ -1,4 +1,4 @@
---Requirements: APPLINK-31632 Success result for positive request check
+--Requirements: APPLINK-19329
 
 --Description:
 --In case the request comes to SDL when the command has only MenuParams definitions
@@ -45,7 +45,7 @@ function AddCommand_MenuParamsOnly()
       {
        parentID = 0,
         position = i,
-        menuName = "Command1235"..i
+        menuName = "Command"..i
       }
     }
     if i == 1 then

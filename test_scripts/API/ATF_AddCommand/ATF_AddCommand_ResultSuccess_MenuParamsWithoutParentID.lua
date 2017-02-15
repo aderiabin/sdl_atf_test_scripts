@@ -1,4 +1,4 @@
---Requirements: APPLINK-31632 Success result for positive request check
+--Requirements: APPLINK-19334
 
 --Description:
 --In case the request comes to SDL when the command has all parameters, exception
@@ -60,13 +60,11 @@ function Test:AddCommand_MenuParamsWithoutParentID()
       }
     })
   :ValidIf(function(_, data)
-      local full_path_icon = table.concat({config.pathToSDL, "storage/", config.application1.registerAppInterfaceParams.appID,
-          "_", config.deviceMAC, "/", image_file_name})
-
+     local full_path_icon = common_functions:GetFullPathIcon(image_file_name)
       if data.params.cmdIcon.value ~= full_path_icon then
         local color = 31
-        local msg1 = "value of menuIcon is WRONG. Expected: ".. full_path_icon.. "; Real: " .. data.params.cmdIcon.value
-        common_functions:UserPrint(color, msg1)
+        local msg = "value of menuIcon is WRONG. Expected: ".. full_path_icon.. "; Real: " .. data.params.cmdIcon.value
+        common_functions:UserPrint(color, msg)
         return false
       end
 
@@ -98,7 +96,5 @@ function Test:AddCommand_MenuParamsWithoutParentID()
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
-
 -- -------------------------------------------Postcondition-------------------------------------
-
 common_steps:StopSDL("StopSDL")
