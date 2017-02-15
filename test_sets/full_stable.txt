@@ -270,4 +270,3 @@
 ./test_scripts/Polices/Related_HMI_API/211_ATF_GetListOfPermissions_without_appID.lua
 ./test_scripts/Polices/Related_HMI_API/212_ATF_GetListOfPermissions_with_appID.lua
 ./test_scripts/Polices/build_options/001_ATF_P_TC_SDL_Build_DEXTENDED_POLICY_EXTERNAL_PROPRIETARY.lua
-
