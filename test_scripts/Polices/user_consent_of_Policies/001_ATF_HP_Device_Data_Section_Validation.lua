@@ -89,8 +89,8 @@ end
 local function CompareTimestamps(valuesFromPTS, verificationValues, key)
   local date_from_pts = valuesFromPTS[key]
   local date_from_os = verificationValues[key]
-  local pts_epoch_seconds = os.time(utils.ConvertTZDateToTable(date_from_pts))
-  local os_eposh_seconds = os.time(utils.ConvertTZDateToTable(date_from_os))
+  local pts_epoch_seconds = utils.ConvertTZDateToEpochSeconds(date_from_pts)
+  local os_eposh_seconds = utils.ConvertTZDateToEpochSeconds(date_from_os)
   if pts_epoch_seconds  < os_eposh_seconds then
     print("\nWrong snapshot value of \"" .. key .. "\" received!")
     print("Expected: " .. date_from_os )
