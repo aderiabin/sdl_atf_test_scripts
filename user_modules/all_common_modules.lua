@@ -23,6 +23,7 @@ common_functions:RemoveTest("InitHMI", Test)
 common_functions:RemoveTest("InitHMI_onReady", Test)
 common_functions:RemoveTest("ConnectMobile", Test)
 common_functions:RemoveTest("StartSession", Test)
+common_functions:CheckSdlPath()
 -------------------- Set default settings for ATF script --------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
