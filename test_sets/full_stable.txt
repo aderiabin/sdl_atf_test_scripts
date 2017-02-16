@@ -1,4 +1,4 @@
-f./test_scripts/Policies/ATF_external_consent_group_in_preloaded_pt.lua
+./test_scripts/Policies/ATF_external_consent_group_in_preloaded_pt.lua
 ./test_scripts/Policies/ATF_external_consent_group_is_in_ptu.lua
 ./test_scripts/Policies/ATF_external_consent_group_is_omitted_in_ptu.lua
 ./test_scripts/Policies/ATF_external_consent_group_is_out_preloaded_pt.lua

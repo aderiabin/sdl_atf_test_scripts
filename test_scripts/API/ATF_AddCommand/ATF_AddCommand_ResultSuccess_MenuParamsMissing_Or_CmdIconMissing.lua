@@ -15,16 +15,10 @@
 -- 1. SDL responds with resultCode:"Success" and success: "true" value
 
 require('user_modules/all_common_modules')
-
--- -------------------------------------------Common Variables----------------------------------
-
-local image_file_name = "icon.png"
-
+local const = require('user_modules/consts')
 -- -------------------------------------------Preconditions-------------------------------------
-
 common_steps:PreconditionSteps("Preconditions",7)
-common_steps:PutFile("PutFile", image_file_name)
-
+common_steps:PutFile("PutFile", const.image_icon_png)
 -- ------------------------------------------Body-----------------------------------------------
 function MissingParams(self, full_name, cid_parameters)
 local functionName = "AddCommand_" .. full_name
@@ -66,5 +60,4 @@ function AddCommand_VRCommandsOnly()
 end
 AddCommand_VRCommandsOnly()
 -- -------------------------------------------Postcondition-------------------------------------
-
 common_steps:StopSDL("StopSDL")

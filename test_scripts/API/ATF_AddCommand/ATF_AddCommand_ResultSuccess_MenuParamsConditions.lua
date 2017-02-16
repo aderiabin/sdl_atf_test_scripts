@@ -12,18 +12,11 @@
 
 -- Expected result:
 -- 1. SDL responds with resultCode:"Success" and success: "true" value
-
 -- -------------------------------------------Required Resources-------------------------------
-
 require('user_modules/all_common_modules')
-
 -- -------------------------------------------Preconditions-------------------------------------
-
 common_steps:PreconditionSteps("Preconditions",7)
-
 -- -----------------------------------------------Body-------------------------------------------
-
-
 function AdditionalParams(self, full_name, cid_parameters)
   local functionName = "AddCommand_" .. full_name
     Test[functionName] = function(self)
@@ -52,14 +45,12 @@ function AddCommand_MenuParamsOnly()
       full_name = "MenuParamsOnly"
     elseif i == 2 then
       full_name = "MenuParamsWithoutConditional"
-      parentID = nil
-      position = nil
+      cid_parameters.menuParams.parentID = nil
+      cid_parameters.menuParams.position = nil
     end  
       AdditionalParams(self, full_name, cid_parameters)
    end
 end
 AddCommand_MenuParamsOnly()
-
 -- -------------------------------------------Postcondition-------------------------------------
-
 common_steps:StopSDL("StopSDL")

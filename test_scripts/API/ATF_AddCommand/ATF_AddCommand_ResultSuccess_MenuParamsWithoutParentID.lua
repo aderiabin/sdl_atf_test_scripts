@@ -13,23 +13,14 @@
 
 -- Expected result:
 -- 1. SDL responds with resultCode:"Success" and success: "true" value
-
 -- -------------------------------------------Required Resources-------------------------------
-
 require('user_modules/all_common_modules')
-
--- -------------------------------------------Common Variables----------------------------------
-
-local image_file_name = "icon.png"
-
+local const = require('user_modules/consts')
 -- -------------------------------------------Preconditions-------------------------------------
-
 common_steps:PreconditionSteps("Preconditions",7)
-common_steps:PutFile("PutFile", image_file_name)
+common_steps:PutFile("PutFile", const.image_icon_png )
 common_functions:CheckSdlPath()
-
 -- ------------------------------------------Body-----------------------------------------------
-
 function Test:AddCommand_MenuParamsWithoutParentID()
   local cid = self.mobileSession:SendRPC("AddCommand",
     {
@@ -60,18 +51,15 @@ function Test:AddCommand_MenuParamsWithoutParentID()
       }
     })
   :ValidIf(function(_, data)
-     local full_path_icon = common_functions:GetFullPathIcon(image_file_name)
+     local full_path_icon = common_functions:GetFullPathIcon(const.image_icon_png )
       if data.params.cmdIcon.value ~= full_path_icon then
-        local color = 31
         local msg = "value of menuIcon is WRONG. Expected: ".. full_path_icon.. "; Real: " .. data.params.cmdIcon.value
-        common_functions:UserPrint(color, msg)
+        common_functions:UserPrint(const.color.red, msg)
         return false
       end
-
       if data.params.cmdIcon.imageType ~= "DYNAMIC" then
-        local color = 31
         local msg = "imageType of menuIcon is WRONG. Expected: DYNAMIC; Real: " .. data.params.cmdIcon.imageType
-        common_functions:UserPrint(color, msg)
+        common_functions:UserPrint(const.color.red, msg)
         return false
       end
       return true
@@ -92,7 +80,6 @@ function Test:AddCommand_MenuParamsWithoutParentID()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
