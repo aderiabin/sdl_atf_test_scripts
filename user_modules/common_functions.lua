@@ -808,9 +808,11 @@ end
 -- Get full path to image
 -- @param image_file_name: name of the image
 -----------------------------------------------------------------------------
-function CommonFunctions:GetFullPathIcon(image_file_name)
-  local full_path_icon = table.concat({config.pathToSDL, "storage/", config.application1.registerAppInterfaceParams.appID,
-      "_", config.deviceMAC, "/", image_file_name})
+function CommonFunctions:GetFullPathIcon(image_file_name, appId)
+  if not appId then 
+    appId = config.application1.registerAppInterfaceParams.appID
+  end
+  local full_path_icon = table.concat({config.pathToSDL, "storage/", appId, "_", config.deviceMAC, "/", image_file_name})
   return full_path_icon
 end
 
