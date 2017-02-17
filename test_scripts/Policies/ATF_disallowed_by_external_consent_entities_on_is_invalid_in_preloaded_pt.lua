@@ -3,8 +3,7 @@ require('user_modules/all_common_modules')
 
 --------------------------------- Variables -----------------------------------
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
-local sql_query = "select * from entities, functional_group where entities.group_id = functional_group.id"
-local error_message = "SDL saved disallowed_by_external_consent_entities_on although existed invalid parameters in PreloadedPT."
+
 ------------------------------- Common functions -------------------------------
 local match_result = "null"
 local temp_replace_value = "\"Thi123456789\""
@@ -27,46 +26,16 @@ local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items)
   if type(added_json_items) == "string" then
     added_json_items = json.decode(added_json_items)
   end
-
+  
   for k, v in pairs(added_json_items) do
     parent[k] = v
   end
-
+  
   data = json.encode(data)
   data_revert = string.gsub(data, temp_replace_value, match_result)
   file = assert(io.open(json_file, "w"))
   file:write(data_revert)
   file:close()
-end
-
--- Verify new parameter is not saved in LPT
-local function CheckPolicyTable(test_case_name, sql_query, error_message)
-  Test[test_case_name] = function(self)
-    -- Look for policy.sqlite file
-    local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-    local policy_file2 = config.pathToSDL .. "policy.sqlite"
-    local policy_file
-    if common_steps:FileExisted(policy_file1) then
-      policy_file = policy_file1
-    elseif common_steps:FileExisted(policy_file2) then
-      policy_file = policy_file2
-    else
-      common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
-    end
-    if policy_file then
-      local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-      local handler = io.popen(ful_sql_query, 'r')
-      os.execute("sleep 1")
-      local result = handler:read( '*l' )
-      handler:close()
-      if(result==nil or result == "") then
-        return true
-      else
-        self:FailTestCase("entities value in DB is also saved in local policy table although invalid param existed in PreloadedPT file")
-        return false
-      end
-    end
-  end
 end
 
 -- Verify SDL can't start with invalid parameter in PreloadedPT
@@ -103,17 +72,17 @@ local invalid_entity_type_cases = {
 for i=1, #invalid_entity_type_cases do
   local test_case_id = "TC_entityType_" .. tostring(i)
   local test_case_name = test_case_id .. "_disallowed_by_external_consent_entities_on.entityType_" .. invalid_entity_type_cases[i].description
-
+  
   common_steps:AddNewTestCasesGroup(test_case_name)
-
+  
   Test[test_case_name .. "_Precondition_StopSDL"] = function(self)
     StopSDL()
   end
-
+  
   Test[test_case_name .. "_RemoveExistedLPT"] = function(self)
     common_functions:DeletePolicyTable()
   end
-
+  
   Test[test_case_name .. "_UpdatePreloadedPt"] = function(self)
     local testing_value = {
       disallowed_by_external_consent_entities_on = {
@@ -125,13 +94,11 @@ for i=1, #invalid_entity_type_cases do
     }
     AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
   end
-
+  
   Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
     StartSDL(config.pathToSDL, config.ExitOnCrash)
   end
-
-  CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
-
+  
   VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_external_consent_entities_on.entityType_".. invalid_entity_type_cases[i].description)
 end
 
@@ -148,20 +115,20 @@ local invalid_entity_id_cases = {
 }
 
 for i=1, #invalid_entity_id_cases do
-
+  
   local test_case_id = "TC_entityID_" .. tostring(i)
   local test_case_name = test_case_id .. "_disallowed_by_external_consent_entities_on.entityId_" .. invalid_entity_id_cases[i].description
-
+  
   common_steps:AddNewTestCasesGroup(test_case_name)
-
+  
   Test[tostring(test_case_name) .. "_Precondition_StopSDL"] = function(self)
     StopSDL()
   end
-
+  
   Test[test_case_name .. "_Precondition_RestoreDefaultPreloadedPt"] = function(self)
     common_functions:DeletePolicyTable()
   end
-
+  
   Test[test_case_name .. "_UpdatePreloadedPt"] = function(self)
     local testing_value = {
       disallowed_by_external_consent_entities_on = {
@@ -173,15 +140,13 @@ for i=1, #invalid_entity_id_cases do
     }
     AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item, testing_value)
   end
-
+  
   Test[test_case_name .. "_StartSDL_WithInvalidParamInPreloadedPT"] = function(self)
     sdl.exitOnCrash = false
     StartSDL(config.pathToSDL, false)
   end
-
-  CheckPolicyTable(test_case_name .. "_CheckPolicyTable", sql_query, error_message)
+  
   VerifySDLShutDownWithInvalidParamInPreloadedPT("_disallowed_by_external_consent_entities_on.entityId_" .. invalid_entity_id_cases[i].description)
-
 end
 
 -------------------------------------- Postconditions ----------------------------------------

@@ -1,0 +1,2346 @@
+{ 
+  "policy_table":{ 
+    "module_config":{ 
+      "exchange_after_x_kilometers":1800,
+      "seconds_between_retries":[ 
+      1,
+      5,
+      25,
+      125,
+      625
+      ],
+      "device_data":{ 
+        "HUU40DAS7F970UEI17A73JH32L41K32JH4L1K234H3K4":{ 
+          "user_consent_records":{ 
+            "0000001":{ 
+              "external_consent_status_groups":{ 
+                "Location":false
+              },
+              "time_stamp":"2015-10-09T18:07:21Z",
+              "input":"GUI",
+              "consent_groups":{ 
+                "Location":true
+              }
+            }
+          }
+        }
+      },
+      "endpoints":{ 
+        "0x04":{ 
+          "default":[ 
+          "http:\/\/ivsu.software.ford.com\/api\/getsoftwareupdates"
+          ]
+        },
+        "0x07":{ 
+          "default":[ 
+          "http:\/\/policies.telematics.ford.com\/api\/policies"
+          ]
+        }
+      },
+      "exchange_after_x_days":20,
+      "notifications_per_minute_by_priority":{ 
+        "VOICECOM":20,
+        "EMERGENCY":60,
+        "NONE":0,
+        "NAVIGATION":15,
+        "COMMUNICATION":6,
+        "NORMAL":4
+      },
+      "timeout_after_x_seconds":60,
+      "exchange_after_x_ignition_cycles":100
+    },
+    "functional_groupings":{ 
+      "PropriataryData-2":{ 
+        "rpcs":{ 
+          "DiagnosticMessage":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "ReadDID":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "GetDTCs":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      },
+      "SendLocation":{ 
+        "rpcs":{ 
+          "SendLocation":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      },
+      "PropriataryData-1":{ 
+        "rpcs":{ 
+          "DiagnosticMessage":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "ReadDID":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "GetDTCs":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      },
+      "Navigation-1":{ 
+        "rpcs":{ 
+          "UpdateTurnList":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "ShowConstantTBT":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "AlertManeuver":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      },
+      "DrivingCharacteristics-3":{ 
+        "rpcs":{ 
+          "UnsubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "accPedalPosition",
+            "beltStatus",
+            "driverBraking",
+            "myKey",
+            "prndl",
+            "rpm",
+            "steeringWheelAngle"
+            ]
+          },
+          "OnVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "accPedalPosition",
+            "beltStatus",
+            "driverBraking",
+            "myKey",
+            "prndl",
+            "rpm",
+            "steeringWheelAngle"
+            ]
+          },
+          "GetVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "accPedalPosition",
+            "beltStatus",
+            "driverBraking",
+            "myKey",
+            "prndl",
+            "rpm",
+            "steeringWheelAngle"
+            ]
+          },
+          "SubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "accPedalPosition",
+            "beltStatus",
+            "driverBraking",
+            "myKey",
+            "prndl",
+            "rpm",
+            "steeringWheelAngle"
+            ]
+          }
+        },
+        "user_consent_prompt":"DrivingCharacteristics"
+      },
+      "Emergency-1":{ 
+        "rpcs":{ 
+          "UnsubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "airbagStatus",
+            "clusterModeStatus",
+            "eCallInfo",
+            "emergencyEvent"
+            ]
+          },
+          "OnVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "airbagStatus",
+            "clusterModeStatus",
+            "eCallInfo",
+            "emergencyEvent"
+            ]
+          },
+          "GetVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "airbagStatus",
+            "clusterModeStatus",
+            "eCallInfo",
+            "emergencyEvent"
+            ]
+          },
+          "SubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "airbagStatus",
+            "clusterModeStatus",
+            "eCallInfo",
+            "emergencyEvent"
+            ]
+          }
+        }
+      },
+      "OnKeyboardInputOnlyGroup":{ 
+        "rpcs":{ 
+          "OnKeyboardInput":{ 
+            "hmi_levels":[ 
+            "FULL"
+            ]
+          }
+        }
+      },
+      "SendLocationOnly":{ 
+        "rpcs":{ 
+          "SendLocation":{ 
+            "hmi_levels":[ 
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      },
+      "BackgroundAPT":{ 
+        "rpcs":{ 
+          "EndAudioPassThru":{ 
+            "hmi_levels":[ 
+            "BACKGROUND"
+            ]
+          },
+          "OnAudioPassThru":{ 
+            "hmi_levels":[ 
+            "BACKGROUND"
+            ]
+          },
+          "PerformAudioPassThru":{ 
+            "hmi_levels":[ 
+            "BACKGROUND"
+            ]
+          }
+        }
+      },
+      "DiagnosticMessageOnly":{ 
+        "rpcs":{ 
+          "DiagnosticMessage":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      },
+      "ProprietaryData-3":{ 
+        "rpcs":{ 
+          "GetDTCs":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "ReadDID":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      },
+      "OnTouchEventOnlyGroup":{ 
+        "rpcs":{ 
+          "OnTouchEvent":{ 
+            "hmi_levels":[ 
+            "FULL"
+            ]
+          }
+        }
+      },
+      "DataConsent-2":{ 
+        "rpcs":null,
+        "user_consent_prompt":"DataConsent"
+      },
+      "Base-4":{ 
+        "rpcs":{ 
+          "OnEncodedSyncPData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "PerformAudioPassThru":{ 
+            "hmi_levels":[ 
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "SubscribeButton":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "SetMediaClockTimer":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "PerformInteraction":{ 
+            "hmi_levels":[ 
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnButtonPress":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnHashChange":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "AddSubMenu":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "UnsubscribeButton":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnAppInterfaceUnregistered":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnPermissionsChange":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "UnregisterAppInterface":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "EndAudioPassThru":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "SystemRequest":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnButtonEvent":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "SetGlobalProperties":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "DeleteCommand":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "DeleteFile":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "Slider":{ 
+            "hmi_levels":[ 
+            "FULL"
+            ]
+          },
+          "Alert":{ 
+            "hmi_levels":[ 
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnAudioPassThru":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "ListFiles":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "AddCommand":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "GenericResponse":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnLanguageChange":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "PutFile":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "DeleteInteractionChoiceSet":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnDriverDistraction":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "ScrollableMessage":{ 
+            "hmi_levels":[ 
+            "FULL"
+            ]
+          },
+          "OnCommand":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "DeleteSubMenu":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "ChangeRegistration":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "CreateInteractionChoiceSet":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnHMIStatus":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "EncodedSyncPData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "SetDisplayLayout":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "RegisterAppInterface":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "ResetGlobalProperties":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "Show":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "SetAppIcon":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "Speak":{ 
+            "hmi_levels":[ 
+            "FULL",
+            "LIMITED"
+            ]
+          },
+          "OnSystemRequest":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          }
+        }
+      },
+      "Notifications":{ 
+        "rpcs":{ 
+          "Alert":{ 
+            "hmi_levels":[ 
+            "BACKGROUND"
+            ]
+          }
+        },
+        "user_consent_prompt":"Notifications"
+      },
+      "BaseBeforeDataConsent":{ 
+        "rpcs":{ 
+          "ChangeRegistration":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnEncodedSyncPData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "PutFile":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "SetAppIcon":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnHashChange":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "SetGlobalProperties":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "DeleteFile":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnPermissionsChange":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnAppInterfaceUnregistered":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "ListFiles":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnHMIStatus":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "EncodedSyncPData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "SystemRequest":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "UnregisterAppInterface":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "ResetGlobalProperties":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnLanguageChange":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "SetDisplayLayout":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "RegisterAppInterface":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          },
+          "OnSystemRequest":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED",
+            "NONE"
+            ]
+          }
+        }
+      },
+      "VehicleInfo-3":{ 
+        "rpcs":{ 
+          "UnsubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "bodyInformation",
+            "deviceStatus",
+            "engineTorque",
+            "externalTemperature",
+            "fuelLevel",
+            "fuelLevel_State",
+            "headLampStatus",
+            "instantFuelConsumption",
+            "odometer",
+            "tirePressure",
+            "wiperStatus"
+            ]
+          },
+          "OnVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "bodyInformation",
+            "deviceStatus",
+            "engineTorque",
+            "externalTemperature",
+            "fuelLevel",
+            "fuelLevel_State",
+            "headLampStatus",
+            "instantFuelConsumption",
+            "odometer",
+            "tirePressure",
+            "vin",
+            "wiperStatus"
+            ]
+          },
+          "GetVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "bodyInformation",
+            "deviceStatus",
+            "engineTorque",
+            "externalTemperature",
+            "fuelLevel",
+            "fuelLevel_State",
+            "headLampStatus",
+            "instantFuelConsumption",
+            "odometer",
+            "tirePressure",
+            "vin",
+            "wiperStatus"
+            ]
+          },
+          "SubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "bodyInformation",
+            "deviceStatus",
+            "engineTorque",
+            "externalTemperature",
+            "fuelLevel",
+            "fuelLevel_State",
+            "headLampStatus",
+            "instantFuelConsumption",
+            "odometer",
+            "tirePressure",
+            "wiperStatus"
+            ]
+          }
+        },
+        "user_consent_prompt":"VehicleInfo"
+      },
+      "Location-1":{ 
+        "rpcs":{ 
+          "UnsubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "gps",
+            "speed"
+            ]
+          },
+          "OnVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "gps",
+            "speed"
+            ]
+          },
+          "GetVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "gps",
+            "speed"
+            ]
+          },
+          "SubscribeVehicleData":{ 
+            "hmi_levels":[ 
+            "BACKGROUND",
+            "FULL",
+            "LIMITED"
+            ],
+            "parameters":[ 
+            "gps",
+            "speed"
+            ]
+          }
+        },
+        "user_consent_prompt":"Location"
+      },
+      "DialNumberOnly":{ 
+        "rpcs":{ 
+          "DialNumber":{ 
+            "hmi_levels":[ 
+            "FULL",
+            "LIMITED"
+            ]
+          }
+        }
+      }
+    },
+    "consumer_friendly_messages":{ 
+      "version":"001.001.023",
+      "messages":{ 
+        "DataConsent":{ 
+          "languages":{ 
+            "en-gb":{ 
+              "textBody":"Would you like to enable Mobile Apps on SYNC? To use Mobile Apps with SYNC, SYNC will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SYNC will send your VIN and SYNC module number to Ford U.S. \r\n\r\nUpdates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SYNC Settings menu. See your Owner Guide for more information."
+            },
+            "es-mx":{ 
+              "textBody":"Si permite el uso de apps de su móvil vía SYNC®, acepta que SYNC® puede utilizar el plan de datos de su equipo para enviar y recibir info para actualizar su configuración y permitir la funcionalidad de la app. Datos enviados a Ford US incluyen VIN y # de módulo de SYNC®. Cargos a su plan de datos pueden aplicar. \r\n\r\nPara cambiar la config. de SYNC® o apagarlo, acceda a Menú de configuración de apps. Vea la Guía del Propietario para más info. Estoy de acuerdo y acepto lo anterior."
+            },
+            "fr-ca":{ 
+              "textBody":"Si vous activez les applications mobiles sur SYNC, vous acceptez que SYNC utilise votre forfait de données afin de maintenir vos réglages à jour et assurer la pleine fonctionnalité. Parmi les données envoyées à Ford US, notons le NIV et le numéro de module SYNC. Des frais de base peuvent s’appliquer. \r\n\r\nPour modifier les réglages ou désactiver les applications, consultez le menu des réglages des applications de SYNC. Voir le Manuel du propriétaire. J’accepte et je consens."
+            },
+            "en-us":{ 
+              "textBody":"Would you like to enable Mobile Apps on SYNC?\r\n\r\nIf you enable the use of mobile apps from your mobile device on SYNC, you agree that SYNC can periodically use your device’s data plan to send and receive data that keeps your settings current and enables app functionality. Data sent to Ford U.S. includes your VIN and SYNC module number. Standard rates may apply.\r\n\r\nTo change settings or turn off later, visit the SYNC mobile apps settings menu. See Owner Guide for more information. I agree and consent.",
+              "line1":"Enable Mobile Apps",
+              "line2":"on SYNC? (Uses Data)"
+            }
+          }
+        },
+        "AppPermissions":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "tts":"%appName% está a solicitar a utilização das seguintes informações e permissões do veículo: %functionalGroupLabels%. Se premir “Sim”, concorda que %vehicleMake% não será responsável por quaisquer danos ou perda de privacidade relacionada com a utilização dos seus dados por parte de %appName%. Prima “Sim” para permitir ou “Não” para recusar.",
+              "line1":"Conceder permiss.",
+              "line2":"solicitada(s)?"
+            },
+            "zh-cn":{ 
+              "tts":"%appName% 正在请求使用下列车辆信息和权限： %functionalGroupLabels%。如果您按“是”，则表示您同意。 %vehicleMake% 将不会对因 %appName% 使用您的数据而引起的任何损毁或隐私损失负责。 请按“是”允许或按“否”拒绝。",
+              "line1":"是否允许请求的",
+              "line2":"权限？"
+            },
+            "sv-se":{ 
+              "tts":"%appName% begär att få tillgång till följande fordonsinformation och tillstånd: %functionalGroupLabels%. Om du trycker Ja godkänner du att %vehicleMake% ska hållas skadeslös för alla skador som kan uppstå eller eventuella integritetsintrång som uppstår när %appName% använder dina data. Tryck Ja för att godkänna eller Nej för att neka.",
+              "line1":"Vill du ge",
+              "line2":"tillstånd?"
+            },
+            "it-it":{ 
+              "tts":"%appName% richiede l'uso delle seguenti informazioni e autorizzazioni sul veicolo: %functionalGroupLabels%. Se si preme Sì, si acconsente che %vehicleMake% non sarà responsabile per danni o perdita di privacy in relazione all'impiego dei dati da parte di %appName%. Premere Sì per consentire e No per negare.",
+              "line1":"Concedi autorizzaz.",
+              "line2":"richiesta(e)?"
+            },
+            "de-de":{ 
+              "tts":"%appName% benötigt die folgenden Fahrzeuginformationen und Zugriffsberechtigungen: %functionalGroupLabels%. Wenn Sie Ja drücken, erklären Sie sich damit einverstanden, dass %vehicleMake% nicht für Schäden oder Verletzungen der Privatsphäre haftet, die im Zusammenhang mit der Nutzung Ihrer Benutzerdaten durch %appName% entstehen. Mit Ja stimmen Sie zu; mit Nein lehnen Sie ab.",
+              "line1":"Zugriffsanfrage(n)",
+              "line2":"erlauben?"
+            },
+            "en-ie":{ 
+              "tts":"%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%'s use of your data. Please press Yes to allow or No to deny.",
+              "line1":"Grant requested",
+              "line2":"permission(s)?"
+            },
+            "es-mx":{ 
+              "textBody":"La App %appName% solicita permiso para usar: %functionalGroupLabels%. \r\n\r\nPara desactivar o cambiar la configuración, acceda al menú de SYNC® de configuración de apps. Consulte términos de servicio y políticas de privacidad de la App. Ford no es responsable de la funcionalidad de la App. Evite distracciones y use los controles de voz cuando estén disponibles. Estoy de acuerdo y acepto lo anterior.",
+              "tts":"%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%. Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños o pérdidas de privacidad relacionados con el uso que %appName% haga de sus datos. Presione Sí para permitir y No para denegar.",
+              "line1":"¿Otorgar permiso(s)",
+              "line2":"solicitado(s)?"
+            },
+            "nl-nl":{ 
+              "tts":"%appName% vraagt gebruikmaking van de volgende voertuiginformatie en toestemmingen aan: %functionalGroupLabels%. Als u op Ja drukt, gaat u ermee akkoord dat %vehicleMake% in geen geval aansprakelijk gesteld kan worden voor schade of verlies van privacy als gevolg van het feit dat %appName% gebruik maakt van uw gegevens. Druk op Ja om dit toe te staan of Nee om te weigeren.",
+              "line1":"Aangevraagde",
+              "line2":"permissie(s) verlenen?"
+            },
+            "zh-tw":{ 
+              "tts":"%appName% 正請求使用 %functionalGroupLabels% 的車輛資訊和許可。按「是」，表示您同意，如因 %appName% 使用您的資料導致任何損害或損失，%vehicleMake% 將不負賠償責任。同意請按「是」，拒絕請按「否」。",
+              "line1":"允許",
+              "line2":"授權請求?"
+            },
+            "es-es":{ 
+              "tts":"%appName% está solicitando el uso de los siguientes permisos e información del vehículo: %functionalGroupLabels%. Si pulsa sí, acepta que %vehicleMake% no será responsable de los daños o la pérdida de privacidad relacionados con el uso de sus datos por parte de %appName%. Pulse sí para permitir o no para denegar.",
+              "line1":"¿Conceder permisos",
+              "line2":"solicitados?"
+            },
+            "tr-tr":{ 
+              "tts":"%appName%, şu araç bilgilerini ve izinleri kullanma isteğinde bulunuyor: %functionalGroupLabels%. Evet'e basarsanız, %appName%'in verilerinizi kullanması sonucunda oluşabilecek hasarlardan veya gizlilik kaybından %vehicleMake%'in sorumlu olmayacağını kabul etmiş olacaksınız. Lütfen kabul etmek için Evet'e veya reddetmek için Hayır'a basın.",
+              "line1":"İstenen izinler",
+              "line2":"verilsin mi?"
+            },
+            "fr-fr":{ 
+              "tts":"%appName% demande d’utiliser les informations du véhicule et les permissions suivantes : %functionalGroupLabels%. Si vous appuyez sur Oui, vous acceptez que %vehicleMake% ne sera pas responsable des dommages ou des pertes de confidentialité reliées à l’utilisation de vos données par %appName%. Veuillez appuyer sur Oui pour autoriser ou sur Non pour refuser.",
+              "line1":"Accorder permission(s)",
+              "line2":"demandée(s)"
+            },
+            "en-au":{ 
+              "tts":"%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%'s use of your data. Please press Yes to allow or No to deny.",
+              "line1":"Grant requested",
+              "line2":"permission(s)?"
+            },
+            "fr-ca":{ 
+              "textBody":"L’application %appName% demande la permission d’utiliser : %functionalGroupLabels%. \r\n\r\nPour désactiver ou modifier ces réglages de données à tout moment, consultez le menu de réglages des applications mobiles SYNC. Reportez-vous aux modalités de service et à la politique de confidentialité de l’application. Ford n’est pas responsable de la fonctionnalité de l’application. Évitez les distractions et utilisez les commandes vocales lorsqu’elles sont disponibles. J’accepte et je consens.",
+              "tts":"L’application %appName% demande la permission d’utiliser : %functionalGroupLabels%. \r\nPour désactiver ou modifier ces réglages de données à tout moment, consultez le menu de réglages des applications mobiles SYNC. Reportez-vous aux modalités de service et à la politique de confidentialité de l’application. Ford n’est pas responsable de la fonctionnalité de l’application. Évitez les distractions et utilisez les commandes vocales lorsqu’elles sont disponibles. Veuillez appuyer sur Oui pour autoriser ou sur Non pour refuser.",
+              "line1":"Accorder permission(s)",
+              "line2":"demandée(s)"
+            },
+            "pl-pl":{ 
+              "tts":"%appName% wymaga następujących informacji o pojeździe oraz pozwoleń: %functionalGroupLabels%. Naciśnięcie TAK oznacza zgodę na fakt, iż %vehicleMake% nie będzie ponosić odpowiedzialności za szkody ani utratę prywatności w związku z wykorzystaniem przez %appName% danych, należących do użytkownika. Naciśnij TAK w celu udzielenia zgody lub NIE w celu odrzucenia żądania.",
+              "line1":"Udzielić żądanych",
+              "line2":"pozwoleń?"
+            },
+            "pt-br":{ 
+              "tts":"%appName% está solicitando o uso das seguintes informações e permissões do veículo: %functionalGroupLabels%. Se pressionar sim, você concorda que a %vehicleMake% não será responsável por danos ou perdas de privacidade relacionados ao uso dos seus dados por %appName%. Pressione sim para permitir ou não para negar.",
+              "line1":"Conceder permissão",
+              "line2":"solicitada?"
+            },
+            "es-en":{ 
+              "textBody":"La App %appName% solicita permiso para usar: %functionalGroupLabels%. \r\n\r\nPara desactivar o cambiar la configuración, acceda al menú de SYNC® de configuración de apps. Consulte términos de servicio y políticas de privacidad de la App. Ford no es responsable de la funcionalidad de la App. Evite distracciones y use los controles de voz cuando estén disponibles. Estoy de acuerdo y acepto lo anterior.",
+              "tts":"%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%. Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños o pérdidas de privacidad relacionados con el uso que %appName% haga de sus datos. Presione Sí para permitir y No para denegar.",
+              "line1":"¿Otorgar permiso(s)",
+              "line2":"solicitado(s)?"
+            },
+            "en-gb":{ 
+              "textBody":"%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%`s use of your data. You can change these permissions and hear detailed descriptions in the mobile apps settings menu.",
+              "tts":"%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%`s use of your data. Please press Yes to allow or No to deny.",
+              "line1":"Grant requested",
+              "line2":"permission(s)?"
+            },
+            "en-us":{ 
+              "textBody":"The %appName% App is requesting permission to use the following: %functionalGroupLabels%.\r\n\r\nTo disable or change these settings at any time visit the SYNC mobile apps settings menu. See App terms of service and privacy policies. Ford is not responsible for App functionality. Avoid distractions and use voice controls where available. I agree and consent.",
+              "tts":"%appName% is requesting permission to use the following: %functionalGroupLabels%.\r\nTo disable or change these settings at any time visit the SYNC mobile apps settings menu. See App terms of service and privacy policies. Ford is not responsible for App functionality. Avoid distractions and use voice controls where available. Please press yes to allow or no to deny.",
+              "line1":"Grant Requested",
+              "line2":"Permission(s)?"
+            },
+            "ru-ru":{ 
+              "tts":"%appName% запрашивает следующую информацию об автомобиле и разрешения: %functionalGroupLabels%. Нажатием \"\"да\"\", Вы соглашаетесь, что %vehicleMake% не будет нести ответственность за какие-либо убытки или потерю прайвеси, связанные с использованием Ваших данных компанией %appName%. Нажмите \"\"Да\"\", если Вы согласны, или \"\"Нет\"\" - если не согласны.",
+              "line1":"Предост. заправш.",
+              "line2":"разрешения?"
+            }
+          }
+        },
+        "SettingAppPermissions":{ 
+          "languages":{ 
+            "fr-ca":{ 
+              "textBody":"Pour modifier la fonctionnalité de %appName% et l’usage des données comme décrit ci-dessous. Reportez-vous aux modalités de service et à la politique de confidentialité de l’application."
+            },
+            "es-mx":{ 
+              "textBody":"Para cambiar la funcionalidad de %appName% y usar los datos como se describe más adelante. Consulte los términos de servicio y políticas de privacidad de la App."
+            },
+            "en-us":{ 
+              "textBody":"Change %AppName%’s functionality and use of data as described below. See App terms of service and privacy policies."
+            }
+          }
+        },
+        "AppUnauthorized":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "tts":"Esta versão de %appName% não está autorizada e não funcionará com o SYNC.",
+              "line1":"não autorizada"
+            },
+            "zh-cn":{ 
+              "tts":"此版本的%appName% 未得到授权，无法在SYNC上使用。",
+              "line1":"未得到授权"
+            },
+            "sv-se":{ 
+              "tts":"Den här versionen av %appName% är inte godkänd och fungerar inte med SYNC.",
+              "line1":"är ej godkänd"
+            },
+            "it-it":{ 
+              "tts":"Questa versione di %appName% non è autorizzata e non funziona con il SYNC.",
+              "line1":"non autorizzata"
+            },
+            "de-de":{ 
+              "tts":"Diese Version von %appName% ist nicht autorisiert und wird nicht mit SYNC funktionieren.",
+              "line1":"nicht autorisiert"
+            },
+            "en-ie":{ 
+              "tts":"This version of %appName% is not authorized and will not work with SYNC.",
+              "line1":"not authorized"
+            },
+            "es-mx":{ 
+              "textBody":"Esta versión de %appName% no tiene autorización y no funcionará con SYNC.",
+              "tts":"Esta versión de %appName% no tiene autorización y no funcionará con SYNC.",
+              "line1":"no autorizada"
+            },
+            "nl-nl":{ 
+              "tts":"Deze versie van %appName% is niet geautoriseerd en werkt niet met SYNC.",
+              "line1":"niet geautoriseerd"
+            },
+            "zh-tw":{ 
+              "tts":"%appName% 的版本未獲得授權，將無法透過 SYNC 使用。",
+              "line1":"無授權"
+            },
+            "es-es":{ 
+              "tts":"Esta versión de %appName% no está autorizada y no funcionará con SYNC.",
+              "line1":"No autorizada"
+            },
+            "tr-tr":{ 
+              "tts":"Bu %appName% sürümüne izin verilmediğinden SYNC ile çalışamaz.",
+              "line1":"için izin yok"
+            },
+            "fr-fr":{ 
+              "tts":"Cette version de %appName% n’est pas autorisée et ne fonctionnera pas avec SYNC.",
+              "line1":"non autorisée"
+            },
+            "en-au":{ 
+              "tts":"This version of %appName% is not authorized and will not work with SYNC.",
+              "line1":"not authorized"
+            },
+            "fr-ca":{ 
+              "textBody":"Cette version de %appName% n’est pas autorisée et ne fonctionnera pas avec SYNC.",
+              "tts":"Cette version de %appName% n’est pas autorisée et ne fonctionnera pas avec SYNC.",
+              "line1":"non autorisée"
+            },
+            "pl-pl":{ 
+              "tts":"Niniejsza wersja %appName% nie posiada autoryzacji i nie będzie działać z SYNC.",
+              "line1":"brak autoryzacji"
+            },
+            "pt-br":{ 
+              "tts":"Esta versão do %appName% não tem autorização e não funcionará com o SYNC.",
+              "line1":"não autorizado"
+            },
+            "es-en":{ 
+              "textBody":"Esta versión de %appName% no tiene autorización y no funcionará con SYNC.",
+              "tts":"Esta versión de %appName% no tiene autorización y no funcionará con SYNC.",
+              "line1":"no autorizada"
+            },
+            "en-gb":{ 
+              "textBody":"This version of %appName% is not authorized and will not work with SYNC.",
+              "tts":"This version of %appName% is not authorized and will not work with SYNC.",
+              "line1":"not authorized"
+            },
+            "en-us":{ 
+              "textBody":"This version of %appName% is no longer authorized to work with Mobile Apps. Please update to the latest version of %appName%.",
+              "tts":"This version of %appName% is not authorized and will not work with SYNC.",
+              "line1":"Not Authorized"
+            },
+            "ru-ru":{ 
+              "tts":"Эта версия %appName% не авторизирована и не будет работать с SYNC.",
+              "line1":"не авторизировано"
+            }
+          }
+        },
+        "StatusNeeded":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "line1":"Actual. necess."
+            },
+            "zh-cn":{ 
+              "line1":"需要进行更新"
+            },
+            "sv-se":{ 
+              "line1":"Uppdat. krävs"
+            },
+            "it-it":{ 
+              "line1":"Necess. aggiorn."
+            },
+            "de-de":{ 
+              "line1":"Update benötigt"
+            },
+            "en-ie":{ 
+              "line1":"Update needed"
+            },
+            "es-mx":{ 
+              "textBody":"Actualiz. neces.",
+              "line1":"Actualiz. neces."
+            },
+            "nl-nl":{ 
+              "line1":"Update nodig"
+            },
+            "zh-tw":{ 
+              "line1":"需更新"
+            },
+            "es-es":{ 
+              "line1":"Actu. necesaria"
+            },
+            "tr-tr":{ 
+              "line1":"Güncellenmeli"
+            },
+            "fr-fr":{ 
+              "line1":"Mise à jour requise"
+            },
+            "en-au":{ 
+              "line1":"Update needed"
+            },
+            "fr-ca":{ 
+              "textBody":"Màj requise",
+              "line1":"Màj requise"
+            },
+            "pl-pl":{ 
+              "line1":"Potrzeba aktual."
+            },
+            "pt-br":{ 
+              "line1":"Atualiz. necess."
+            },
+            "es-en":{ 
+              "textBody":"Actualiz. neces.",
+              "line1":"Actualiz. neces."
+            },
+            "en-gb":{ 
+              "textBody":"Update needed",
+              "line1":"Update needed"
+            },
+            "en-us":{ 
+              "textBody":"Update Needed",
+              "line1":"Update Needed"
+            },
+            "ru-ru":{ 
+              "line1":"Необх. обновл."
+            }
+          }
+        },
+        "DisableApps":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "tts":"A desactivação das actualizações automáticas desactiva igualmente as aplicações móveis do SYNC. Não poderá utilizar quaisquer aplicações móveis com o SYNC. Prima \"\"Sim\"\" para confirmar ou \"\"Não\"\" para cancelar.",
+              "line1":"Desact. actual. autom.",
+              "line2":"e aplicações móveis?"
+            },
+            "zh-cn":{ 
+              "tts":"禁用自动更新同时也会禁用SYNC移动应用程序。您将无法在 SYNC 中使用任何移动应用程序。请按“是”确认或按“否”取消。",
+              "line1":"是否禁用自动更新和",
+              "line2":"移动应用程序？"
+            },
+            "sv-se":{ 
+              "tts":"Om du avaktiverar automatisk uppdatering avaktiverar du även synkning av mobilappar. Du kommer inte längre att kunna använda dina mobilappar med SYNC. Tryck Ja för att bekräfta eller Nej för att avbryta.",
+              "line1":"Avaktiverar autouppdat.",
+              "line2":"och mobilappar?"
+            },
+            "it-it":{ 
+              "tts":"Disabilitando gli aggiornamenti automatici si disattiva anche la sincronizzazione delle app mobili. Non sarà possibile usare app mobili con il SYNC. Premere Sì per confermare e No per cancellare.",
+              "line1":"Disabilitare agg. aut.",
+              "line2":"e app mobili?"
+            },
+            "de-de":{ 
+              "tts":"Ausschalten der automatischen Updates führt zum Ausschalten von SYNC mobile Apps. Sie können Ihre mobilen Apps dann nicht mehr mit SYNC nutzen. Bitte drücken Sie Ja zur Bestätigung oder Nein, um abzubrechen.",
+              "line1":"Auto-Update",
+              "line2":"und Mobile Apps deaktivieren"
+            },
+            "en-ie":{ 
+              "tts":"Disabling automatic updates will also disable SYNC mobile apps. You will not be able to use any mobile apps with SYNC. Please press Yes to confirm or No to cancel.",
+              "line1":"Disable auto-updates",
+              "line2":"and Mobile Apps?"
+            },
+            "es-mx":{ 
+              "textBody":"Si se desactivan las actualizaciones automáticas, también se desactivarán las aplicaciones móviles de SYNC. No podrá usar ninguna aplicación móvil con SYNC. Presione Sí para confirmar o No para cancelar.",
+              "tts":"Si se desactivan las actualizaciones automáticas, también se desactivarán las aplicaciones móviles de SYNC. No podrá usar ninguna aplicación móvil con SYNC. Presione Sí para confirmar o No para cancelar.",
+              "line1":"¿Deshab. actualiz.",
+              "line2":"autom. y aplic. móv.?"
+            },
+            "nl-nl":{ 
+              "tts":"Door automatische updates uit te schakelen, schakelt u ook SYNC-mobiele apps uit. U kunt dan geen mobiele apps meer gebruiken met SYNC. Druk op Ja om te bevestigen of op Nee om te annuleren.",
+              "line1":"Auto-updates en mob.",
+              "line2":"apps uitschakelen?"
+            },
+            "zh-tw":{ 
+              "tts":"停用自動更新也將停用 sync 行動應用程式。您將無法透過 SYNC 使用任何行動應用程式。確認請按「是」，取消請按「否」。",
+              "line1":"停用自動更新",
+              "line2":"和行動應用程式？"
+            },
+            "es-es":{ 
+              "tts":"Si desactiva las actualizaciones automáticas, también se desactivará la sincronización de las aplicaciones móviles. No podrá utilizar ninguna aplicación móvil con SYNC. Pulse sí para confirmar o no para cancelar.",
+              "line1":"¿Desact. actual. auto",
+              "line2":"y apl. móviles?"
+            },
+            "tr-tr":{ 
+              "tts":"Otomatik güncellemeleri devre dışı bırakırsanız sync mobil uygulamalar da devre dışı kalır. SYNC ile mobil uygulama kullanmanız mümkün olmaz. Lütfen onaylamak için Evet'e veya iptal etmek için Hayır'a basın.",
+              "line1":"Oto. güncelleme ve",
+              "line2":"mobil uygul. kapat?"
+            },
+            "fr-fr":{ 
+              "tts":"La désactivation des mises à jour automatiques désactivera aussi les applications mobiles SYNC. Vous ne pourrez pas utiliser d’application mobile avec SYNC. Veuillez appuyer sur Oui pour confirmer ou sur Non pour annuler.",
+              "line1":"Désactiver màj autom.",
+              "line2":"et app. mobiles?"
+            },
+            "en-au":{ 
+              "tts":"Disabling automatic updates will also disable SYNC mobile apps. You will not be able to use any mobile apps with SYNC. Please press Yes to confirm or No to cancel.",
+              "line1":"Disable auto-updates",
+              "line2":"and Mobile Apps?"
+            },
+            "fr-ca":{ 
+              "textBody":"La désactivation des mises à jour automatiques désactivera aussi les applications mobiles SYNC. Vous ne pourrez pas utiliser d’application mobile avec SYNC. Veuillez appuyer sur Oui pour confirmer ou sur Non pour annuler.",
+              "tts":"La désactivation des mises à jour automatiques désactivera aussi les applications mobiles SYNC. Vous ne pourrez pas utiliser d’application mobile avec SYNC. Veuillez appuyer sur Oui pour confirmer ou sur Non pour annuler.",
+              "line1":"Désactiver màj autom.",
+              "line2":"et app. mobiles?"
+            },
+            "pl-pl":{ 
+              "tts":"Wyłączenie automatycznych aktualizacji spowoduje także wyłączenie aplikacji mobilnych SYNC. Korzystanie z mobilnych aplikacji za pomocą SYNC będzie niemożliwe. Naciśnij TAK, by potwierdzić lub NIE, by anulować.",
+              "line1":"Wył. automat. aktual.",
+              "line2":"i aplikacje mobilne?"
+            },
+            "pt-br":{ 
+              "tts":"Se as atualizações automáticas forem desativadas, os aplicativos também serão desativados. Você não poderá usar nenhum aplicativo com o SYNC. Pressione sim para confirmar ou não para cancelar.",
+              "line1":"Desativar atualizações",
+              "line2":"autom. e aplicativos?"
+            },
+            "es-en":{ 
+              "textBody":"Si se desactivan las actualizaciones automáticas, también se desactivarán las aplicaciones móviles de SYNC. No podrá usar ninguna aplicación móvil con SYNC. Presione Sí para confirmar o No para cancelar.",
+              "tts":"Si se desactivan las actualizaciones automáticas, también se desactivarán las aplicaciones móviles de SYNC. No podrá usar ninguna aplicación móvil con SYNC. Presione Sí para confirmar o No para cancelar.",
+              "line1":"¿Deshab. actualiz.",
+              "line2":"autom. y aplic. móv.?"
+            },
+            "en-gb":{ 
+              "textBody":"Disabling automatic updates will also disable SYNC mobile apps. You will not be able to use any mobile apps with SYNC. Please press Yes to confirm or No to cancel.",
+              "tts":"Disabling automatic updates will also disable SYNC mobile apps. You will not be able to use any mobile apps with SYNC. Please press Yes to confirm or No to cancel.",
+              "line1":"Disable auto-updates",
+              "line2":"and Mobile Apps?"
+            },
+            "en-us":{ 
+              "textBody":"If you disable, you will not be able to use any mobile apps with SYNC and your vehicle will stop receiving mobile app permission updates via your device`s data plan. Please press yes to disable mobile apps or no to cancel.",
+              "tts":"Disabling automatic updates will also disable sync mobile apps. You will not be able to use any mobile apps with SYNC. Please press yes to confirm or no to cancel.",
+              "line1":"Disable Auto-Updates",
+              "line2":"and Mobile Apps?"
+            },
+            "ru-ru":{ 
+              "tts":"При отключении автоматических обновлений также будут отключены мобильные приложения sync. Вы не сможете использовать какие-либо мобильные приложения с SYNC. Нажмите \"\"Да\"\" для подтверждения или \"\"Нет\"\" для отмены.",
+              "line1":"Откл. автообновления",
+              "line2":"и мобил. прилож.?"
+            }
+          }
+        },
+        "SettingDisableUpdates":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "line1":"Desact. actualiz."
+            },
+            "zh-cn":{ 
+              "line1":"禁用更新"
+            },
+            "sv-se":{ 
+              "line1":"Inaktivera uppd."
+            },
+            "it-it":{ 
+              "line1":"Disabilita agg."
+            },
+            "de-de":{ 
+              "line1":"Updates deakt."
+            },
+            "en-ie":{ 
+              "line1":"Disable updates"
+            },
+            "es-mx":{ 
+              "textBody":"Deshab. actual.",
+              "line1":"Deshab. actual."
+            },
+            "nl-nl":{ 
+              "line1":"Upd. uitschak."
+            },
+            "zh-tw":{ 
+              "line1":"停用更新"
+            },
+            "es-es":{ 
+              "line1":"Desact. actual."
+            },
+            "tr-tr":{ 
+              "line1":"Güncell. Kapat"
+            },
+            "fr-fr":{ 
+              "line1":"Désactiver màj"
+            },
+            "en-au":{ 
+              "line1":"Disable updates"
+            },
+            "fr-ca":{ 
+              "textBody":"Désactiver MAJ",
+              "line1":"Désactiver MAJ"
+            },
+            "pl-pl":{ 
+              "line1":"Wyłącz aktual."
+            },
+            "pt-br":{ 
+              "line1":"Desat. atualiz."
+            },
+            "es-en":{ 
+              "textBody":"Deshab. actual.",
+              "line1":"Deshab. actual."
+            },
+            "en-gb":{ 
+              "line1":"Disable updates"
+            },
+            "en-us":{ 
+              "textBody":"Disable Updates",
+              "line1":"Disable Updates"
+            },
+            "ru-ru":{ 
+              "line1":"Откл. обновл."
+            }
+          }
+        },
+        "AppUnsupported":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "tts":"Esta versão de %appName% não é suportado pelo SYNC.",
+              "line1":"não suportada"
+            },
+            "zh-cn":{ 
+              "tts":"SYNC不支持此版本的%appName%。",
+              "line1":"不受支持"
+            },
+            "sv-se":{ 
+              "tts":"SYNC har inte stöd för den här versionen av %appName%.",
+              "line1":"stöds ej"
+            },
+            "it-it":{ 
+              "tts":"Questa versione di %appName% non è supportata dal SYNC.",
+              "line1":"non supportata"
+            },
+            "de-de":{ 
+              "tts":"Diese Version von %appName% wird von SYNC nicht unterstützt.",
+              "line1":"nicht unterstützt"
+            },
+            "en-ie":{ 
+              "tts":"This version of %appName% is not supported by SYNC.",
+              "line1":"not supported"
+            },
+            "es-mx":{ 
+              "textBody":"Esta versión de %appName% no es compatible con SYNC.",
+              "tts":"Esta versión de %appName% no es compatible con SYNC.",
+              "line1":"no compatible"
+            },
+            "nl-nl":{ 
+              "tts":"Deze versie van %appName% wordt niet ondersteund door SYNC.",
+              "line1":"niet ondersteund"
+            },
+            "zh-tw":{ 
+              "tts":"SYNC 不支援此版本的%appName% 。",
+              "line1":"不支援"
+            },
+            "es-es":{ 
+              "tts":"Esta versión de %appName% no es compatible con SYNC.",
+              "line1":"No compatible"
+            },
+            "tr-tr":{ 
+              "tts":"Bu %appName% sürümü SYNC tarafından desteklenmiyor.",
+              "line1":"desteklenmiyor"
+            },
+            "fr-fr":{ 
+              "tts":"Cette version de %appName% n’est pas prise en charge par SYNC.",
+              "line1":"incompatible"
+            },
+            "en-au":{ 
+              "tts":"This version of %appName% is not supported by SYNC.",
+              "line1":"not supported"
+            },
+            "fr-ca":{ 
+              "textBody":"Cette version de %appName% n’est pas prise en charge par SYNC.",
+              "tts":"Cette version de %appName% n’est pas prise en charge par SYNC.",
+              "line1":"incompatible"
+            },
+            "pl-pl":{ 
+              "tts":"Niniejsza wersja %appName% nie jest obsługiwana przez system SYNC.",
+              "line1":"aplikacja nie obsług."
+            },
+            "pt-br":{ 
+              "tts":"Esta versão do %appName% não é suportada pelo SYNC.",
+              "line1":"não suportado"
+            },
+            "es-en":{ 
+              "textBody":"Esta versión de %appName% no es compatible con SYNC.",
+              "tts":"Esta versión de %appName% no es compatible con SYNC.",
+              "line1":"no compatible"
+            },
+            "en-gb":{ 
+              "textBody":"This version of %appName% is not supported by SYNC.",
+              "tts":"This version of %appName% is not supported by SYNC.",
+              "line1":"not supported"
+            },
+            "en-us":{ 
+              "textBody":"Your version of %appName% is not supported by SYNC.",
+              "tts":"This version of %appName% is not supported by SYNC.",
+              "line1":"Not Supported"
+            },
+            "ru-ru":{ 
+              "tts":"Эта версия %appName% не поддерживается SYNC.",
+              "line1":"не поддерживается"
+            }
+          }
+        },
+        "StatusPending":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "line1":"A actualizar..."
+            },
+            "zh-cn":{ 
+              "line1":"正在更新......"
+            },
+            "sv-se":{ 
+              "line1":"Uppdaterar..."
+            },
+            "it-it":{ 
+              "line1":"Aggiornamento"
+            },
+            "de-de":{ 
+              "line1":"Aktualisieren..."
+            },
+            "en-ie":{ 
+              "line1":"Updating..."
+            },
+            "es-mx":{ 
+              "textBody":"Actualizando...",
+              "line1":"Actualizando..."
+            },
+            "nl-nl":{ 
+              "line1":"Updaten..."
+            },
+            "zh-tw":{ 
+              "line1":"更新中..."
+            },
+            "es-es":{ 
+              "line1":"Actualizando..."
+            },
+            "tr-tr":{ 
+              "line1":"Güncelleniyor..."
+            },
+            "fr-fr":{ 
+              "line1":"Màj en cours..."
+            },
+            "en-au":{ 
+              "line1":"Updating..."
+            },
+            "fr-ca":{ 
+              "textBody":"MAJ en cours...",
+              "line1":"MAJ en cours..."
+            },
+            "pl-pl":{ 
+              "line1":"Aktualizowanie"
+            },
+            "pt-br":{ 
+              "line1":"Atualizando..."
+            },
+            "es-en":{ 
+              "textBody":"Actualizando...",
+              "line1":"Actualizando..."
+            },
+            "en-gb":{ 
+              "textBody":"Updating...",
+              "line1":"Updating..."
+            },
+            "en-us":{ 
+              "textBody":"Updating...",
+              "line1":"Updating..."
+            },
+            "ru-ru":{ 
+              "line1":"Обновление..."
+            }
+          }
+        },
+        "StatusUpToDate":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "line1":"Actualizado"
+            },
+            "zh-cn":{ 
+              "line1":"最新更新"
+            },
+            "sv-se":{ 
+              "line1":"Uppdat. krävs ej"
+            },
+            "it-it":{ 
+              "line1":"più recente"
+            },
+            "de-de":{ 
+              "line1":"Aktuelle Version"
+            },
+            "en-ie":{ 
+              "line1":"Up-to-date"
+            },
+            "es-mx":{ 
+              "textBody":"Actualizado",
+              "line1":"Actualizado"
+            },
+            "nl-nl":{ 
+              "line1":"Up-to-date"
+            },
+            "zh-tw":{ 
+              "line1":"更新最新"
+            },
+            "es-es":{ 
+              "line1":"Actualizada"
+            },
+            "tr-tr":{ 
+              "line1":"Güncel"
+            },
+            "fr-fr":{ 
+              "line1":"Déjà à jour"
+            },
+            "en-au":{ 
+              "line1":"Up-to-date"
+            },
+            "fr-ca":{ 
+              "textBody":"Déjà à jour",
+              "line1":"Déjà à jour"
+            },
+            "pl-pl":{ 
+              "line1":"Aktualne"
+            },
+            "pt-br":{ 
+              "line1":"Atualizado"
+            },
+            "es-en":{ 
+              "textBody":"Actualizado",
+              "line1":"Actualizado"
+            },
+            "en-gb":{ 
+              "textBody":"Up-to-date",
+              "line1":"Up-to-date"
+            },
+            "en-us":{ 
+              "textBody":"Up-To-Date",
+              "line1":"Up-To-Date"
+            },
+            "ru-ru":{ 
+              "line1":"Обновлено"
+            }
+          }
+        },
+        "DataConsentHelp":{ 
+          "languages":{ 
+            "fr-ca":{ 
+              "textBody":"Les mises à jour ont la taille d’un courriel et la fréquence des mises à jour dépend de l’utilisation de votre véhicule et si une nouvelle application se trouve sur votre appareil. Consultez le Guide de l’utilisateur pour obtenir d’autres renseignements."
+            },
+            "es-mx":{ 
+              "textBody":"Las actualizaciones tienen el tamaño aproximado de un mensaje de correo electrónico, y la frecuencia de las actualizaciones depende del uso de su vehículo y de si se encuentran nuevas aplicaciones en su dispositivo. Para obtener más información, consulte la Guía del propietario."
+            },
+            "en-us":{ 
+              "textBody":"By enabling mobile apps, you consent to allowing SYNC to communicate with Ford at least once per month using your mobile device’s data plan. Disabling will stop all data usage, but you will not be able to use mobile apps on SYNC. See your Owner Guide for more information."
+            }
+          }
+        },
+        "DrivingCharacteristics":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "label":"Características de condução",
+              "tts":"Uma aplicação consegue aceder às seguintes informações de condução: Consumo de combustível, MyKey, Estado dos cintos de segurança."
+            },
+            "zh-cn":{ 
+              "label":"行驶特性",
+              "tts":"移动应用程序可访问下列行驶特性： 油耗, MyKey, 安全带状态"
+            },
+            "sv-se":{ 
+              "label":"Köregenskaper",
+              "tts":"Appen kan komma åt följande köregenskaper: Bränsleförbrukning, MyKey, Bältesstatus."
+            },
+            "it-it":{ 
+              "label":"Caratteristiche di guida",
+              "tts":"Un'app può avere accesso alle seguenti caratteristiche di guida: Consumo carburante, MyKey, Stato cinture di sicurezza."
+            },
+            "de-de":{ 
+              "label":"Fahreigenschaften",
+              "tts":"Eine App hat Zugriff auf die folgenden Fahreigenschaften: Kraftstoffverbrauch, MyKey, Sicherheitsgurtstatus."
+            },
+            "en-ie":{ 
+              "label":"Driving characteristics",
+              "tts":"An app can access the following driving characteristics: Fuel consumption, MyKey, Seat belt status."
+            },
+            "es-mx":{ 
+              "label":"Características del manejo",
+              "tts":"Las aplicaciones pueden acceder a las siguientes características del manejo: Consumo de combustible, MyKey, Estado del cinturón de seguridad, RPM del motor, y Posición del cambio.",
+              "textBody":"Las aplicaciones pueden acceder a las siguientes características del manejo: Consumo de combustible, MyKey, Estado del cinturón de seguridad, RPM del motor, y Posición del cambio."
+            },
+            "nl-nl":{ 
+              "label":"Rijkenmerken",
+              "tts":"Een app heeft toegang tot de volgende rijkenmerken: Brandstofverbruik, MyKey, Veiligheidsgordelstatus."
+            },
+            "zh-tw":{ 
+              "label":"駕駛特性",
+              "tts":"應用程式可存取以下駕駛特性： 油耗, MyKey, 安全帶狀態"
+            },
+            "es-es":{ 
+              "label":"Características de conducción",
+              "tts":"Una aplicación puede acceder a las siguientes características de conducción: Consumo de combustible, MyKey, Estado cinturones de seguridad."
+            },
+            "tr-tr":{ 
+              "label":"Sürüş karakteristikleri",
+              "tts":"Bir uygulama şu sürüş karakteristiklerine erişebilir: Yakıt tüketimi, MyKey, Emniyet kemeri durumu."
+            },
+            "fr-fr":{ 
+              "label":"Caractéristiques de conduite",
+              "tts":"Une application peut accéder aux caractéristiques de conduite suivantes: Consommation de carburant, MyKey, État des ceintures de sécurité."
+            },
+            "en-au":{ 
+              "label":"Driving characteristics",
+              "tts":"An app can access the following driving characteristics: Fuel consumption, MyKey, Seat belt status."
+            },
+            "fr-ca":{ 
+              "label":"Caractéristiques de conduite",
+              "tts":"Une application peut accéder aux caractéristiques de conduite suivantes: Consommation de carburant, MyKey, État des ceintures de sécurité, régime du moteur, et Position d’embrayage.",
+              "textBody":"Une application peut accéder aux caractéristiques de conduite suivantes: Consommation de carburant, MyKey, État des ceintures de sécurité, régime du moteur, et Position d’embrayage."
+            },
+            "pl-pl":{ 
+              "label":"Informacje dotyczące stylu jazdy",
+              "tts":"Aplikacja może uzyskać dostęp do następujących informacji dotyczących jazdy: Zużycie paliwa, MyKey, Stan pasów bezpieczeństwa."
+            },
+            "pt-br":{ 
+              "label":"Características de condução",
+              "tts":"Um aplicativo pode acessar as seguintes características de condução: Consumo de combustível, MyKey, Estado do cinto de segurança.",
+              "line1":"Caract. Condução"
+            },
+            "es-en":{ 
+              "label":"Características del manejo",
+              "tts":"Las aplicaciones pueden acceder a las siguientes características del manejo: Consumo de combustible, MyKey, Estado del cinturón de seguridad.",
+              "textBody":"Las aplicaciones pueden acceder a las siguientes características del manejo: Consumo de combustible, MyKey, Estado del cinturón de seguridad."
+            },
+            "en-gb":{ 
+              "label":"Driving characteristics",
+              "tts":"An app can access the following driving characteristics: Fuel consumption, MyKey, Seat belt status.",
+              "textBody":"An app can access the following driving characteristics: Fuel consumption, MyKey, Seat belt status."
+            },
+            "en-us":{ 
+              "label":"Driving Characteristics",
+              "tts":"An app can access the following driving characteristics: Fuel Consumption, MyKey, Seat Belt Status, Gear Position, RPM.",
+              "textBody":"An app can access the following driving characteristics: Fuel Consumption, MyKey, Seat Belt Status, Gear Position, RPM."
+            },
+            "ru-ru":{ 
+              "label":"Характеристики движения",
+              "tts":"Приложение имеет доступ к следующим характеристикам движения: Расход топлива, MyKey, Состояние ремней безопасности."
+            }
+          }
+        },
+        "SettingEnableUpdates":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "line1":"Activar actualiz."
+            },
+            "zh-cn":{ 
+              "line1":"启用应用程序"
+            },
+            "sv-se":{ 
+              "line1":"Aktivera appar"
+            },
+            "it-it":{ 
+              "line1":"Abilita app"
+            },
+            "de-de":{ 
+              "line1":"Apps aktivieren"
+            },
+            "en-ie":{ 
+              "line1":"Enable Apps"
+            },
+            "es-mx":{ 
+              "line1":"Hab. aplic."
+            },
+            "nl-nl":{ 
+              "line1":"Apps inschak."
+            },
+            "zh-tw":{ 
+              "line1":"啟用應用程式"
+            },
+            "es-es":{ 
+              "line1":"Activar apl."
+            },
+            "tr-tr":{ 
+              "line1":"Uygulamaları aç"
+            },
+            "fr-fr":{ 
+              "line1":"Activer app."
+            },
+            "en-au":{ 
+              "line1":"Enable Apps"
+            },
+            "fr-ca":{ 
+              "textBody":"Activer app.",
+              "line1":"Activer app."
+            },
+            "pl-pl":{ 
+              "line1":"Włącz aplikacje"
+            },
+            "pt-br":{ 
+              "line1":"Ativar aplic."
+            },
+            "es-en":{ 
+              "line1":"Hab. aplic."
+            },
+            "en-gb":{ 
+              "line1":"Enable Apps"
+            },
+            "en-us":{ 
+              "line1":"Enable Apps"
+            },
+            "ru-ru":{ 
+              "line1":"Вкл. прилож."
+            }
+          }
+        },
+        "Location":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "label":"GPS e velocidade",
+              "tts":"Uma aplicação consegue aceder ao GPS e à velocidade do veículo."
+            },
+            "zh-cn":{ 
+              "label":"GPS 和车速",
+              "tts":"移动应用程序可以访问车辆 GPS 和车速信息。"
+            },
+            "sv-se":{ 
+              "label":"GPS och hastighet",
+              "tts":"Appen kan komma åt fordonets GPS och hastighetsmätare."
+            },
+            "it-it":{ 
+              "label":"GPS e velocità",
+              "tts":"Un'app può avere accesso a GPS e velocità del veicolo."
+            },
+            "de-de":{ 
+              "label":"GPS und Geschwindigkeit",
+              "tts":"Eine App hat Zugriff auf die GPS-Daten und die Geschwindigkeit des Fahrzeugs."
+            },
+            "en-ie":{ 
+              "label":"GPS and speed",
+              "tts":"An app can access vehicle GPS and speed."
+            },
+            "es-mx":{ 
+              "label":"GPS y velocidad",
+              "tts":"Las aplicaciones pueden acceder al GPS y a la velocidad del vehículo.",
+              "textBody":"Las aplicaciones pueden acceder al GPS y a la velocidad del vehículo."
+            },
+            "nl-nl":{ 
+              "label":"Gps en snelheid",
+              "tts":"Een app heeft toegang tot gps en de snelheid van het voertuig."
+            },
+            "zh-tw":{ 
+              "label":"GPS和車速",
+              "tts":"應用程式可存取車輛的GPS和速度。"
+            },
+            "es-es":{ 
+              "label":"GPS y velocidad",
+              "tts":"Una aplicación puede acceder al GPS y la velocidad del vehículo."
+            },
+            "tr-tr":{ 
+              "label":"GPS ve hız",
+              "tts":"Bu uygulama aracın GPS ve hız bilgilerine erişebilir."
+            },
+            "fr-fr":{ 
+              "label":"GPS et vitesse",
+              "tts":"Une application peut accéder au GPS et à la vitesse du véhicule."
+            },
+            "en-au":{ 
+              "label":"GPS and speed",
+              "tts":"An app can access vehicle GPS and speed."
+            },
+            "fr-ca":{ 
+              "label":"GPS et Vitesse",
+              "tts":"Une application peut accéder au GPS et à la vitesse du véhicule.",
+              "textBody":"Une application peut accéder au GPS et à la vitesse du véhicule."
+            },
+            "pl-pl":{ 
+              "label":"GPS i prędkość",
+              "tts":"Aplikacja może uzyskać dostęp do modułu GPS i prędkości pojazdu."
+            },
+            "pt-br":{ 
+              "label":"GPS e velocidade",
+              "tts":"Um aplicativo pode acessar o GPS e a velocidade do veículo."
+            },
+            "es-en":{ 
+              "label":"GPS y velocidad",
+              "tts":"Las aplicaciones pueden acceder al GPS y a la velocidad del vehículo.",
+              "textBody":"Las aplicaciones pueden acceder al GPS y a la velocidad del vehículo."
+            },
+            "en-gb":{ 
+              "label":"GPS and speed",
+              "tts":"An app can access vehicle GPS and speed.",
+              "textBody":"An app can access vehicle GPS and speed."
+            },
+            "en-us":{ 
+              "label":"GPS and Speed",
+              "tts":"An app can access vehicle GPS and speed.",
+              "textBody":"An app can access vehicle GPS and speed."
+            },
+            "ru-ru":{ 
+              "label":"GPS и скорость",
+              "tts":"Приложение имеет доступ к GPS и скорости автомобиля."
+            }
+          }
+        },
+        "Notifications":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "label":"Notificações push",
+              "tts":"Uma aplicação consegue enviar notificações quando está activa em segundo plano."
+            },
+            "zh-cn":{ 
+              "label":"推送通知",
+              "tts":"移动应用程序在后台运行时可推送通知。"
+            },
+            "sv-se":{ 
+              "label":"Push-notiser",
+              "tts":"Appen kan skicka meddelanden när den körs i bakgrunden."
+            },
+            "it-it":{ 
+              "label":"Notifiche push",
+              "tts":"Un'app può inviare notifiche se eseguita in background."
+            },
+            "de-de":{ 
+              "label":"Push-Benachrichtigungen",
+              "tts":"Läuft die App im Hintergrund, kann Sie Benachrichtigungen senden."
+            },
+            "en-ie":{ 
+              "label":"Push notifications",
+              "tts":"An app can send notifications when running in the background."
+            },
+            "es-mx":{ 
+              "label":"Notificaciones tipo Push",
+              "tts":"Las aplicaciones pueden enviar notificaciones cuando se ejecutan en segundo plano.",
+              "textBody":"Las aplicaciones pueden enviar notificaciones cuando se ejecutan en segundo plano."
+            },
+            "nl-nl":{ 
+              "label":"Push-meldingen",
+              "tts":"Een app kan meldingen versturen als deze op de achtergrond actief is."
+            },
+            "zh-tw":{ 
+              "label":"傳送通知",
+              "tts":"車輛行進時，應用程式可在背景中傳送通知。"
+            },
+            "es-es":{ 
+              "label":"Notificaciones push",
+              "tts":"Una aplicación puede enviar notificaciones cuando se está ejecutando en segundo plano."
+            },
+            "tr-tr":{ 
+              "label":"Anlık bildirimleri",
+              "tts":"Bir uygulama arka planda çalışırken bildirim gönderebilir."
+            },
+            "fr-fr":{ 
+              "label":"Notifications push",
+              "tts":"Une application peut envoyer des avis lorsqu’elle fonctionne en arrière-plan."
+            },
+            "en-au":{ 
+              "label":"Push notifications",
+              "tts":"An app can send notifications when running in the background."
+            },
+            "fr-ca":{ 
+              "label":"Notifications Instantanées",
+              "tts":"Une application peut envoyer des avis lorsqu’elle fonctionne en arrière-plan.",
+              "textBody":"Une application peut envoyer des avis lorsqu’elle fonctionne en arrière-plan."
+            },
+            "pl-pl":{ 
+              "label":"Powiadomienia Push",
+              "tts":"Aplikacja może wysyłać powiadomienia, działając w tle."
+            },
+            "pt-br":{ 
+              "label":"Notificações Push",
+              "tts":"Um aplicativo pode enviar notificações quando estiver sendo executado em segundo plano.",
+              "line1":"Notificações"
+            },
+            "es-en":{ 
+              "label":"Notificaciones tipo Push",
+              "tts":"Las aplicaciones pueden enviar notificaciones cuando se ejecutan en segundo plano.",
+              "textBody":"Las aplicaciones pueden enviar notificaciones cuando se ejecutan en segundo plano."
+            },
+            "en-gb":{ 
+              "label":"Push notifications",
+              "tts":"An app can send notifications when running in the background.",
+              "textBody":"An app can send notifications when running in the background."
+            },
+            "en-us":{ 
+              "label":"Push Notifications",
+              "tts":"An app can send notifications when running in the background.",
+              "textBody":"An app can send notifications when running in the background."
+            },
+            "ru-ru":{ 
+              "label":"Оповещения о пересылке",
+              "tts":"Если приложение работает в фоновом режиме, оно может отправлять оповещения."
+            }
+          }
+        },
+        "AppPermissionsRevoked":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "tts":"As autorizações das aplicações mudaram. %appName% já não consegue aceder a %functionalGroupLabels%. Certifique-se de que tem a última versão da aplicação no seu dispositivo móvel."
+            },
+            "zh-cn":{ 
+              "tts":"应用程序授权已变更。 %appName% 将不能再访问 %functionalGroupLabels%。 请确认您的移动设备上安装的应用程序是最新版本。"
+            },
+            "sv-se":{ 
+              "tts":"Appens behörigheter har ändrats. %appName% har inte längre åtkomst till %functionalGroupLabels%. Kontrollera att du har installerat den senaste versionen av appen på mobilenheten."
+            },
+            "it-it":{ 
+              "tts":"Le autorizzazioni dell'app sono cambiate. %appName% non è più in grado di accedere a %functionalGroupLabels%. Assicurarsi di avere la versione più recente dell'app installata sul dispositivo mobile."
+            },
+            "de-de":{ 
+              "tts":"Die Autorisierungsdaten der App wurden geändert. %appName% hat keinen Zugriff auf %functionalGroupLabels% mehr. Installieren Sie die neueste Version der App auf Ihrem Gerät.."
+            },
+            "en-ie":{ 
+              "tts":"App authorizations have changed. %appName% can no longer access %functionalGroupLabels%. Please ensure you have the most recent app version installed on your mobile device."
+            },
+            "es-mx":{ 
+              "tts":"Las autorizaciones de la aplicación han cambiado. %appName% ya no puede acceder a %functionalGroupLabels%. Asegúrese de haber instalado la versión más reciente de la aplicación en su dispositivo móvil."
+            },
+            "nl-nl":{ 
+              "tts":"De app-autorisaties zijn gewijzigd. %appName% heeft geen toegang meer tot %functionalGroupLabels%. Zorg ervoor dat u de meest recente app-versie op uw mobiele apparaat geïnstalleerd hebt."
+            },
+            "zh-tw":{ 
+              "tts":"應用程式授權已改變。%appName% 已無法進入 %functionalGroupLabels%。請確認您的行動裝置上安裝了最新版應用程式。"
+            },
+            "es-es":{ 
+              "tts":"Las autorizaciones de la aplicación han cambiado. %appName% ya no puede acceder a %functionalGroupLabels%. Asegúrese de que tiene la versión más reciente de la aplicación instalada en su dispositivo móvil."
+            },
+            "tr-tr":{ 
+              "tts":"Uygulama yetkileri değişti. %appName% artık %functionalGroupLabels%'e erişemeyecek. Lütfen mobil aygıtınızda en son uygulama sürümünün yüklü olduğundan emin olun."
+            },
+            "fr-fr":{ 
+              "tts":"Les autorisations pour app ont changé. %appName% ne peut plus accéder à %functionalGroupLabels%. Veuillez vous assurer que la plus récente version de l’application est installée sur votre appareil mobile."
+            },
+            "en-au":{ 
+              "tts":"App authorizations have changed. %appName% can no longer access %functionalGroupLabels%. Please ensure you have the most recent app version installed on your mobile device."
+            },
+            "fr-ca":{ 
+              "tts":"Les autorisations pour app ont changé. %appName% ne peut plus accéder à %functionalGroupLabels%. Veuillez vous assurer que la plus récente version de l’application est installée sur votre appareil mobile."
+            },
+            "pl-pl":{ 
+              "tts":"Dane dostępu aplikacji zostały zmienione. %appName% nie ma już dostępu do %functionalGroupLabels%. Sprawdź, czy na telefonie komórkowym zainstalowano najnowszą wersję aplikacji."
+            },
+            "pt-br":{ 
+              "tts":"As autorizações dos aplicativos foram alteradas. %appName% não pode mais acessar %functionalGroupLabels%. Certifique-se de que a versão mais recente do aplicativo está instalada no seu dispositivo móvel."
+            },
+            "es-en":{ 
+              "tts":"Las autorizaciones de la aplicación han cambiado. %appName% ya no puede acceder a %functionalGroupLabels%. Asegúrese de haber instalado la versión más reciente de la aplicación en su dispositivo móvil."
+            },
+            "en-gb":{ 
+              "tts":"App authorizations have changed. %appName% can no longer access %functionalGroupLabels%. Please ensure you have the most recent app version installed on your mobile device."
+            },
+            "en-us":{ 
+              "tts":"App authorizations have changed. %appName% can no longer access %functionalGroupLabels%. Please ensure you have the most recent app version installed on your mobile device."
+            },
+            "ru-ru":{ 
+              "tts":"Авторизации приложения изменены. %appName% больше не имеет доступа к %functionalGroupLabels%. Убедитесь, что на вашем мобильном устройстве установлена самая новая версия приложения."
+            }
+          }
+        },
+        "AppPermissionsHelp":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "tts":"%appName% está a solicitar as seguintes informações e permissões do veículo: %functionalGroupLabels%. Pode alterar estas permissões e ouvir descrições detalhadas no menu de definições das aplicações móveis. Prima \"\"Sim\"\" para permitir ou \"\"Não\"\" para recusar."
+            },
+            "zh-cn":{ 
+              "tts":"%appName% 正在请求下列车辆信息和权限： %functionalGroupLabels%。您可在移动应用程序设置菜单中更改这些权限，并听取详细说明。请按“是”允许权限或按“否”拒绝。"
+            },
+            "sv-se":{ 
+              "tts":"%appName% begär tillgång till följande fordonsinformation och tillstånd: %functionalGroupLabels%. Du kan ändra tillstånden och höra detaljerade beskrivningar i menyn för mobilappsinställningar. Tryck Ja för att ge tillstånd eller Nej för att neka."
+            },
+            "it-it":{ 
+              "tts":"%appName% richiede le seguenti informazioni e autorizzazioni riguardo il veicolo: %functionalGroupLabels%. È possibile modificare tali autorizzazioni e ascoltare descrizioni dettagliate nel menu impostazioni delle app mobili. Premere Sì per concedere le autorizzazioni e No per negarle."
+            },
+            "de-de":{ 
+              "tts":"%appName% fordert folgende Fahrzeuginformationen und Zugriffsberechtigungen: %functionalGroupLabels%. Im Einstellungsmenü der mobilen Apps können Sie diese Berechtigungen ändern und sich detaillierte Beschreibungen anhören. Mit Ja stimmen Sie zu; mit Nein lehnen Sie ab."
+            },
+            "en-ie":{ 
+              "tts":"%appName% is requesting the following vehicle information and permissions: %functionalGroupLabels%. You can change these permissions and hear detailed descriptions in the mobile apps settings menu. Please press Yes to grant permissions or No to deny."
+            },
+            "es-mx":{ 
+              "tts":"%appName% solicita la siguiente información y permisos del vehículo: %functionalGroupLabels%. Puede cambiar estos permisos y consultar descripciones detalladas en el menú de configuración de las aplicaciones móviles. Presione Sí para otorgar permisos y No para denegar."
+            },
+            "nl-nl":{ 
+              "tts":"%appName% vraagt gebruikmaking van de volgende voertuiginformatie en toestemmingen aan: %functionalGroupLabels%. U kunt deze toestemmingen wijzigen en gedetailleerde beschrijvingen beluisteren in het instellingenmenu voor mobiele apps. Druk op Ja om permissies te verlenen of op Nee om te weigeren."
+            },
+            "zh-tw":{ 
+              "tts":"%appName% 正請求使用 %functionalGroupLabels% 的車輛資訊和許可。您可在行動應用程式設定清單中更改這些許可，並聆聽詳細說明。給予許可請按「是」，拒絕請按「否」。"
+            },
+            "es-es":{ 
+              "tts":"%appName% está solicitando los siguientes permisos e información del vehículo: %functionalGroupLabels%. Puede cambiar estos permisos y escuchar descripciones detalladas en el menú de configuración de la aplicación móvil. Pulse sí para conceder el permiso o no para denegarlo."
+            },
+            "tr-tr":{ 
+              "tts":"%appName%, şu araç bilgilerini ve izinleri istiyor: %functionalGroupLabels%. Bu izinleri değiştirebilir ve mobil uygulamalar ayarlar menüsünden ayrıntılı açıklamaları dinleyebilirsiniz. Lütfen izin vermek için Evet'e veya reddetmek için Hayır'a basın."
+            },
+            "fr-fr":{ 
+              "tts":"%appName% demande d’utiliser les informations du véhicule et les permissions suivantes : %functionalGroupLabels%. Vous pouvez modifier ces permissions et entendre les descriptions détaillées dans le menu des réglages des applications mobiles. Veuillez appuyer sur Oui pour accorder les permissions ou sur Non pour refuser."
+            },
+            "en-au":{ 
+              "tts":"%appName% is requesting the following vehicle information and permissions: %functionalGroupLabels%. You can change these permissions and hear detailed descriptions in the mobile apps settings menu. Please press Yes to grant permissions or No to deny."
+            },
+            "fr-ca":{ 
+              "tts":"%appName% demande d’utiliser les informations du véhicule et les permissions suivantes : %functionalGroupLabels%. Vous pouvez modifier ces permissions et entendre les descriptions détaillées dans le menu des réglages des applications mobiles. Veuillez appuyer sur Oui pour accorder les permissions ou sur Non pour refuser."
+            },
+            "pl-pl":{ 
+              "tts":"%appName% wymaga następujących informacji o pojeździe oraz zezwoleń: %functionalGroupLabels%. W menu ustawień aplikacji mobilnych można zmienić owe zezwolenia i usłyszeć ich szczegółowy opis. Naciśnij TAK, aby wyrazić zgodę lub NIE w celu odrzucenia żądania."
+            },
+            "pt-br":{ 
+              "tts":"%appName% está solicitando as seguintes informações e permissões do veículo: %functionalGroupLabels%. Você pode alterar estas permissões e ouvir descrições detalhadas no menu de configurações de aplicativos móveis. Pressione sim para conceder as permissões ou não para negar."
+            },
+            "es-en":{ 
+              "tts":"%appName% solicita la siguiente información y permisos del vehículo: %functionalGroupLabels%. Puede cambiar estos permisos y consultar descripciones detalladas en el menú de configuración de las aplicaciones móviles. Presione Sí para otorgar permisos y No para denegar."
+            },
+            "en-gb":{ 
+              "tts":"%appName% is requesting the following vehicle information and permissions: %functionalGroupLabels%. You can change these permissions and hear detailed descriptions in the mobile apps settings menu. Please press Yes to grant permissions or No to deny."
+            },
+            "en-us":{ 
+              "tts":"%appName% is requesting the following vehicle information and permissions: %functionalGroupLabels%. You can change these permissions and hear detailed descriptions in the mobile apps settings menu. Please press yes to grant permissions or no to deny."
+            },
+            "ru-ru":{ 
+              "tts":"%appName% запрашивает следующую информацию об автомобиле и разрешения: %functionalGroupLabels%. Вы можете изменить эти разрешения и прослушать подробные их описания в меню настроек мобильного приложения. Нажмите \"\"да\"\", чтобы предоставить разрешения, или \"\"нет\"\", чтобы не предоставлять."
+            }
+          }
+        },
+        "SettingUpdateAuto":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "line1":"Solicit. actualiz."
+            },
+            "zh-cn":{ 
+              "line1":"请求更新"
+            },
+            "sv-se":{ 
+              "line1":"Begär uppdat."
+            },
+            "it-it":{ 
+              "line1":"Rich. aggiorn."
+            },
+            "de-de":{ 
+              "line1":"Update anford."
+            },
+            "en-ie":{ 
+              "line1":"Request update"
+            },
+            "es-mx":{ 
+              "textBody":"Solicit. actualiz.",
+              "line1":"Solicit. actualiz."
+            },
+            "nl-nl":{ 
+              "line1":"Upd. aanvragen"
+            },
+            "zh-tw":{ 
+              "line1":"請求更新"
+            },
+            "es-es":{ 
+              "line1":"Solicitar actual."
+            },
+            "tr-tr":{ 
+              "line1":"Güncelleme iste"
+            },
+            "fr-fr":{ 
+              "line1":"Demander màj"
+            },
+            "en-au":{ 
+              "line1":"Request update"
+            },
+            "fr-ca":{ 
+              "textBody":"Demander MAJ",
+              "line1":"Demander MAJ"
+            },
+            "pl-pl":{ 
+              "line1":"Zażądaj aktual."
+            },
+            "pt-br":{ 
+              "line1":"Solicitar atualiz."
+            },
+            "es-en":{ 
+              "textBody":"Solicit. actualiz.",
+              "line1":"Solicit. actualiz."
+            },
+            "en-gb":{ 
+              "line1":"Request update"
+            },
+            "en-us":{ 
+              "textBody":"Select `Update now` to receive app permissions for your SYNC-enabled mobile apps. This may enable additional functionality depending on the app and your settings. If your phone has a working data connection, an update should complete in less than 1 minute.",
+              "line1":"Request Update"
+            },
+            "ru-ru":{ 
+              "line1":"Запрос на обн."
+            }
+          }
+        },
+        "VehicleInfo":{ 
+          "languages":{ 
+            "pt-pt":{ 
+              "label":"Informações do veículo",
+              "tts":"Uma aplicação consegue aceder às seguintes informações do veículo: Nível de combustível, Poupança de combustível, RPM do motor, Conta-quilómetros, VIN, Temperatura exterior, Posição da mudança de velocidade, Pressão dos pneus."
+            },
+            "zh-cn":{ 
+              "label":"车辆信息",
+              "tts":"移动应用程序可访问下列车辆信息 ： 燃油量, 燃油经济性, 发动机转速(RPM), 里程表, VIN, 车外温度, 档位, 胎压."
+            },
+            "sv-se":{ 
+              "label":"Fordonsinformation",
+              "tts":"Appen kan komma åt följande fordonsinformation: Bränslenivå, Bränsleekonomi, Motorns varvtal, Vägmätare, VIN, Utetemperatur, Växelläge, Däcktryck."
+            },
+            "it-it":{ 
+              "label":"Informazioni sul veicolo",
+              "tts":"Un'app può avere accesso alle seguenti informazioni del veicolo: Livello carburante, Consumi carburante, Numero giri motore, Contachilometri, VIN, Temperatura esterna, Posizione marcia, Pressione pneumatici."
+            },
+            "de-de":{ 
+              "label":"Fahrzeuginformationen",
+              "tts":"Eine App hat Zugriff auf die folgenden Fahrzeuginformationen: Kraftstoff-Füllstand, Kraftstoffverbrauch, Motordrehzahl, Kilometerzähler, FIN, Außentemperatur, Gangstellung, Reifenluftdruck."
+            },
+            "en-ie":{ 
+              "label":"Vehicle information",
+              "tts":"An app can access the following vehicle information: Fuel level, Fuel economy, Engine RPMs, Odometer, VIN, Outside air temperature, Gear position, Tyre pressure."
+            },
+            "es-mx":{ 
+              "label":"Información del Vehículo",
+              "tts":"Las aplicaciones pueden acceder a la siguiente información del vehículo: Nivel de combustible, Economía de combustible, Cuentakilómetros, Número de identificación del vehículo, Temperatura externa, Presión de los neumáticos.",
+              "textBody":"Las aplicaciones pueden acceder a la siguiente información del vehículo: Nivel de combustible, Economía de combustible, Cuentakilómetros, Número de identificación del vehículo, Temperatura externa, Presión de los neumáticos."
+            },
+            "nl-nl":{ 
+              "label":"Voertuiginformatie",
+              "tts":"Een app heeft toegang tot de volgende voertuiginformatie: Brandstofpeil, Brandstofverbruik, Motortoerental, Kilometerteller, VIN, Buitentemperatuur, Versnellingsstand, Bandenspanning."
+            },
+            "zh-tw":{ 
+              "label":"車輛資訊",
+              "tts":"一個應用程式可存取以下車輛資訊 : 燃油存量, 燃油經濟性, 引擎轉速, 里程表, 車輛識別號碼, 車外溫度, 檔位, 胎壓."
+            },
+            "es-es":{ 
+              "label":"Información del vehículo",
+              "tts":"Una aplicación puede acceder a la siguiente información del vehículo: Nivel de combustible, Ahorro de combustible, RPM del motor, Cuentakilómetros, VIN, Temperatura aire exterior, Marcha engranada, Presión de neumáticos."
+            },
+            "tr-tr":{ 
+              "label":"Araç bilgisi",
+              "tts":"Bir uygulama şu araç bilgilerine erişebilir: Yakıt seviyesi, Yakıt ekonomisi, Motor devirleri, Kilometre sayacı, VIN, Dış sıcaklık, Vites konumu, Lastik basıncı."
+            },
+            "fr-fr":{ 
+              "label":"Renseignements du véhicule",
+              "tts":"Une application peut accéder aux informations suivantes du véhicule: Niveau de carburant, Économie de carburant, Vitesse de moteur, Compteur kilométrique, NIV, Température extérieure, Position de vitesse, Pression des pneus."
+            },
+            "en-au":{ 
+              "label":"Vehicle information",
+              "tts":"An app can access the following vehicle information: Fuel level, Fuel economy, Engine RPMs, Odometer, VIN, Outside air temperature, Gear position, Tyre pressure."
+            },
+            "fr-ca":{ 
+              "label":"Renseignements du Véhicule",
+              "tts":"Une application peut accéder aux informations suivantes du véhicule: Niveau de carburant, Économie de carburant, Odomètre, NIV, Température extérieure, et Pression des pneus.",
+              "textBody":"Une application peut accéder aux informations suivantes du véhicule: Niveau de carburant, Économie de carburant, Odomètre, NIV, Température extérieure, et Pression des pneus."
+            },
+            "pl-pl":{ 
+              "label":"Informacje o pojeździe",
+              "tts":"Aplikacja może uzyskać dostęp do następujących informacji o pojeździe: Poziom paliwa, Zużycie paliwa, Obroty silnika, Licznik przebiegu, Numer VIN, Temperatura zewnętrzna, Aktualny bieg, Ciśnienie opon."
+            },
+            "pt-br":{ 
+              "label":"Informações sobre o veículo",
+              "tts":"Um aplicativo pode acessar as seguintes informações sobre o veículo: Nível de combustível, Economia de combustível, RPM do motor, Hodômetro, VIN, Temperatura externa, Posição das marchas, Pressão dos pneus.",
+              "line1":"Inform. Veículo"
+            },
+            "es-en":{ 
+              "label":"Información del vehículo",
+              "tts":"Las aplicaciones pueden acceder a la siguiente información del vehículo: Nivel de combustible, Economía de combustible, RPM del motor, Cuentakilómetros, Número de identificación del vehículo, Temperatura externa, Posición del cambio, Presión de los neumáticos.",
+              "textBody":"Las aplicaciones pueden acceder a la siguiente información del vehículo: Nivel de combustible, Economía de combustible, RPM del motor, Cuentakilómetros, Número de identificación del vehículo, Temperatura externa, Posición del cambio, Presión de los neumáticos."
+            },
+            "en-gb":{ 
+              "label":"Vehicle information",
+              "tts":"An app can access the following vehicle information: Fuel level, Fuel economy, Engine RPMs, Odometer, VIN, Outside air temperature, Gear position, Tire pressure.",
+              "textBody":"An app can access the following vehicle information: Fuel level, Fuel economy, Engine RPMs, Odometer, VIN, Outside air temperature, Gear position, Tire pressure."
+            },
+            "en-us":{ 
+              "label":"Vehicle Information",
+              "tts":"An app can access the following vehicle information: Fuel Level, Fuel Economy, Odometer, VIN, External Temperature, Tire Pressure.",
+              "textBody":"An app can access the following vehicle information: Fuel Level, Fuel Economy, Odometer, VIN, External Temperature, Tire Pressure."
+            },
+            "ru-ru":{ 
+              "label":"Информация об автомобиле",
+              "tts":"Приложение имеет доступ к следующим данным автомобиля: Уровень топлива, Економия топлива, Число оборотов двигателя, Одометр, Номер VIN, Температура за бортом, Положение передачи, Давление шин."
+            }
+          }
+        }
+      }
+    },
+    "app_policies":{ 
+      "device":{ 
+        "priority":"NONE",
+        "steal_focus":false,
+        "keep_context":false,
+        "groups":[ 
+        "DataConsent-2"
+        ],
+        "default_hmi":"NONE"
+      },
+      "default":{ 
+        "priority":"NONE",
+        "steal_focus":false,
+        "keep_context":false,
+        "groups":[ 
+        "Base-4"
+        ],
+        "default_hmi":"NONE"
+      },
+      "pre_DataConsent":{ 
+        "priority":"NONE",
+        "steal_focus":false,
+        "keep_context":false,
+        "groups":[ 
+        "BaseBeforeDataConsent"
+        ],
+        "default_hmi":"NONE"
+      },
+      "0000001":{ 
+        "priority":"NONE",
+        "steal_focus":false,
+        "keep_context":false,
+        "groups":[ 
+        "Base-4",
+        "Navigation-1"
+        ],
+        "default_hmi":"NONE"
+      }
+    }
+  }
+}

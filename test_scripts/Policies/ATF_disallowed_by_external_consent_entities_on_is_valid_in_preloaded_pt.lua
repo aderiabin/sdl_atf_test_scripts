@@ -53,6 +53,13 @@ for i=1, #valid_entity_type_cases do
       json_data_update = string.gsub(json_data, match_result, temp_replace_value)
       local json = require("modules/json")
       local data = json.decode(json_data_update)
+      data.policy_table.app_policies["0000001"] = {
+        keep_context = false,
+        steal_focus = false,
+        priority = "NONE",
+        default_hmi = "NONE",
+        groups = {"Base-4","Location-1"}
+      }
       -- Go to parent item
       local parent = data
       for i = 1, #parent_item do
@@ -64,11 +71,9 @@ for i=1, #valid_entity_type_cases do
       if type(testing_value) == "string" then
         testing_value = json.decode(testing_value)
       end
-      
       for k, v in pairs(testing_value) do
         parent[k] = v
       end
-      
       data = json.encode(data)
       local data_revert = string.gsub(data, temp_replace_value, match_result)
       file = assert(io.open(json_file, "w"))
@@ -76,39 +81,19 @@ for i=1, #valid_entity_type_cases do
       file:close()
     end
     
-    Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
-      StartSDL(config.pathToSDL, config.ExitOnCrash)
-      common_functions:DelayedExp(5000)
-    end
+    common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
+    common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+    common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+    common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
     
     -- Verify valid entityType and entityID are inserted into entities table in LPT
-    Test["VerifySDLSavedValidParamInLPT"..test_case_name] = function(self)
-      -- Look for policy.sqlite file
-      local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.." and ".."entities.entity_id="..valid_entity_id_cases[j].value
-      local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-      local policy_file2 = config.pathToSDL .. "policy.sqlite"
-      local policy_file
-      if common_steps:FileExisted(policy_file1) then
-        policy_file = policy_file1
-      elseif common_steps:FileExisted(policy_file2) then
-        policy_file = policy_file2
-      else
-        common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
-      end
-      if policy_file then
-        local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-        local handler = io.popen(ful_sql_query, 'r')
-        os.execute("sleep 1")
-        local result = handler:read( '*l' )
-        handler:close()
-        if(result ~= nil and result ~= "") then
-          common_functions:PrintError(" \27[32m entities value is ready saved in LPT \27[0m ")
-          return true
-        else
-          self:FailTestCase("entities value is not saved in LPT although valid param existed in PreloadedPT file")
-          return false
-        end
-      end
+    Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+      -- hmi side: sending SDL.OnAppPermissionConsent for applications
+      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+        source = "GUI",
+        externalConsentStatus = {{entityType = valid_entity_type_cases[i].value, entityID = valid_entity_id_cases[j].value, status = "OFF"}}
+      })
+      self.mobileSession:ExpectNotification("OnPermissionsChange")
     end
     -------------------------------------- Postconditions ----------------------------------------
     common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

@@ -3,7 +3,6 @@ require('user_modules/all_common_modules')
 
 -------------------------------------- Variables --------------------------------------------
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and functional_group .id =\"Location-1\""
 
 ------------------------------------ Common functions ---------------------------------------
 local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items, test_case_name)
@@ -16,6 +15,13 @@ local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items, te
     json_data_update = string.gsub(json_data, match_result, temp_replace_value)
     local json = require("modules/json")
     local data = json.decode(json_data_update)
+    data.policy_table.app_policies["0000001"] = {
+      keep_context = false,
+      steal_focus = false,
+      priority = "NONE",
+      default_hmi = "NONE",
+      groups = {"Base-4","Navigation-1"}
+    }
     -- Go to parent item
     local parent = data
     for i = 1, #parent_item do
@@ -27,11 +33,11 @@ local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items, te
     if type(added_json_items) == "string" then
       added_json_items = json.decode(added_json_items)
     end
-
+    
     for k, v in pairs(added_json_items) do
       parent[k] = v
     end
-
+    
     data = json.encode(data)
     data_revert = string.gsub(data, temp_replace_value, match_result)
     file = assert(io.open(json_file, "w"))
@@ -46,32 +52,32 @@ local function VerifyPTUFailedWithInvalidExternalConsentOn(test_case_name, ptu_f
     local appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
     local ptu_file = config.pathToSDL .. "update_policy_table.json"
     local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-      {
-        fileName = "PolicyTableUpdate",
-        requestType = "PROPRIETARY",
-        appID = appID
-      },
-      ptu_file)
-
+    {
+      fileName = "PolicyTableUpdate",
+      requestType = "PROPRIETARY",
+      appID = appID
+    },
+    ptu_file)
+    
     local systemRequestId
-
+    
     --hmi side: expect SystemRequest request
     EXPECT_HMICALL("BasicCommunication.SystemRequest")
     :Do(function(_,data)
-        systemRequestId = data.id
-        --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-          {
-            policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-          }
-        )
-        function to_run()
-          --hmi side: sending SystemRequest response
-          self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-        end
-
-        RUN_AFTER(to_run, 500)
-      end)
+      systemRequestId = data.id
+      --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
+      self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+      {
+        policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+      }
+      )
+      function to_run()
+        --hmi side: sending SystemRequest response
+        self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+      end
+      
+      RUN_AFTER(to_run, 500)
+    end)
     --hmi side: expect SDL.OnStatusUpdate
     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
     :Times(0)
@@ -80,36 +86,6 @@ local function VerifyPTUFailedWithInvalidExternalConsentOn(test_case_name, ptu_f
   end
 end
 
--- Verify new parameter is not saved in LPT
-local function VerifyInvalidExternalConsentOnNotSavedInLPT(test_case_name, sql_query)
-  Test["VerifyInvalidExternalConsentOnNotSavedInLPT_"..test_case_name] = function(self)
-    -- Look for policy.sqlite file
-    local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-    local policy_file2 = config.pathToSDL .. "policy.sqlite"
-    local policy_file
-    if common_functions:IsFileExist(policy_file1) then
-      policy_file = policy_file1
-    elseif common_functions:IsFileExist(policy_file2) then
-      policy_file = policy_file2
-    else
-      common_functions:PrintError("policy.sqlite file is not exist")
-    end
-    if policy_file then
-      local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-      local handler = io.popen(ful_sql_query, 'r')
-      os.execute("sleep 1")
-      local result = handler:read( '*l' )
-      handler:close()
-      if(result==nil or result == "") then
-        common_functions:PrintError(" \27[32m SDL does not merge invalid PTU to LPT \27[0m ")
-        return true
-      else
-        self:FailTestCase("Invalid parameter is updated in LPT")
-        return false
-      end
-    end
-  end
-end
 -------------------------------------- Preconditions ----------------------------------------
 common_functions:BackupFile("sdl_preloaded_pt.json")
 
@@ -122,10 +98,10 @@ local out_upper_bound = {}
 out_upper_bound.disallowed_by_external_consent_entities_off = {}
 for i = 1, 101 do
   table.insert(out_upper_bound.disallowed_by_external_consent_entities_off,
-    {
-      entityType = i,
-      entityID = i
-    }
+  {
+    entityType = i,
+    entityID = i
+  }
   )
 end
 -- Define disallowed_by_external_consent_entities_off contains 0 entity
@@ -162,9 +138,9 @@ local test_data = {
 }
 for j=1, #test_data do
   local test_case_name = "TC_" ..test_data[j].description
-
+  
   common_steps:AddNewTestCasesGroup(test_case_name)
-
+  
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function(self)
     os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
     -- remove preload_pt from json file
@@ -172,20 +148,55 @@ for j=1, #test_data do
     local removed_json_items = {"preloaded_pt"}
     common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_policy_table.json", parent_item, removed_json_items)
   end
-
+  
   AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, test_data[j].value, "PTU_"..test_case_name)
   common_steps:StopSDL(test_case_name)
-
+  
   Test[test_case_name .. "_Precondition_RemoveExistedLPT"] = function(self)
     common_functions:DeletePolicyTable()
   end
-
+  
   common_steps:IgnitionOn(test_case_name)
   common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
   common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+  common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
   VerifyPTUFailedWithInvalidExternalConsentOn(test_case_name, config.pathToSDL .. 'update_policy_table.json')
-  VerifyInvalidExternalConsentOnNotSavedInLPT(test_case_name, sql_query)
-
+  -- UpdateTurnList ("Navigation-1") is assigned to application with appid = "0000001" in update_policy_table.json
+  -- Send UpdateTurnList to verify PTU failed with invalid value in ptu file
+  function Test:UpdateTurnList_Disallowed()
+    local request = {
+      turnList =
+      {
+        {
+          navigationText ="Text",
+          turnIcon =
+          {
+            value ="icon.png",
+            imageType ="DYNAMIC"
+          }
+        }
+      },
+      softButtons =
+      {
+        {
+          type ="BOTH",
+          text ="Close",
+          image =
+          {
+            value ="icon.png",
+            imageType ="DYNAMIC"
+          },
+          isHighlighted = true,
+          softButtonID = 111,
+          systemAction ="DEFAULT_ACTION"
+        }
+      }
+    }
+    local cor_id_update_turn_list = self.mobileSession:SendRPC("UpdateTurnList", request)
+    --mobile side: expect UpdateTurnList response
+    self.mobileSession:ExpectResponse(cor_id_update_turn_list, { success = false, resultCode = "DISALLOWED" })
+  end
+  
   ------------------------------------ Postconditions ----------------------------------------
   common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 end

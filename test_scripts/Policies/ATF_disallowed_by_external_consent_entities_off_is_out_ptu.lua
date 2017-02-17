@@ -1,8 +1,8 @@
 --------------------------------General Settings for Configuration---------------------------
 require('user_modules/all_common_modules')
 
--------------------------------------- Variables --------------------------------------------
-local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
+----------------------------------- Common Variables ---------------------------------------
+local storagePath = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
 ------------------------------------ Common functions ---------------------------------------
 local function UpdatePolicy(test_case_name, PTName, appName)
@@ -89,37 +89,6 @@ local function UpdatePolicy(test_case_name, PTName, appName)
   end
 end
 
--- Verify new parameter is in LPT after PTU success
-local function VerifyEntityOffNotExistedInLPTAfterPTUSuccess(test_case_name, sql_query)
-  Test[test_case_name .. "VerifyEntityOffNotExistedInLPTAfterPTUSuccess"] = function(self)
-    -- Look for policy.sqlite file
-    local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-    local policy_file2 = config.pathToSDL .. "policy.sqlite"
-    local policy_file
-    if common_functions:IsFileExist(policy_file1) then
-      policy_file = policy_file1
-    elseif common_functions:IsFileExist(policy_file2) then
-      policy_file = policy_file2
-    else
-      common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
-    end
-    if policy_file then
-      local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-      local handler = io.popen(ful_sql_query, 'r')
-      os.execute("sleep 1")
-      local result = handler:read( '*l' )
-      common_functions:PrintTable(result)
-      handler:close()
-      if(result == nil or result == "") then
-        return true
-      else
-        self:FailTestCase("Entities on parameter is updated in LPT")
-        return false
-      end
-    end
-  end
-end
-
 -------------------------------------- Preconditions ----------------------------------------
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
 
@@ -148,9 +117,66 @@ common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
 common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApplication_"..test_case_name)
 common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
-UpdatePolicy(test_case_name, "files/ptu_without_dissallowed_ccs_entity_on.json", config.application1.registerAppInterfaceParams.appName)
-VerifyEntityOffNotExistedInLPTAfterPTUSuccess("VerifyEntityOffNotUpdatedInLPT", sql_query)
+-- Add icon.png to use in UpdateTurnList API
+common_steps:PutFile("Putfile_Icon.png", "icon.png")
+UpdatePolicy(test_case_name, "files/ptu_without_dissallowed_external_consent_entity_on.json", config.application1.registerAppInterfaceParams.appName)
 
+-- UpdateTurnList ("Navigation-1") is assigned to default in ptu_without_dissallowed_external_consent_entity_on.json
+-- Send UpdateTurnList to verify PTU success without disallowed_bu_external_consent_entities_on in ptu file
+function Test:UpdateTurnList_PositiveCase()
+  local request = {
+    turnList =
+    {
+      {
+        navigationText ="Text",
+        turnIcon =
+        {
+          value ="icon.png",
+          imageType ="DYNAMIC"
+        }
+      }
+    },
+    softButtons =
+    {
+      {
+        type ="BOTH",
+        text ="Close",
+        image =
+        {
+          value ="icon.png",
+          imageType ="DYNAMIC"
+        },
+        isHighlighted = true,
+        softButtonID = 111,
+        systemAction ="DEFAULT_ACTION"
+      }
+    }
+  }
+  local cor_id_update_turn_list = self.mobileSession:SendRPC("UpdateTurnList", request)
+  request.softButtons[1].image.value = storagePath..request.softButtons[1].image.value
+  EXPECT_HMICALL("Navigation.UpdateTurnList",
+  {
+    turnList = {
+      {
+        navigationText =
+        {
+          fieldText = "Text",
+          fieldName = "turnText"
+        },
+        turnIcon =
+        {
+          value =storagePath.."icon.png",
+          imageType ="DYNAMIC"
+        }
+      }
+    },
+    softButtons = request.softButtons
+  })
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+  end)
+  EXPECT_RESPONSE(cor_id_update_turn_list, { success = true, resultCode = "SUCCESS" })
+end
 ------------------------------------------- TC_02 ------------------------------
 -- Precondition:
 -- 1.SDL starts with disallowed_by_external_consent_entities_off in PreloadedPT
@@ -213,8 +239,75 @@ common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
 common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
 common_steps:RegisterApplication("RegisterApplication_"..test_case_name)
 common_steps:ActivateApplication("ActivateApplication_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
+-- Add icon.png to use in UpdateTurnList API
+common_steps:PutFile("Putfile_Icon.png", "icon.png")
 UpdatePolicy(test_case_name, "files/ptu_without_dissallowed_external_consent_entity_on.json", config.application1.registerAppInterfaceParams.appName)
-VerifyEntityOffNotExistedInLPTAfterPTUSuccess("VerifyEntityOffNotExistedInLPTAfterPTUSuccess", sql_query)
+-- Send OnAppPermissionConsent to verify entity removed from LPT after PTU successfully
+Test[test_case_name .. "Precondition_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+  -- hmi side: sending SDL.OnAppPermissionConsent for applications
+  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+    source = "GUI",
+    externalConsentStatus = {{entityType = 120, entityID = 70, status = "ON"}}
+  })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Times(0)
+end
 
+-- UpdateTurnList ("Navigation-1") is assigned to default in ptu_without_dissallowed_external_consent_entity_on.json
+-- Send UpdateTurnList to verify PTU success without disallowed_bu_external_consent_entities_on in ptu file
+function Test:UpdateTurnList_PositiveCase()
+  local request = {
+    turnList =
+    {
+      {
+        navigationText ="Text",
+        turnIcon =
+        {
+          value ="icon.png",
+          imageType ="DYNAMIC"
+        }
+      }
+    },
+    softButtons =
+    {
+      {
+        type ="BOTH",
+        text ="Close",
+        image =
+        {
+          value ="icon.png",
+          imageType ="DYNAMIC"
+        },
+        isHighlighted = true,
+        softButtonID = 111,
+        systemAction ="DEFAULT_ACTION"
+      }
+    }
+  }
+  local cor_id_update_turn_list = self.mobileSession:SendRPC("UpdateTurnList", request)
+  request.softButtons[1].image.value = storagePath..request.softButtons[1].image.value
+  EXPECT_HMICALL("Navigation.UpdateTurnList",
+  {
+    turnList = {
+      {
+        navigationText =
+        {
+          fieldText = "Text",
+          fieldName = "turnText"
+        },
+        turnIcon =
+        {
+          value =storagePath.."icon.png",
+          imageType ="DYNAMIC"
+        }
+      }
+    },
+    softButtons = request.softButtons
+  })
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+  end)
+  EXPECT_RESPONSE(cor_id_update_turn_list, { success = true, resultCode = "SUCCESS" })
+end
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

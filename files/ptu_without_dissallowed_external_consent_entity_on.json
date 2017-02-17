@@ -24,19 +24,6 @@
           ]
         }
       },
-      "device_data": {
-        "HUU40DAS7F970UEI17A73JH32L41K32JH4L1K234H3K4": {
-          "user_consent_records": {
-              "0000001": {
-                "consent_groups": {
-                  "Location": true
-               },
-           "input": "GUI",
-           "time_stamp": "2015-10-09T18:07:21Z"
-            }
-            }
-		}
-    },
       "notifications_per_minute_by_priority": {
         "EMERGENCY": 60,
         "NAVIGATION": 15,
@@ -403,11 +390,7 @@
               "speed"
             ]
           }
-        },
-      "disallowed_by_ccs_entities_on": [{
-                "entityType": 123,
-                "entityID": 12
-				}]
+        }
       },
       "Notifications": {
         "user_consent_prompt": "Notifications",
@@ -2313,6 +2296,16 @@
         "groups": [
           "Base-4"
         ]
+      },
+      "0000001":{ 
+        "priority":"NONE",
+        "steal_focus":false,
+        "keep_context":false,
+        "groups":[ 
+        "Base-4",
+        "Navigation-1"
+        ],
+        "default_hmi":"NONE"
       },
       "device": {
         "keep_context": false,

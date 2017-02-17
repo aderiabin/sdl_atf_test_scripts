@@ -1,6 +1,9 @@
 ------------------------------------General Settings for Configuration-----------------------
 require('user_modules/all_common_modules')
 
+----------------------------------- Common Variables ---------------------------------------
+local storagePath = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+
 -------------------------------------- Preconditions ----------------------------------------
 common_functions:BackupFile("sdl_preloaded_pt.json")
 
@@ -25,7 +28,8 @@ common_steps:IgnitionOn("IgnitionOn")
 common_steps:AddMobileSession("AddMobileSession")
 common_steps:RegisterApplication("RegisterApp")
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
-
+-- Add icon.png to use in UpdateTurnList API
+common_steps:PutFile("Putfile_Icon.png", "icon.png")
 Test["PTUSuccessWithoutExternalConsentStatusGroups"] = function(self)
   --hmi side: sending SDL.GetURLS request
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -49,7 +53,7 @@ Test["PTUSuccessWithoutExternalConsentStatusGroups"] = function(self)
         fileName = "PolicyTableUpdate",
         requestType = "PROPRIETARY"
       },
-      "files/ptu_withConsentGroup.json")
+      "files/ptu_without_external_consent_group.json")
       
       local systemRequestId
       --hmi side: expect SystemRequest request
@@ -111,35 +115,61 @@ Test["PTUSuccessWithoutExternalConsentStatusGroups"] = function(self)
   end)
 end
 
--- Verify external_consent_status_groups is not saved in LPT after PTU success
-function Test:VerifyExternalConsentStatusGroupsNotSaveInLPT()
-  local sql_query = "select * from external_consent_status_groups"
-  -- Look for policy.sqlite file
-  local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-  local policy_file2 = config.pathToSDL .. "policy.sqlite"
-  local policy_file
-  if common_steps:FileExisted(policy_file1) then
-    policy_file = policy_file1
-  elseif common_steps:FileExisted(policy_file2) then
-    policy_file = policy_file2
-  else
-    common_functions:PrintError("policy.sqlite file is not exist")
-  end
-  if policy_file then
-    local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-    local handler = io.popen(ful_sql_query, 'r')
-    os.execute("sleep 1")
-    local result = handler:read( '*l' )
-    handler:close()
-    if(result==nil or result == "") then
-      print ( " \27[32m external_consent_status_groups is not updated in LPT \27[0m " )
-      return true
-    else
-      self:FailTestCase("Entities on parameter is updated in LPT")
-      return false
-    end
-  end
+-- UpdateTurnList ("Navigation-1") is assigned to default in ptu_withConsentGroup.json
+-- Send UpdateTurnList to verify PTU success without external_consent_group
+function Test:UpdateTurnList_PositiveCase()
+  local request = {
+    turnList =
+    {
+      {
+        navigationText ="Text",
+        turnIcon =
+        {
+          value ="icon.png",
+          imageType ="DYNAMIC"
+        }
+      }
+    },
+    softButtons =
+    {
+      {
+        type ="BOTH",
+        text ="Close",
+        image =
+        {
+          value ="icon.png",
+          imageType ="DYNAMIC"
+        },
+        isHighlighted = true,
+        softButtonID = 111,
+        systemAction ="DEFAULT_ACTION"
+      }
+    }
+  }
+  local cor_id_update_turn_list = self.mobileSession:SendRPC("UpdateTurnList", request)
+  request.softButtons[1].image.value = storagePath..request.softButtons[1].image.value
+  EXPECT_HMICALL("Navigation.UpdateTurnList",
+  {
+    turnList = {
+      {
+        navigationText =
+        {
+          fieldText = "Text",
+          fieldName = "turnText"
+        },
+        turnIcon =
+        {
+          value =storagePath.."icon.png",
+          imageType ="DYNAMIC"
+        }
+      }
+    },
+    softButtons = request.softButtons
+  })
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+  end)
+  EXPECT_RESPONSE(cor_id_update_turn_list, { success = true, resultCode = "SUCCESS" })
 end
-
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

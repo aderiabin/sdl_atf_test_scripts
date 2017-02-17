@@ -13,6 +13,13 @@ local function AddNewItemIntoPreloadedPt(test_case_name, parent_item, testing_va
     json_data_update = string.gsub(json_data, match_result, temp_replace_value)
     local json = require("modules/json")
     local data = json.decode(json_data_update)
+    data.policy_table.app_policies["0000001"] = {
+      keep_context = false,
+      steal_focus = false,
+      priority = "NONE",
+      default_hmi = "NONE",
+      groups = {"Base-4","Location-1"}
+    }
     -- Go to parent item
     local parent = data
     for i = 1, #parent_item do
@@ -24,45 +31,16 @@ local function AddNewItemIntoPreloadedPt(test_case_name, parent_item, testing_va
     if type(testing_value) == "string" then
       testing_value = json.decode(testing_value)
     end
-
+    
     for k, v in pairs(testing_value) do
       parent[k] = v
     end
-
+    
     data = json.encode(data)
     local data_revert = string.gsub(data, temp_replace_value, match_result)
     file = assert(io.open(json_file, "w"))
     file:write(data_revert)
     file:close()
-  end
-end
-local function VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query)
-  Test[test_case_name.."_VerifySDLSavedUpperBoundEntitiesInLPT"] = function(self)
-    -- Look for policy.sqlite file
-    local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-    local policy_file2 = config.pathToSDL .. "policy.sqlite"
-    local policy_file
-    if common_steps:FileExisted(policy_file1) then
-      policy_file = policy_file1
-    elseif common_steps:FileExisted(policy_file2) then
-      policy_file = policy_file2
-    else
-      common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
-    end
-    if policy_file then
-      local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-      local handler = io.popen(ful_sql_query, 'r')
-      os.execute("sleep 1")
-      local result = handler:read('*l')
-      handler:close()
-      if(result ~= nil) then
-        common_functions:PrintError(" \27[32m Entities have ready save in LPT \27[0m ")
-        return true
-      else
-        self:FailTestCase("entities value is not saved in LPT although valid param existed in PreloadedPT file")
-        return false
-      end
-    end
   end
 end
 -------------------------------------- Preconditions ----------------------------------------
@@ -80,16 +58,16 @@ testing_value_entities_upper_bound.disallowed_by_external_consent_entities_off =
 testing_value_entities_upper_bound.disallowed_by_external_consent_entities_on = {}
 for i = 1, 100 do
   table.insert(testing_value_entities_upper_bound.disallowed_by_external_consent_entities_off,
-    {
-      entityType = i,
-      entityID = i
-    }
+  {
+    entityType = i,
+    entityID = i
+  }
   )
   table.insert(testing_value_entities_upper_bound.disallowed_by_external_consent_entities_on,
-    {
-      entityType = i,
-      entityID = i
-    }
+  {
+    entityType = i,
+    entityID = i
+  }
   )
 end
 
@@ -108,14 +86,20 @@ end
 -- Add disallowed_by_external_consent_entities_off with 100 entities
 AddNewItemIntoPreloadedPt (test_case_name, parent_item_entities, testing_value_entities_upper_bound)
 
-Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-  common_functions:DelayedExp(5000)
+common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
+common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
+
+-- Send OnAppPermissionConsent to verify entityType and entityId merged in LPT
+Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+  -- hmi side: sending SDL.OnAppPermissionConsent for applications
+  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+    source = "GUI",
+    externalConsentStatus = {{entityType = 100, entityID = 100, status = "ON"}, {entityType = 1, entityID = 1, status = "ON"}, {entityType = 100, entityID = 100, status = "OFF"}, {entityType = 1, entityID = 1, status = "OFF"}}
+  })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
 end
-
-local sql_query_upper_bound = "SELECT count(*) as number FROM entities, functional_group WHERE entities.group_id = functional_group.id group by group_id having number = 200;"
-VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_upper_bound)
-
 ------------------------------------------- TC_2 ---------------------------------------------
 -- Precondition: disallowed_by_external_consent_entities_on contains 100 entityType and entityID parameter existed in PreloadedPT
 -- Verification criteria:
@@ -127,10 +111,10 @@ local testing_value_entities_on = {}
 testing_value_entities_on.disallowed_by_external_consent_entities_on = {}
 for i = 1, 100 do
   table.insert(testing_value_entities_on.disallowed_by_external_consent_entities_on,
-    {
-      entityType = i,
-      entityID = i
-    }
+  {
+    entityType = i,
+    entityID = i
+  }
   )
 end
 
@@ -151,13 +135,20 @@ common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 -- Add disallowed_by_external_consent_entities_on with 100 entities
 AddNewItemIntoPreloadedPt (test_case_name, parent_item_entities_on, testing_value_entities_on)
 
-Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-  common_functions:DelayedExp(5000)
-end
+common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
+common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 
-local sql_query_external_consent_on_upper_bound = "select count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 100;"
-VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_external_consent_on_upper_bound)
+-- Send OnAppPermissionConsent to verify entityType and entityId merged in LPT
+Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+  -- hmi side: sending SDL.OnAppPermissionConsent for applications
+  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+    source = "GUI",
+    externalConsentStatus = {{entityType = 100, entityID = 100, status = "OFF"}, {entityType = 1, entityID = 1, status = "OFF"}}
+  })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+end
 
 ------------------------------------------- TC_3 ---------------------------------------------
 -- Precondition: disallowed_by_external_consent_entities_on and disallowed_by_external_consent_entities_off are existed in the same group in PreloadedPT
@@ -198,12 +189,19 @@ common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 -- Add disallowed_by_external_consent_entities_on and disallowed_by_external_consent_entities_off into the same group
 AddNewItemIntoPreloadedPt (test_case_name, parent_item, testing_value)
 
-Test[test_case_name .. "_StartSDL_WithValidEntityOnInPreloadedPT"] = function(self)
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-  common_functions:DelayedExp(5000)
-end
+common_steps:IgnitionOn("IgnitionOn_"..test_case_name)
+common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
+common_steps:RegisterApplication("RegisterApp_"..test_case_name)
+common_steps:ActivateApplication("ActivateApp_"..test_case_name, config.application1.registerAppInterfaceParams.appName)
 
-local sql_query_lower_bound = "select count(*) as number from entities, functional_group where entities.group_id = functional_group.id group by group_id having number = 2;"
-VerifySDLSavedUpperBoundEntitiesInLPT(test_case_name, sql_query_lower_bound)
+-- Send OnAppPermissionConsent to verify entityType and entityId merged in LPT
+Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+  -- hmi side: sending SDL.OnAppPermissionConsent for applications
+  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+    source = "GUI",
+    externalConsentStatus = {{entityType = 128, entityID = 128, status = "OFF"}, {entityType = 0, entityID = 0, status = "ON"}}
+  })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+end
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

@@ -23,6 +23,14 @@ local function AddNewParamIntoJSonFile(json_file, parent_item, testing_value, te
     json_data_update = string.gsub(json_data, match_result, temp_replace_value)
     local json = require("modules/json")
     local data = json.decode(json_data_update)
+    --insert application "0000001" which belong to functional group "Location-1" into "app_policies"
+    data.policy_table.app_policies["0000001"] = {
+      keep_context = false,
+      steal_focus = false,
+      priority = "NONE",
+      default_hmi = "NONE",
+      groups = {"Base-4","Location-1"}
+    }
     -- Go to parent item
     local parent = data
     for i = 1, #parent_item do
@@ -136,37 +144,6 @@ local function UpdatePolicy(test_case_name, PTName, appName)
   end
 end
 
--- Verify new parameter is in LPT after PTU success
-local function VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
-  Test["VerifyEntityOnInLPTAfterPTUSuccess_"..test_case_name] = function(self)
-    -- Look for policy.sqlite file
-    local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-    local policy_file2 = config.pathToSDL .. "policy.sqlite"
-    local policy_file
-    if common_functions:IsFileExist(policy_file1) then
-      policy_file = policy_file1
-    elseif common_functions:IsFileExist(policy_file2) then
-      policy_file = policy_file2
-    else
-      common_functions:PrintError("policy.sqlite file is not exist")
-    end
-    if policy_file then
-      local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-      local handler = io.popen(ful_sql_query, 'r')
-      os.execute("sleep 1")
-      local result = handler:read( '*l' )
-      handler:close()
-      if(result ~= nil and result ~= "") then
-        print ( " \27[32m disallowed_by_external_consent_entities_off is updated in LPT \27[0m " )
-        return true
-      else
-        self:FailTestCase("disallowed_by_external_consent_entities_off on parameter is not updated in LPT")
-        return false
-      end
-    end
-  end
-end
-
 -------------------------------------- Preconditions --------------------------
 common_functions:BackupFile("sdl_preloaded_pt.json")
 
@@ -204,10 +181,11 @@ for i=1, #valid_entity_type_cases do
       -- remove preload_pt from json file
       local parent_item = {"policy_table","module_config"}
       local removed_json_items = {"preloaded_pt"}
-      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items)      
+      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items) 
     end
     
     AddNewParamIntoJSonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, testing_value, "InPTU")
+    
     common_steps:IgnitionOn(test_case_name)
     common_steps:AddMobileSession("AddMobileSession_"..test_case_name)
     common_steps:RegisterApplication("RegisterApp_"..test_case_name)
@@ -218,8 +196,16 @@ for i=1, #valid_entity_type_cases do
     end
     
     UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
-    VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+    
+    -- Send OnAppPermissionConsent to verify entityType and entityId merged in LPT
+    Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+      -- hmi side: sending SDL.OnAppPermissionConsent for applications
+      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+        source = "GUI",
+        externalConsentStatus = {{entityType = valid_entity_type_cases[i].value, entityID = valid_entity_id_cases[j].value, status = "ON"}}
+      })
+      self.mobileSession:ExpectNotification("OnPermissionsChange")
+    end
   end
 end
 ------------------------------------------- Body II ----------------------------
@@ -259,7 +245,7 @@ for i=1, #valid_entity_type_cases do
       -- remove preload_pt from json file
       local parent_item = {"policy_table","module_config"}
       local removed_json_items = {"preloaded_pt"}
-      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items)       
+      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items) 
     end
     
     -- Add valid entityType and entityID into PTU
@@ -285,8 +271,27 @@ for i=1, #valid_entity_type_cases do
     end
     
     UpdatePolicy(test_case_name, config.pathToSDL .. "update_sdl_preloaded_pt.json", config.application1.registerAppInterfaceParams.appName)
-    local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id and entities.entity_Type ="..valid_entity_type_cases[i].value.. " and entities.entity_id="..valid_entity_id_cases[j].value
-    VerifyEntityOnInLPTAfterPTUSuccess(sql_query, test_case_name)
+    
+    -- Send OnAppPermissionConsent to verify entityType and entityId not merged in LPT
+    Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+      -- hmi side: sending SDL.OnAppPermissionConsent for applications
+      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+        source = "GUI",
+        externalConsentStatus = {{entityType = valid_entity_type_cases[i].value, entityID = valid_entity_id_cases[j].value, status = "ON"}}
+      })
+      self.mobileSession:ExpectNotification("OnPermissionsChange")
+    end
+    
+    -- Send OnAppPermissionConsent to verify entityType and entityId removed in LPT
+    function Test:Send_OnAppPermissionConsent_To_NonExistent_Entity()
+      -- hmi side: sending SDL.OnAppPermissionConsent for applications
+      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+        source = "GUI",
+        externalConsentStatus = {{entityType = 70, entityID = 80, status = "ON"}}
+      })
+      self.mobileSession:ExpectNotification("OnPermissionsChange")
+      :Times(0)
+    end
   end
 end
 

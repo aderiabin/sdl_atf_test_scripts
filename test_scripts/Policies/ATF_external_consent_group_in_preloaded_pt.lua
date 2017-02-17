@@ -33,34 +33,5 @@ Test["SDLShutDownWithExistedExternalConsentStatusGroupsInPreloadedPT"] = functio
   return true
 end
 
-Test["VerifyExternalConsentStatusGroupsNotSavedInPreloadedPT"] = function(self)
-  sql_query = "select * from external_consent_status_groups"
-  -- Look for policy.sqlite file
-  local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-  local policy_file2 = config.pathToSDL .. "policy.sqlite"
-  local policy_file
-  if common_steps:FileExisted(policy_file1) then
-    policy_file = policy_file1
-  elseif common_steps:FileExisted(policy_file2) then
-    policy_file = policy_file2
-  else
-    common_functions:PrintError(" \27[32m policy.sqlite file is not exist because SDL failed \27[0m ")
-  end
-  if policy_file then
-    local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-    local handler = io.popen(ful_sql_query, 'r')
-    os.execute("sleep 1")
-    local result = handler:read( '*l' )
-    handler:close()
-    if(result==nil or result == "") then
-      common_functions:PrintError(" \27[32m external_consent_status_groups is not saved in LPT \27[0m ")
-      return true
-    else
-      self:FailTestCase("external_consent_status_groups is still saved in local policy table although SDL can not start.")
-      return false
-    end
-  end
-end
-
 -------------------------------------- Postconditions -------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")

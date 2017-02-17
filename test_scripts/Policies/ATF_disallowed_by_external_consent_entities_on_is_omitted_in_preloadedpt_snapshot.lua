@@ -27,36 +27,6 @@ end
 
 common_steps:IgnitionOn("StartSDL")
 
--- Verify valid entityType and entityID are inserted into entities table in LPT
-Test["VerifyDisallowedExternalConsentEntityOnNotSavedInLPT"] = function(self)
-  -- Look for policy.sqlite file
-  local sql_query = "select entity_type, entity_id from entities, functional_group where entities.group_id = functional_group.id"
-  local policy_file1 = config.pathToSDL .. "storage/policy.sqlite"
-  local policy_file2 = config.pathToSDL .. "policy.sqlite"
-  local policy_file
-  if common_functions:IsFileExist(policy_file1) then
-    policy_file = policy_file1
-  elseif common_functions:IsFileExist(policy_file2) then
-    policy_file = policy_file2
-  else
-    common_functions:PrintError(" \27[32m policy.sqlite file is not exist \27[0m ")
-  end
-  if policy_file then
-    local ful_sql_query = "sqlite3 " .. policy_file .. " \"" .. sql_query .. "\""
-    local handler = io.popen(ful_sql_query, 'r')
-    os.execute("sleep 1")
-    local result = handler:read( '*l' )
-    handler:close()
-    if not result then
-      print ( " \27[32m disallowed_by_external_consent_entities_on is not found in LPT \27[0m " )
-      return true
-    else
-      self:FailTestCase("entities value in DB is not saved in local policy table although valid param existed in PreloadedPT file")
-      return false
-    end
-  end
-end
-
 common_steps:AddMobileSession("AddMobileSession")
 common_steps:RegisterApplication("RegisterApp")
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
