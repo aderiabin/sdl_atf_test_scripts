@@ -119,7 +119,7 @@ function CommonFunctions:GetValueFromIniFile(parameter_name)
   end
   file:close()
   if value == "" then
-    commonFunctions:PrintError(" smartDeviceLink.ini does not have parameter name: " .. tostring(parameter_name))
+    CommonFunctions:PrintError(" smartDeviceLink.ini does not have parameter name: " .. tostring(parameter_name))
   end
   return value
 end
