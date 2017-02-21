@@ -16,12 +16,21 @@ local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items, te
     local json = require("modules/json")
     local data = json.decode(json_data_update)
     if (json_file == config.pathToSDL .. "update_policy_table.json") then
-      data.policy_table.app_policies["0000001"] = {
+      data.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = {
         keep_context = false,
         steal_focus = false,
         priority = "NONE",
         default_hmi = "NONE",
         groups = {"Base-4","Navigation-1"}
+      }
+    end
+    if (json_file == config.pathToSDL .. "sdl_preloaded_pt.json") then
+      data.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = {
+        keep_context = false,
+        steal_focus = false,
+        priority = "NONE",
+        default_hmi = "NONE",
+        groups = {"Base-4", "DrivingCharacteristics-3"}
       }
     end
     -- Go to parent item
@@ -49,9 +58,8 @@ local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items, te
 end
 -- Verify PTU failed when invalid parameter existed in PTU file
 local function VerifyPTUFailedWithInvalidData(test_case_name, ptu_file)
-  Test["VerifyPTUFailedWithExistedInvalideEntityOn"] = function(self)
+  Test[test_case_name.."_VerifyPTUFailed"] = function(self)
     local appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
-    local ptu_file = config.pathToSDL .. "update_policy_table.json"
     local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
     {
       fileName = "PolicyTableUpdate",
@@ -142,6 +150,7 @@ for i=1, #invalid_entity_type_cases do
   common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
   -- Add icon.png to use in UpdateTurnList API
   common_steps:PutFile("Putfile_Icon.png", "icon.png")
+  VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')
   -- UpdateTurnList ("Navigation-1") is assigned to application with appid = "0000001" in update_policy_table.json
   -- Send UpdateTurnList to verify PTU failed with invalid value in ptu file
   function Test:UpdateTurnList_Disallowed()
@@ -294,7 +303,6 @@ for i=1,#invalid_entity_type_cases do
       }
     }
   }
-  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item_in_preloadedpt, valid_testing_value_preloadedpt, "PreloadedPT_"..test_case_name)
   
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function(self)
     os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
@@ -303,6 +311,8 @@ for i=1,#invalid_entity_type_cases do
     local removed_json_items = {"preloaded_pt"}
     common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_policy_table.json", parent_item, removed_json_items)
   end
+  
+  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item_in_preloadedpt, valid_testing_value_preloadedpt, "PreloadedPT_"..test_case_name)
   
   AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
   
@@ -323,6 +333,15 @@ for i=1,#invalid_entity_type_cases do
   -- Add icon.png to use in UpdateTurnList API
   common_steps:PutFile("Putfile_Icon.png", "icon.png")
   VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')
+  -- Verify valid entityType and entityID are still existed in entities table in LPT
+  Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+    -- hmi side: sending SDL.OnAppPermissionConsent for applications
+    self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+      source = "GUI",
+      externalConsentStatus = {{entityType = 0, entityID = 128, status = "OFF"}}
+    })
+    self.mobileSession:ExpectNotification("OnPermissionsChange")
+  end
   -- UpdateTurnList ("Navigation-1") is assigned to application with appid = "0000001" in update_policy_table.json
   -- Send UpdateTurnList to verify PTU failed with invalid value in ptu file
   function Test:UpdateTurnList_Disallowed()
@@ -387,7 +406,6 @@ for i=1,#invalid_entity_id_cases do
       }
     }
   }
-  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item_in_preloadedpt, valid_testing_value_preloadedpt, "PreloadedPT_"..test_case_name)
   
   Test[test_case_name .. "_Precondition_copy_sdl_preloaded_pt.json"] = function(self)
     os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json_origin".. " " .. config.pathToSDL .. "update_policy_table.json")
@@ -397,6 +415,7 @@ for i=1,#invalid_entity_id_cases do
     common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_policy_table.json", parent_item, removed_json_items)
   end
   
+  AddItemsIntoJsonFile(config.pathToSDL .. 'sdl_preloaded_pt.json', parent_item_in_preloadedpt, valid_testing_value_preloadedpt, "PreloadedPT_"..test_case_name)
   AddItemsIntoJsonFile(config.pathToSDL .. 'update_policy_table.json', parent_item, testing_value, "PTU_"..test_case_name)
   
   common_steps:StopSDL(test_case_name)
@@ -414,6 +433,15 @@ for i=1,#invalid_entity_id_cases do
   
   VerifyPTUFailedWithInvalidData(test_case_name, config.pathToSDL .. 'update_policy_table.json')
   
+  -- Verify valid entityType and entityID are still existed in entities table in LPT
+  Test[test_case_name .. "_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
+    -- hmi side: sending SDL.OnAppPermissionConsent for applications
+    self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+      source = "GUI",
+      externalConsentStatus = {{entityType = 128, entityID = 50, status = "OFF"}}
+    })
+    self.mobileSession:ExpectNotification("OnPermissionsChange")
+  end
   -- UpdateTurnList ("Navigation-1") is assigned to application with appid = "0000001" in update_policy_table.json
   -- Send UpdateTurnList to verify PTU failed with invalid value in ptu file
   function Test:UpdateTurnList_Disallowed()

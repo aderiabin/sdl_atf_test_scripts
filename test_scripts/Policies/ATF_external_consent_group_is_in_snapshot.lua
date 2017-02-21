@@ -16,19 +16,21 @@ Test["Precondition_ChangedPreloadedPt"] = function(self)
 end
 
 common_steps:IgnitionOn("StartSDL")
+common_steps:AddMobileSession("AddMobileSession")
+common_steps:RegisterApplication("RegisterApp")
+
 Test["Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-      source = "GUI",
-      externalConsentStatus = {{entityType = 0, entityID = 128, status = "ON"}}
-    })
-  common_functions:DelayedExp(20000)
+    source = "GUI",
+    externalConsentStatus = {{entityType = 0, entityID = 128, status = "ON"}}
+  })
+  common_functions:DelayedExp(2000)
 end
-common_steps:AddMobileSession("AddMobileSession")
 
-common_steps:RegisterApplication("RegisterApp")
 common_steps:ActivateApplication("ActivateApp", config.application1.registerAppInterfaceParams.appName)
 common_steps:Sleep("WaitingSDLCreateSnapshot", 2)
+
 -- Verify SDL triggers to create external_consent_status_groups in Snapshot
 function Test:VerifyDisallowedByExternalConsentEntitiesOnInSnapShot()
   local ivsu_cache_folder = common_functions:GetValueFromIniFile("SystemFilesPath")
@@ -44,9 +46,9 @@ function Test:VerifyDisallowedByExternalConsentEntitiesOnInSnapShot()
     local json_snap_shot = file_json:read("*all")
     -- Check new param existed.
     item = json_snap_shot:match(new_param)
-
+    
     if not item then
-      self:FailTestCase("external_consent_status_groups is not found in SnapShot although is existed in PreloadedPT file")
+      self:FailTestCase("external_consent_status_groups is not found in SnapShot although is existed in LPT.")
       return false
     else
       print (" \27[32m external_consent_status_groups is found in SnapShot \27[0m ")

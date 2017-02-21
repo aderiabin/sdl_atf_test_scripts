@@ -21,7 +21,7 @@ end
 
 -- Verify processID of SDL not existed because SDL shut down.
 Test["SDLShutDownWithExistedExternalConsentStatusGroupsInPreloadedPT"] = function(self)
-  os.execute(" sleep 1 ")
+  os.execute(" sleep 5 ")
   -- Remove sdl.pid file on ATF folder in case SDL is stopped not by script.
   os.execute("rm sdl.pid")
   local status = sdl:CheckStatusSDL()

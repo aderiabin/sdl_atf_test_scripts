@@ -3,41 +3,42 @@ require('user_modules/all_common_modules')
 --------------------------------- Variables -----------------------------------
 local parent_item = {"policy_table", "functional_groupings", "Location-1"}
 ------------------------------- Common functions -------------------------------
-local match_result = "null"
-local temp_replace_value = "\"Thi123456789\""
 -- Add new structure into json_file
 local function AddItemsIntoJsonFile(json_file, parent_item, added_json_items)
-  local file = assert(io.open(json_file, "r"))
-  local json_data = file:read("*all")
-  file:close()
-  json_data_update = string.gsub(json_data, match_result, temp_replace_value)
-  local json = require("modules/json")
-  local data = json.decode(json_data_update)
-  -- Go to parent item
-  local parent = data
-  for i = 1, #parent_item do
-    if not parent[parent_item[i]] then
-      parent[parent_item[i]] = {}
+  Test["AddedEntityIntoJsonFile"] = function(self)
+    local match_result = "null"
+    local temp_replace_value = "\"temp_replace_value_test\""
+    local file = assert(io.open(json_file, "r"))
+    local json_data = file:read("*all")
+    file:close()
+    json_data_update = string.gsub(json_data, match_result, temp_replace_value)
+    local json = require("modules/json")
+    local data = json.decode(json_data_update)
+    -- Go to parent item
+    local parent = data
+    for i = 1, #parent_item do
+      if not parent[parent_item[i]] then
+        parent[parent_item[i]] = {}
+      end
+      parent = parent[parent_item[i]]
     end
-    parent = parent[parent_item[i]]
+    if type(added_json_items) == "string" then
+      added_json_items = json.decode(added_json_items)
+    end
+    for k, v in pairs(added_json_items) do
+      parent[k] = v
+    end
+    data = json.encode(data)
+    data_revert = string.gsub(data, temp_replace_value, match_result)
+    file = assert(io.open(json_file, "w"))
+    file:write(data_revert)
+    file:close()
   end
-  if type(added_json_items) == "string" then
-    added_json_items = json.decode(added_json_items)
-  end
-  for k, v in pairs(added_json_items) do
-    parent[k] = v
-  end
-  data = json.encode(data)
-  data_revert = string.gsub(data, temp_replace_value, match_result)
-  file = assert(io.open(json_file, "w"))
-  file:write(data_revert)
-  file:close()
 end
-
 -- Verify SDL can't start with invalid parameter in PreloadedPT
 local function VerifySDLShutDownWithInvalidParamInPreloadedPT(test_case_name)
   Test["SDLShutDownWith"..test_case_name] = function(self)
-    os.execute(" sleep 1 ")
+    os.execute(" sleep 5 ")
     -- Remove sdl.pid file on ATF folder in case SDL is stopped not by script.
     os.execute("rm sdl.pid")
     local status = sdl:CheckStatusSDL()
@@ -51,6 +52,7 @@ local function VerifySDLShutDownWithInvalidParamInPreloadedPT(test_case_name)
 end
 ------------------------------- Preconditions ---------------------------------
 common_steps:BackupFile("Precondition_Backup_PreloadedPT", "sdl_preloaded_pt.json")
+
 --------------------------------- BODY ----------------------------------------
 -- Precondition: invalid entityType parameter existed in PreloadedPT
 -- Verification criteria: SDL considers PreloadedPT as invalid and shut SDL down
@@ -111,7 +113,6 @@ local invalid_entity_id_cases = {
 }
 
 for i=1, #invalid_entity_id_cases do
-  
   local test_case_id = "TC_entityID_" .. tostring(i)
   local test_case_name = test_case_id .. "_disallowed_by_external_consent_entities_off.entityId_" .. invalid_entity_id_cases[i].description
   
