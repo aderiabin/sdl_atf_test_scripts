@@ -2,7 +2,8 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.SDLStoragePath
+local app_storage_folder = common_functions:GetValueFromIniFile"AppStorageFolder"
+local storagePath = config.pathToSDL .. app_storage_folder .. "/"
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
