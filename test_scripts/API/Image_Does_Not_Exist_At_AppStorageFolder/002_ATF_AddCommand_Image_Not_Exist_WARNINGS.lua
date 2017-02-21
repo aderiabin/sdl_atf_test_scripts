@@ -2,7 +2,7 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local app_storage_folder = common_functions:GetValueFromIniFile"AppStorageFolder"
+local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
 local storagePath = config.pathToSDL .. app_storage_folder .. "/"
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
@@ -16,7 +16,7 @@ common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
 -- Verify: when all params are correct and image of cmdIcon doesn't exist
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
-function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
+function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS1111111()
   local cid = self.mobileSession:SendRPC("AddCommand",
     {
       cmdID = 11,
