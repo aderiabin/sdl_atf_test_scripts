@@ -2,7 +2,7 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
@@ -37,7 +37,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           text = "Close",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
@@ -55,7 +55,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "IMAGE",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = storagePath.."invalidImage.png",
             imageType = "DYNAMIC"
           },
           softButtonID = 5,
@@ -63,7 +63,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
         },
       }
     })
-  local alert_id
   EXPECT_HMICALL("UI.Alert",
     {
       alertStrings =
@@ -82,7 +81,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           text = "Close",
           image =
           {
-            value = storagePath .. "icon888.png",
+            value = storagePath .. "invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
@@ -100,8 +99,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "IMAGE",
           image =
           {
-            value = storagePath .. "icon888.png",
-            --value = "icon888.png",
+            value = storagePath .. "invalidImage.png",
             imageType = "DYNAMIC"
           },
           softButtonID = 5,

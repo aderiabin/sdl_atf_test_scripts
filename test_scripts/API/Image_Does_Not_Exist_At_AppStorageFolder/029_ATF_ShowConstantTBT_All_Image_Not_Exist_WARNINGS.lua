@@ -2,17 +2,18 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
--------------------------------------------Preconditions-------------------------------------
+------------------------------------ Precondition -------------------------------------------
+--1. Delete app_info.dat, logs and policy table
 common_functions:DeleteLogsFileAndPolicyTable()
-common_functions:BackupFile("sdl_preloaded_pt.json")
---1. Activate application
-common_steps:PreconditionSteps("PreconditionSteps", 7)
 --2. Backup sdl_preloaded_pt.json then updatePolicy
+common_functions:BackupFile("sdl_preloaded_pt.json")
 update_policy:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PTU_For_Image_Not_Exist.json")
+--3. Activate application
+common_steps:PreconditionSteps("PreconditionSteps", 7)
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and all image do not exist
@@ -26,12 +27,12 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
     totalDistance ="100miles",
     turnIcon =
     {
-      value =storagePath.."icon888.png",
+      value = "invalidImage.png",
       imageType ="DYNAMIC"
     },
     nextTurnIcon =
     {
-      value = storagePath.."icon888.png",
+      value = "invalidImage.png",
       imageType ="DYNAMIC"
     },
     distanceToManeuver = 50.5,
@@ -44,7 +45,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
         text ="Close",
         image =
         {
-          value =storagePath.."icon888.png",
+          value = "invalidImage.png",
           imageType ="DYNAMIC"
         },
         isHighlighted = true,
@@ -64,4 +65,4 @@ end
 -------------------------------------------Postconditions-------------------------------------
 common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
 common_steps:StopSDL("Postcondition_StopSDL")
-common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
+common_steps:RestoreIniFile("Postcondition_Restore_PreloadedPT", "sdl_preloaded_pt.json")

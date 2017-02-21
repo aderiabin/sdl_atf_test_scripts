@@ -1,13 +1,14 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
--------------------------------------------Preconditions-------------------------------------
---1. Activate application
-common_steps:PreconditionSteps("PreconditionSteps", 7)
-local storagePath = config.pathToSDL .. "storage/"
+------------------------------------ Common Variables ---------------------------------------
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local imageValues = {"a", imageValueUpperBound, "icon888.png", "action888.png"}
 local appName = config.application1.registerAppInterfaceParams.appName
+
+-------------------------------------------Preconditions-------------------------------------
+-- Activate application
+common_steps:PreconditionSteps("PreconditionSteps", 7)
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image of vrHelp doesn't exist
@@ -49,7 +50,7 @@ function performInteractionAllParams()
         image =
         {
           imageType = "DYNAMIC",
-          value = storagePath.."icon888.png"
+          value = "invalidImage.png"
         },
         text = "NewVRHelpv",
         position = 1
@@ -58,7 +59,7 @@ function performInteractionAllParams()
         image =
         {
           imageType = "DYNAMIC",
-          value = storagePath.."icon888.png"
+          value = "invalidImage.png"
         },
         text = "NewVRHelpvv",
         position = 2
@@ -67,7 +68,7 @@ function performInteractionAllParams()
         image =
         {
           imageType = "DYNAMIC",
-          value = storagePath.."icon888.png"
+          value = "invalidImage.png"
         },
         text = "NewVRHelpvvv",
         position = 3
@@ -89,7 +90,7 @@ function setChoiseSet(choiceIDValue, size)
         },
         image =
         {
-          value ="icon888.png",
+          value ="invalidImage.png",
           imageType ="STATIC"
         }
     }}
@@ -106,7 +107,7 @@ function setChoiseSet(choiceIDValue, size)
         },
         image =
         {
-          value ="icon888.png",
+          value ="invalidImage.png",
           imageType ="STATIC"
         }
       }
@@ -122,7 +123,7 @@ function setExChoiseSet(choiceIDValues)
       choiceID = choiceIDValues[i],
       image =
       {
-        value = "icon888.png",
+        value = "invalidImage.png",
         imageType = "STATIC",
       },
       menuName = Choice100
@@ -137,7 +138,6 @@ function Test:createInteractionChoiceSet(choiceSetID, choiceID)
       interactionChoiceSetID = choiceSetID,
       choiceSet = setChoiseSet(choiceID),
     })
-
   EXPECT_HMICALL("VR.AddCommand",
     {
       cmdID = choiceID,
@@ -147,7 +147,6 @@ function Test:createInteractionChoiceSet(choiceSetID, choiceID)
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-
   EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true })
 end
 choice_set_id_values = {100, 200, 300}
@@ -180,7 +179,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
         self.hmiConnection:SendNotification("TTS.Started")
       end
       RUN_AFTER(firstSpeakTimeOut, 5)
-
       local function vrResponse()
         self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
         --self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
@@ -203,7 +201,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
     })
   :Do(function(_,data)
       local function choiceIconDisplayed()
-
         self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = appID, systemContext = "HMI_OBSCURED"})
       end
       RUN_AFTER(choiceIconDisplayed, 25)
@@ -215,7 +212,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       end
       RUN_AFTER(uiResponse, 30)
     end)
-
   EXPECT_NOTIFICATION("OnHMIStatus",
     { hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"},
     { hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "VRSESSION"},
@@ -224,7 +220,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
     { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "HMI_OBSCURED"},
     { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
   :Times(6)
-
   EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
 end
 

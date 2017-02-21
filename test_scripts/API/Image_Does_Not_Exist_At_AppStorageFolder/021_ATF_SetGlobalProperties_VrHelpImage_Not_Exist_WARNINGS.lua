@@ -1,14 +1,16 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
+
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
 -- Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
-common_steps:PutFile("PutFile_action.png", "action.png")
+common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
+
 --------------------------------------------BODY---------------------------------------------
 -- Checking: when all params are correct and image of vrHelp does not exist
 -- SDL -> MOB : {success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"}
@@ -30,7 +32,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           position = 1,
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           text = "VR help item"
@@ -38,7 +40,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       },
       menuIcon =
       {
-        value = storagePath.."action.png",
+        value = "action.png",
         imageType = "DYNAMIC"
       },
       helpPrompt =
@@ -88,7 +90,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           image =
           {
             imageType = "DYNAMIC",
-            value = storagePath.."icon888.png"
+            value = storagePath.."invalidImage.png"
           },
           text = "VR help item"
         }

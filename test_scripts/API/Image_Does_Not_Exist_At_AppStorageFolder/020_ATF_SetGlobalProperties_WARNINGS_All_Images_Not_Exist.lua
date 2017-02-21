@@ -1,7 +1,8 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
+
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
@@ -30,7 +31,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           position = 1,
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           text = "VR help item"
@@ -38,7 +39,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       },
       menuIcon =
       {
-        value = storagePath.."icon888.png",
+        value = "invalidImage.png",
         imageType = "DYNAMIC"
       },
       helpPrompt =
@@ -56,7 +57,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
         language = "EN-US"
       }
     })
-
   EXPECT_HMICALL("TTS.SetGlobalProperties",
     {
       timeoutPrompt =
@@ -77,7 +77,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-
   EXPECT_HMICALL("UI.SetGlobalProperties",
     {
       menuTitle = "Menu Title",
@@ -88,7 +87,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           image =
           {
             imageType = "DYNAMIC",
-            value = storagePath.."icon888.png"
+            value = storagePath.."invalidImage.png"
           },
           text = "VR help item"
         }
@@ -96,7 +95,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       menuIcon =
       {
         imageType = "DYNAMIC",
-        value = storagePath.."icon888.png"
+        value = storagePath.."invalidImage.png"
       },
       vrHelpTitle = "VR help title",
       keyboardProperties =

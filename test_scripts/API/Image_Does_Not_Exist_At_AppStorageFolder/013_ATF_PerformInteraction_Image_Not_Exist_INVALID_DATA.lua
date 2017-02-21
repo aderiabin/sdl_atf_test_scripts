@@ -2,8 +2,6 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
@@ -15,7 +13,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_INVALID_DATA()
-  --request_parameters.interactionMode = "BOTH"
+  common_functions:DelayedExp(2000)
   cid = self.mobileSession:SendRPC("PerformInteraction",
     {
       initialText = "StartPerformInteraction",
@@ -52,7 +50,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_INVALID_DATA()
           image =
           {
             imageType = "DYNAMIC",
-            value = storagePath.."icon888.png"
+            value = "InvalidImage.png"
           },
           text = "NewVRHelpv",
           position = 1
@@ -61,7 +59,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_INVALID_DATA()
           image =
           {
             imageType = "DYNAMIC",
-            value = storagePath.."icon888.png"
+            value = "invalidImage.png"
           },
           text = "NewVRHelpvv",
           position = 2
@@ -70,7 +68,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_INVALID_DATA()
           image =
           {
             imageType = "DYNAMIC",
-            value = storagePath.."icon888.png"
+            value = "invalidImage.png"
           },
           text = "NewVRHelpvvv",
           position = 3

@@ -2,8 +2,6 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
@@ -15,6 +13,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_MainField1Incorrect_ImageNotExist_INVALID_DATA()
+  common_functions:DelayedExp(2000)
   local request_params =
   {
     --mainField1 = "a",
@@ -29,12 +28,12 @@ function Test:Verify_MainField1Incorrect_ImageNotExist_INVALID_DATA()
     graphic =
     {
       imageType = "DYNAMIC",
-      value = storagePath.."icon888.png"
+      value = "invalidImage.png"
     },
     secondaryGraphic =
     {
       imageType = "DYNAMIC",
-      value = storagePath.."icon888.png"
+      value = "invalidImage.png"
     }
   }
   local cid = self.mobileSession:SendRPC("Show", request_params)

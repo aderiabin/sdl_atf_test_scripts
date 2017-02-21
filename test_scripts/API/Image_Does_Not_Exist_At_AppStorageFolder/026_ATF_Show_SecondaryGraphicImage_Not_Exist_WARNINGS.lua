@@ -2,15 +2,16 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
 -- Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
-common_steps:PutFile("PutFile_action.png", "action.png")
-common_steps:PutFile("PutFile_icon.png", "icon.png")
+common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
+common_steps:PutFile("PreconditionSteps_PutFile_icon.png", "icon.png")
+
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image of secondaryGraphic does not exist
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
@@ -123,23 +124,23 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
     secondaryGraphic =
     {
       imageType = "DYNAMIC",
-      value = storagePath.."abc.png"
-    }, 
-		softButtons =
+      value = storagePath.."invalidImage.png"
+    },
+    softButtons =
+    {
       {
+        type = "BOTH",
+        text = "Close",
+        image =
         {
-          type = "BOTH",
-          text = "Close",
-          image =
-          {
-            value = storagePath.."icon.png",
-            imageType = "DYNAMIC"
-          },
-          isHighlighted = true,
-          softButtonID = 3,
-          systemAction = "DEFAULT_ACTION"
-       }
-	   }	
+          value = storagePath.."icon.png",
+          imageType = "DYNAMIC"
+        },
+        isHighlighted = true,
+        softButtonID = 3,
+        systemAction = "DEFAULT_ACTION"
+      }
+    }
   }
   local cid = self.mobileSession:SendRPC("Show", request_params)
 

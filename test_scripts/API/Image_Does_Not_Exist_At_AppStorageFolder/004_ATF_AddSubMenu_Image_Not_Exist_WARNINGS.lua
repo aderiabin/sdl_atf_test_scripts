@@ -2,7 +2,7 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
@@ -21,11 +21,11 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       position = 500,
       menuName ="SubMenupositive",
       -- subMenuIcon will be tested when [APPLINK-21293] done
-      subMenuIcon =
-      {
-        value = storagePath.."icon888.png",
-        imageType ="DYNAMIC"
-      }
+      -- subMenuIcon =
+      -- {
+      -- value = "invalidImage.png",
+      -- imageType ="DYNAMIC"
+      -- }
     })
   EXPECT_HMICALL("UI.AddSubMenu",
     {
@@ -34,16 +34,16 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
         position = 500,
         menuName ="SubMenupositive"
       },
-      subMenuIcon =
-      {
-        value = storagePath.."icon888.png",
-        imageType ="DYNAMIC"
-      }
+      -- subMenuIcon will be tested when [APPLINK-21293] done
+      -- subMenuIcon =
+      -- {
+      -- value = storagePath.."invalidImage.png",
+      -- imageType ="DYNAMIC"
+      -- }
     })
   :Do(function(_,data)
       self.hmiConnection:SendError(data.id, data.method, "WARNINGS","Reference image(s) not found")
     end)
-
   EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
   EXPECT_NOTIFICATION("OnHashChange")
 end

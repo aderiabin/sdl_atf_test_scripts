@@ -2,8 +2,6 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
@@ -15,6 +13,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AlertText1Incorrect_ImageNotExist_INVALID_DATA()
+  common_functions:DelayedExp(2000)
   local cor_id_alert = self.mobileSession:SendRPC("Alert",
     {
       --alertText1 = "alertText1",
@@ -38,7 +37,7 @@ function Test:Verify_AlertText1Incorrect_ImageNotExist_INVALID_DATA()
           text = "Close",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
@@ -56,7 +55,7 @@ function Test:Verify_AlertText1Incorrect_ImageNotExist_INVALID_DATA()
           type = "IMAGE",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           softButtonID = 5,

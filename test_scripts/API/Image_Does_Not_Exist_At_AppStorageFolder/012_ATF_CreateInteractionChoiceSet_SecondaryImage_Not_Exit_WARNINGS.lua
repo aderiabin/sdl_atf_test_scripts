@@ -2,14 +2,14 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
 -- Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
-common_steps:PutFile("PutFile_action.png", "action.png")
+common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and secondaryImage of choiceSet doesn't exist
@@ -23,19 +23,19 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       {
         {
           choiceID = 1001,
-          menuName = storagePath.."Choice1001",
+          menuName = "Choice1001",
           vrCommands =
           {
             "Choice1001",
           },
           image =
           {
-            value = storagePath.."action.png",
+            value = "action.png",
             imageType ="DYNAMIC",
           },
-					secondaryImage=
-					 {
-            value = storagePath.."abc.png",
+          secondaryImage=
+          {
+            value = "invalidImage.png",
             imageType ="DYNAMIC",
           }
         }

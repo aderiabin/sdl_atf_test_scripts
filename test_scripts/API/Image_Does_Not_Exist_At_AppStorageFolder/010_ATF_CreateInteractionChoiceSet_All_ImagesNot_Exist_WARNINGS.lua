@@ -2,7 +2,7 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
@@ -22,19 +22,19 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       {
         {
           choiceID = 1001,
-          menuName = storagePath.."Choice1001",
+          menuName = "Choice1001",
           vrCommands =
           {
             "Choice1001",
           },
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType ="DYNAMIC",
           },
-					secondaryImage=
-					 {
-            value = storagePath.."image222.png",
+          secondaryImage=
+          {
+            value = "image222.png",
             imageType ="DYNAMIC",
           }
         }

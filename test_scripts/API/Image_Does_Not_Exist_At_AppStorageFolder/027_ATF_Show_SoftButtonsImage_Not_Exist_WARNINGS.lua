@@ -2,15 +2,15 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
 -- Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
-common_steps:PutFile("PutFile_action.png", "action.png")
-common_steps:PutFile("PutFile_icon.png", "icon.png")
+common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
+common_steps:PutFile("PreconditionSteps_PutFile_icon.png", "icon.png")
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image of softButtons does not exist
@@ -125,22 +125,22 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
     {
       imageType = "DYNAMIC",
       value = storagePath.."icon.png"
-    }, 
-		softButtons =
+    },
+    softButtons =
+    {
       {
+        type = "BOTH",
+        text = "Close",
+        image =
         {
-          type = "BOTH",
-          text = "Close",
-          image =
-          {
-            value = storagePath.."abc.png",
-            imageType = "DYNAMIC"
-          },
-          isHighlighted = true,
-          softButtonID = 3,
-          systemAction = "DEFAULT_ACTION"
-       }
-	   }	
+          value = storagePath.."invalidImage.png",
+          imageType = "DYNAMIC"
+        },
+        isHighlighted = true,
+        softButtonID = 3,
+        systemAction = "DEFAULT_ACTION"
+      }
+    }
   }
   local cid = self.mobileSession:SendRPC("Show", request_params)
 
@@ -149,7 +149,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
   :Do(function(_,data)
       self.hmiConnection:SendError(data.id, data.method, "WARNINGS","Reference image(s) not found")
     end)
-
   EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
 end
 

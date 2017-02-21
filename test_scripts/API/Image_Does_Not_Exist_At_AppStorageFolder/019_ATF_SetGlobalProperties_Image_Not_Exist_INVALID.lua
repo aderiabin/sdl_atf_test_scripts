@@ -1,8 +1,7 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
+
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
@@ -14,6 +13,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_MenuTitleIncorrect_ImageNotExist_INVALID_DATA()
+  common_functions:DelayedExp(2000)
   local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       --menuTitle = "Menu Title",
@@ -31,7 +31,7 @@ function Test:Verify_MenuTitleIncorrect_ImageNotExist_INVALID_DATA()
           position = 1,
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           text = "VR help item"
@@ -39,7 +39,7 @@ function Test:Verify_MenuTitleIncorrect_ImageNotExist_INVALID_DATA()
       },
       menuIcon =
       {
-        value = storagePath.."icon888.png",
+        value = "invalidImage.png",
         imageType = "DYNAMIC"
       },
       helpPrompt =

@@ -2,7 +2,7 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
@@ -25,7 +25,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "BOTH",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = false,
@@ -37,7 +37,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "BOTH",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = false,
@@ -59,7 +59,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "BOTH",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = storagePath.."invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = false,
@@ -71,7 +71,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "BOTH",
           image =
           {
-            value = storagePath.."icon888.png",
+            value = storagePath.."invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = false,

@@ -2,7 +2,7 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath
 ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
@@ -103,7 +103,6 @@ function Test:createUIParameters(Request)
 end
 
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
-
   local request_params =
   {
     mainField1 = "a",
@@ -117,37 +116,35 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
     graphic =
     {
       imageType = "DYNAMIC",
-      value = storagePath.."icon888.png"
+      value = "invalidImage.png"
     },
     secondaryGraphic =
     {
       imageType = "DYNAMIC",
-      value = storagePath.."icon888.png"
-    }, 
-		softButtons =
+      value = "invalidImage.png"
+    },
+    softButtons =
+    {
       {
+        type = "BOTH",
+        text = "Close",
+        image =
         {
-          type = "BOTH",
-          text = "Close",
-          image =
-          {
-            value = storagePath.."icon888.png",
-            imageType = "DYNAMIC"
-          },
-          isHighlighted = true,
-          softButtonID = 3,
-          systemAction = "DEFAULT_ACTION"
-       }
-	   }	
+          value = "invalidImage.png",
+          imageType = "DYNAMIC"
+        },
+        isHighlighted = true,
+        softButtonID = 3,
+        systemAction = "DEFAULT_ACTION"
+      }
+    }
   }
   local cid = self.mobileSession:SendRPC("Show", request_params)
-
   UIParams = self:createUIParameters(request_params)
   EXPECT_HMICALL("UI.Show", UIParams)
   :Do(function(_,data)
       self.hmiConnection:SendError(data.id, data.method, "WARNINGS","Reference image(s) not found")
     end)
-
   EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
 end
 
