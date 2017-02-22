@@ -16,7 +16,7 @@ common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
 -- Verify: when all params are correct and image of cmdIcon doesn't exist
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
-function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS1111111()
+function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
   local cid = self.mobileSession:SendRPC("AddCommand",
     {
       cmdID = 11,
