@@ -1229,3 +1229,5 @@ function commonFunctions:update_json_file(path_to_json, old_section, new_section
   file:write(dataToWrite)
   file:close()
 end
+
+return commonFunctions
