@@ -10,168 +10,114 @@ local appName = config.application1.registerAppInterfaceParams.appName
 -------------------------------------------Preconditions-------------------------------------
 -- Activate application
 common_steps:PreconditionSteps("PreconditionSteps", 7)
+function Test:Verify_CreateInteractionChoiceSet_SUCCESS()
+  local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
+    {
+      interactionChoiceSetID = 100,
+      choiceSet =
+      {
+        {
+          choiceID = 100,
+          menuName = "Choice100",
+          vrCommands =
+          {
+            "Choice100",
+          },
+          image =
+          {
+            value = "invalidImage_1.png",
+            imageType ="DYNAMIC",
+          },
+          secondaryImage=
+          {
+            value = "invalidImage_2.png",
+            imageType ="DYNAMIC",
+          }
+        }
+      }
+    })
+  EXPECT_HMICALL("VR.AddCommand",
+    {
+      cmdID = 100,
+      appID = applicationID,
+      type = "Choice",
+      vrCommands = {"Choice100" }
+    })
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+  EXPECT_NOTIFICATION("OnHashChange")
+end
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image of vrHelp doesn't exist
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
-function performInteractionAllParams()
-  local temp = {
-    initialText = "StartPerformInteraction",
-    initialPrompt = {{
-        text = "Make your choice",
-        type = "TEXT"
-        --type = 123
-    }},
-    interactionMode = "BOTH",
-    interactionChoiceSetIDList =
-    {
-      100, 200, 300
-    },
-    helpPrompt = {
-      {
-        text = "Help Promptv ",
-        type = "TEXT"
-      },
-      {
-        text = "Help Promptvv ",
-        type = "TEXT"
-    }},
-    timeoutPrompt = {{
-        text = "Timeoutv",
-        type = "TEXT"
-      },
-      {
-        text = "Timeoutvv",
-        type = "TEXT"
-    }},
-    timeout = 5000,
-    vrHelp = {
-      {
-        image =
-        {
-          imageType = "DYNAMIC",
-          value = "invalidImage.png"
-        },
-        text = "NewVRHelpv",
-        position = 1
-      },
-      {
-        image =
-        {
-          imageType = "DYNAMIC",
-          value = "invalidImage.png"
-        },
-        text = "NewVRHelpvv",
-        position = 2
-      },
-      {
-        image =
-        {
-          imageType = "DYNAMIC",
-          value = "invalidImage.png"
-        },
-        text = "NewVRHelpvvv",
-        position = 3
-      }
-    },
-    interactionLayout = "ICON_ONLY"
-  }
-  return temp
-end
-
-function setChoiseSet(choiceIDValue, size)
-  if (size == nil) then
-    local temp = {{
-        choiceID = choiceIDValue,
-        menuName ="Choice" .. tostring(choiceIDValue),
-        vrCommands =
-        {
-          "VrChoice" .. tostring(choiceIDValue),
-        },
-        image =
-        {
-          value ="invalidImage.png",
-          imageType ="STATIC"
-        }
-    }}
-    return temp
-  else
-    local temp = {}
-    for i = 1, size do
-      temp[i] = {
-        choiceID = choiceIDValue+i-1,
-        menuName ="Choice" .. tostring(choiceIDValue+i-1),
-        vrCommands =
-        {
-          "VrChoice" .. tostring(choiceIDValue+i-1),
-        },
-        image =
-        {
-          value ="invalidImage.png",
-          imageType ="STATIC"
-        }
-      }
-    end
-    return temp
-  end
-end
-
-function setExChoiseSet(choiceIDValues)
-  local exChoiceSet = {}
-  for i = 1, #choiceIDValues do
-    exChoiceSet[i] = {
-      choiceID = choiceIDValues[i],
-      image =
-      {
-        value = "invalidImage.png",
-        imageType = "STATIC",
-      },
-      menuName = Choice100
-    }
-  end
-  return exChoiceSet
-end
-
-function Test:createInteractionChoiceSet(choiceSetID, choiceID)
-  cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-    {
-      interactionChoiceSetID = choiceSetID,
-      choiceSet = setChoiseSet(choiceID),
-    })
-  EXPECT_HMICALL("VR.AddCommand",
-    {
-      cmdID = choiceID,
-      type = "Choice",
-      vrCommands = {"VrChoice"..tostring(choiceID) }
-    })
-  :Do(function(_,data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true })
-end
-choice_set_id_values = {100, 200, 300}
-
-for i=1, #choice_set_id_values do
-  Test["CreateInteractionChoiceSet" .. choice_set_id_values[i]] = function(self)
-    self:createInteractionChoiceSet(choice_set_id_values[i], choice_set_id_values[i])
-  end
-end
-
-local request_parameters = performInteractionAllParams()
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
-  request_parameters.interactionMode = "BOTH"
-  cid = self.mobileSession:SendRPC("PerformInteraction",request_parameters)
-
+  local cid = self.mobileSession:SendRPC("PerformInteraction",{
+      initialText = "StartPerformInteraction",
+      initialPrompt = {
+        {
+          text = "Make your choice",
+          type = "TEXT"
+        }
+      },
+      interactionMode = "BOTH",
+      interactionChoiceSetIDList =
+      {
+        100
+      },
+      helpPrompt = {
+        {
+          text = "Help Promptv ",
+          type = "TEXT"
+        }
+      },
+      timeoutPrompt = {
+        {
+          text = "Timeoutv",
+          type = "TEXT"
+        }
+      },
+      timeout = 5000,
+      vrHelp = {
+        {
+          image =
+          {
+            imageType = "DYNAMIC",
+            value = "invalidImage.png"
+          },
+          text = "NewVRHelpv",
+          position = 1
+        }
+      },
+      interactionLayout = "ICON_ONLY"
+    })
   EXPECT_HMICALL("VR.PerformInteraction",
     {
-      helpPrompt = request_parameters.helpPrompt,
-      initialPrompt = request_parameters.initialPrompt,
-      timeout = request_parameters.timeout,
-      timeoutPrompt = request_parameters.timeoutPrompt
+      helpPrompt = {
+        {
+          text = "Help Promptv ",
+          type = "TEXT"
+        }
+      },
+      initialPrompt = {
+        {
+          text = "Make your choice",
+          type = "TEXT"
+        }
+      },
+      timeout = 5000,
+      timeoutPrompt = {
+        {
+          text = "Timeoutv",
+          type = "TEXT"
+        }
+      }
     })
   :Do(function(_,data)
-      appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+      appID = common_functions:GetHmiAppId(appName, self)
       self.hmiConnection:SendNotification("VR.Started")
       self.hmiConnection:SendNotification("TTS.Started")
       self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = appID, systemContext = "VRSESSION"})
@@ -182,23 +128,44 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       RUN_AFTER(firstSpeakTimeOut, 5)
       local function vrResponse()
         self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-        --self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
         self.hmiConnection:SendNotification("VR.Stopped")
       end
       RUN_AFTER(vrResponse, 20)
     end)
-
   EXPECT_HMICALL("UI.PerformInteraction",
     {
-      timeout = request_parameters.timeout,
-      choiceSet = setExChoiseSet(request_parameters.interactionChoiceSetIDList),
+      timeout = 5000,
+      choiceSet = {
+        choiceID = 100,
+        image =
+        {
+          value = storagePath .. "invalidImage_1.png",
+          imageType ="DYNAMIC",
+        },
+        secondaryImage=
+        {
+          value = "invalidImage_2.png",
+          imageType ="DYNAMIC",
+        },
+        menuName = "Choice100"
+      },
       initialText =
       {
         fieldName = "initialInteractionText",
-        fieldText = request_parameters.initialText
+        fieldText = "StartPerformInteraction"
       },
-      vrHelp = request_parameters.vrHelp,
-      vrHelpTitle = request_parameters.initialText
+      vrHelp = {
+        {
+          image =
+          {
+            imageType = "DYNAMIC",
+            value = storagePath .. "invalidImage.png"
+          },
+          text = "NewVRHelpv",
+          position = 1
+        }
+      },
+      vrHelpTitle = "StartPerformInteraction"
     })
   :Do(function(_,data)
       local function choiceIconDisplayed()

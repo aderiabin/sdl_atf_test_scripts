@@ -45,21 +45,26 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
-          softButtonID = 821,
+          softButtonID = 3,
           systemAction = "DEFAULT_ACTION"
         },
         {
-          type = "BOTH",
-          text = "AnotherClose",
+          type = "TEXT",
+          text = "Keep",
+          isHighlighted = true,
+          softButtonID = 4,
+          systemAction = "DEFAULT_ACTION"
+        },
+        {
+          type = "IMAGE",
           image =
           {
             value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
-          isHighlighted = false,
-          softButtonID = 822,
+          softButtonID = 5,
           systemAction = "DEFAULT_ACTION"
-        },
+        }
       }
     })
   EXPECT_HMICALL("Navigation.AlertManeuver",
@@ -72,23 +77,28 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           text = "Close",
           image =
           {
-            value = storagePath.."invalidImage.png",
+            value = storagePath .. "invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
-          softButtonID = 821,
+          softButtonID = 3,
           systemAction = "DEFAULT_ACTION"
         },
         {
-          type = "BOTH",
-          text = "AnotherClose",
+          type = "TEXT",
+          text = "Keep",
+          isHighlighted = true,
+          softButtonID = 4,
+          systemAction = "DEFAULT_ACTION"
+        },
+        {
+          type = "IMAGE",
           image =
           {
-            value = storagePath.."invalidImage.png",
+            value = storagePath .. "invalidImage.png",
             imageType = "DYNAMIC"
           },
-          isHighlighted = false,
-          softButtonID = 822,
+          softButtonID = 5,
           systemAction = "DEFAULT_ACTION"
         }
       }

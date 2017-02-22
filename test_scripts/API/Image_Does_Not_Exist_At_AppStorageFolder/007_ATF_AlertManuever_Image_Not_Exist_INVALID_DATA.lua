@@ -18,8 +18,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_TextInvalid_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
-  local cor_id = self.mobileSession:SendRPC("AlertManeuver", {
+  local cid = self.mobileSession:SendRPC("AlertManeuver", {
       ttsChunks =
       {
         {
@@ -43,26 +42,29 @@ function Test:Verify_TextInvalid_ImageNotExist_INVALID_DATA()
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
-          softButtonID = 821,
+          softButtonID = 3,
           systemAction = "DEFAULT_ACTION"
         },
         {
-          type = "BOTH",
-          text = "AnotherClose",
+          type = "TEXT",
+          text = "Keep",
+          isHighlighted = true,
+          softButtonID = 4,
+          systemAction = "DEFAULT_ACTION"
+        },
+        {
+          type = "IMAGE",
           image =
           {
             value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
-          isHighlighted = false,
-          softButtonID = 822,
+          softButtonID = 5,
           systemAction = "DEFAULT_ACTION"
-        },
+        }
       }
     })
-  EXPECT_RESPONSE(cor_id, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 
 -------------------------------------------Postconditions-------------------------------------

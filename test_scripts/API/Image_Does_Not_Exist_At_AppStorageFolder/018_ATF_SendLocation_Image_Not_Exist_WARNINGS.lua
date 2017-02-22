@@ -3,7 +3,9 @@ require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
 local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
-local storagePath = config.pathToSDL .. app_storage_folder .. "/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local storagePath = config.pathToSDL .. app_storage_folder .. "/"
+..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local appName = config.application1.registerAppInterfaceParams.appName
 
 ------------------------------------ Precondition -------------------------------------------
 --1. Delete app_info.dat, logs and policy table
@@ -34,7 +36,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       latitudeDegrees = 1.1,
       locationImage =
       {
-        value = "invalidImage.png",
+        value = storagePath .. "invalidImage.png",
         imageType = "DYNAMIC",
       }
     })

@@ -56,7 +56,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "IMAGE",
           image =
           {
-            value = storagePath.."invalidImage.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           softButtonID = 5,

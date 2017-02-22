@@ -30,9 +30,14 @@ function Test:Verify_InteractionChoiceSetIDIncorrect_ImageNotExist_INVALID_DATA(
           },
           image =
           {
-            value = "invalidImage.png",
+            value = "invalidImage_1.png",
             imageType ="DYNAMIC",
           },
+          secondaryImage=
+          {
+            value = "invalidImage_2.png",
+            imageType ="DYNAMIC",
+          }
         }
       }
     })

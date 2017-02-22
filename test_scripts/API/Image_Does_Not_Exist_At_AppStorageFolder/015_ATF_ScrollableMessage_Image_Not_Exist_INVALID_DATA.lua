@@ -13,10 +13,9 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_ScrollableMessageBodyIncorrect_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
   local cid = self.mobileSession:SendRPC("ScrollableMessage", {
       --scrollableMessageBody = "abc",
-      scrollableMessageBody = abc,
+      scrollableMessageBody = 123,
       softButtons =
       {
         {
@@ -46,8 +45,6 @@ function Test:Verify_ScrollableMessageBodyIncorrect_ImageNotExist_INVALID_DATA()
       },
     })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
 end
 
 -------------------------------------------Postconditions-------------------------------------

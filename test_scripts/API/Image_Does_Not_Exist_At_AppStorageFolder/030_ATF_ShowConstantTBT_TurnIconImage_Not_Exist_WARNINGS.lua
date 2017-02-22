@@ -24,42 +24,106 @@ common_steps:PutFile("PreconditionSteps_PutFile_icon.png", "icon.png")
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
-  local request_paramters = {
-    navigationText1 ="navigationText1",
-    navigationText2 ="navigationText2",
-    eta ="12:34",
-    totalDistance ="100miles",
-    turnIcon =
-    {
-      value =storagePath.."invalidImage.png",
-      imageType ="DYNAMIC"
-    },
-    nextTurnIcon =
-    {
-      value = storagePath.."action.png",
-      imageType ="DYNAMIC"
-    },
-    distanceToManeuver = 50.5,
-    distanceToManeuverScale = 100.5,
-    maneuverComplete = false,
-    softButtons =
-    {
+  local cid = self.mobileSession:SendRPC("ShowConstantTBT", {
+      navigationText1 ="navigationText1",
+      eta ="12:34",
+      totalDistance ="100miles",
+      turnIcon =
       {
-        type ="BOTH",
-        text ="Close",
-        image =
-        {
-          value =storagePath.."icon.png",
-          imageType ="DYNAMIC"
-        },
-        isHighlighted = true,
-        softButtonID = 44,
-        systemAction ="DEFAULT_ACTION"
+        value = "invalidImage.png",
+        imageType ="DYNAMIC"
       },
-    },
-  }
-  local cid = self.mobileSession:SendRPC("ShowConstantTBT", request_paramters)
-  EXPECT_HMICALL("Navigation.ShowConstantTBT", request_paramters)
+      nextTurnIcon =
+      {
+        value = "action.png",
+        imageType ="DYNAMIC"
+      },
+      distanceToManeuver = 50.5,
+      distanceToManeuverScale = 100.5,
+      maneuverComplete = false,
+      softButtons =
+      {
+        {
+          type = "BOTH",
+          text = "Close",
+          image =
+          {
+            value = "action.png",
+            imageType = "DYNAMIC"
+          },
+          isHighlighted = true,
+          softButtonID = 3,
+          systemAction = "DEFAULT_ACTION"
+        },
+        {
+          type = "TEXT",
+          text = "Keep",
+          isHighlighted = true,
+          softButtonID = 4,
+          systemAction = "DEFAULT_ACTION"
+        },
+        {
+          type = "IMAGE",
+          image =
+          {
+            value = "icon.png",
+            imageType = "DYNAMIC"
+          },
+          softButtonID = 5,
+          systemAction = "DEFAULT_ACTION"
+        },
+      }
+    })
+  EXPECT_HMICALL("Navigation.ShowConstantTBT", {
+      navigationText1 ="navigationText1",
+      eta ="12:34",
+      totalDistance ="100miles",
+      turnIcon =
+      {
+        value = storagePath .. "invalidImage.png",
+        imageType ="DYNAMIC"
+      },
+      nextTurnIcon =
+      {
+        value = storagePath .. "action.png",
+        imageType ="DYNAMIC"
+      },
+      distanceToManeuver = 50.5,
+      distanceToManeuverScale = 100.5,
+      maneuverComplete = false,
+      softButtons =
+      {
+        {
+          type = "BOTH",
+          text = "Close",
+          image =
+          {
+            value = storagePath .. "action.png",
+            imageType = "DYNAMIC"
+          },
+          isHighlighted = true,
+          softButtonID = 3,
+          systemAction = "DEFAULT_ACTION"
+        },
+        {
+          type = "TEXT",
+          text = "Keep",
+          isHighlighted = true,
+          softButtonID = 4,
+          systemAction = "DEFAULT_ACTION"
+        },
+        {
+          type = "IMAGE",
+          image =
+          {
+            value = storagePath .. "icon.png",
+            imageType = "DYNAMIC"
+          },
+          softButtonID = 5,
+          systemAction = "DEFAULT_ACTION"
+        }
+      }
+    })
   :Do(function(_,data)
       self.hmiConnection:SendError(data.id, data.method, "WARNINGS","Reference image(s) not found")
     end)

@@ -18,7 +18,6 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_LongitudeDegreesIncorrect_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
   local Request = {
     --longitudeDegrees = 1,
     longitudeDegrees = "abc",
@@ -31,8 +30,6 @@ function Test:Verify_LongitudeDegreesIncorrect_ImageNotExist_INVALID_DATA()
   }
   local cid = self.mobileSession:SendRPC("SendLocation", Request)
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA"})
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
 end
 
 -------------------------------------------Postconditions-------------------------------------

@@ -13,7 +13,6 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_MainField1Incorrect_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
   local request_params =
   {
     --mainField1 = "a",
@@ -38,8 +37,6 @@ function Test:Verify_MainField1Incorrect_ImageNotExist_INVALID_DATA()
   }
   local cid = self.mobileSession:SendRPC("Show", request_params)
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
 end
 -------------------------------------------Postconditions-------------------------------------
 common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)

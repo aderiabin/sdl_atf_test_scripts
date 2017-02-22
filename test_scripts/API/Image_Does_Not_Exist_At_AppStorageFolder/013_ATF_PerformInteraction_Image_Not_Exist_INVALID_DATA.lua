@@ -13,7 +13,6 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
   cid = self.mobileSession:SendRPC("PerformInteraction",
     {
       initialText = "StartPerformInteraction",
@@ -77,8 +76,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_INVALID_DATA()
       interactionLayout = "ICON_ONLY"
     })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
 end
 
 -------------------------------------------Postconditions-------------------------------------

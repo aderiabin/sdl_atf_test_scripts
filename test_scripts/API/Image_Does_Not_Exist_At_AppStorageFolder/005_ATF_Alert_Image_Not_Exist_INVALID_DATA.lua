@@ -13,8 +13,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AlertText1Incorrect_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
-  local cor_id_alert = self.mobileSession:SendRPC("Alert",
+  local cid = self.mobileSession:SendRPC("Alert",
     {
       --alertText1 = "alertText1",
       alertText1 = 123,
@@ -63,9 +62,7 @@ function Test:Verify_AlertText1Incorrect_ImageNotExist_INVALID_DATA()
         },
       }
     })
-  EXPECT_RESPONSE(cor_id_alert, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 
 -------------------------------------------Postconditions-------------------------------------

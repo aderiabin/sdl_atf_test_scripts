@@ -26,7 +26,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "BOTH",
           image =
           {
-            value = "invalidImage.png",
+            value = "invalidImage_1.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = false,
@@ -38,7 +38,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "BOTH",
           image =
           {
-            value = "invalidImage.png",
+            value = "invalidImage_2.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = false,

@@ -2,9 +2,6 @@
 require('user_modules/all_common_modules')
 
 ------------------------------------ Common Variables ---------------------------------------
-local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
-local storagePath = config.pathToSDL .. app_storage_folder .. "/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local appName = config.application1.registerAppInterfaceParams.appName
 
 -------------------------------------------Preconditions-------------------------------------
@@ -30,12 +27,12 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           },
           image =
           {
-            value = "invalidImage.png",
+            value = "invalidImage_1.png",
             imageType ="DYNAMIC",
           },
           secondaryImage=
           {
-            value = "image222.png",
+            value = "invalidImage_2.png",
             imageType ="DYNAMIC",
           }
         }
@@ -49,7 +46,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       vrCommands = {"Choice1001" }
     })
   :Do(function(_,data)
-      self.hmiConnection:SendError(data.id, data.method, "WARNINGS","Reference image(s) not found")
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
     end)
   EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
   EXPECT_NOTIFICATION("OnHashChange")

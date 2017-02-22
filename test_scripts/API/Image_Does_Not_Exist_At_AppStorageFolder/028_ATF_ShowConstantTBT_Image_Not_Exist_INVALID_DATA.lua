@@ -18,7 +18,6 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_NavigationText1Incorrect_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
   local request_paramters = {
     --navigationText1 ="navigationText1",
     navigationText1 =123,
@@ -41,23 +40,38 @@ function Test:Verify_NavigationText1Incorrect_ImageNotExist_INVALID_DATA()
     softButtons =
     {
       {
-        type ="BOTH",
-        text ="Close",
+        type = "BOTH",
+        text = "Close",
         image =
         {
-          value ="invalidImage.png",
-          imageType ="DYNAMIC"
+          value = "invalidImage.png",
+          imageType = "DYNAMIC"
         },
         isHighlighted = true,
-        softButtonID = 44,
-        systemAction ="DEFAULT_ACTION"
+        softButtonID = 3,
+        systemAction = "DEFAULT_ACTION"
       },
-    },
+      {
+        type = "TEXT",
+        text = "Keep",
+        isHighlighted = true,
+        softButtonID = 4,
+        systemAction = "DEFAULT_ACTION"
+      },
+      {
+        type = "IMAGE",
+        image =
+        {
+          value = "invalidImage.png",
+          imageType = "DYNAMIC"
+        },
+        softButtonID = 5,
+        systemAction = "DEFAULT_ACTION"
+      },
+    }
   }
   local cid = self.mobileSession:SendRPC("ShowConstantTBT", request_paramters)
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA"})
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
 end
 
 -------------------------------------------Postconditions-------------------------------------

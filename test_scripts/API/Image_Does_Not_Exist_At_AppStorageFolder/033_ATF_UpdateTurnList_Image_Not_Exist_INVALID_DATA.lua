@@ -18,40 +18,36 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"INVALID_DATA")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_NavigationTextIncorrect_ImageNotExist_INVALID_DATA()
-  common_functions:DelayedExp(2000)
-  local request = {
-    turnList =
-    {
+  local cid = self.mobileSession:SendRPC("UpdateTurnList", {
+      turnList =
       {
-        --navigationText ="Text",
-        navigationText =123,
-        turnIcon =
         {
-          value = "invalidImage.png",
-          imageType ="DYNAMIC"
+          --navigationText ="Text",
+          navigationText = 123,
+          turnIcon =
+          {
+            value = "invalidImage.png",
+            imageType ="DYNAMIC"
+          }
+        }
+      },
+      softButtons =
+      {
+        {
+          type ="BOTH",
+          text ="Close",
+          image =
+          {
+            value = "invalidImage.png",
+            imageType ="DYNAMIC"
+          },
+          isHighlighted = true,
+          softButtonID = 111,
+          systemAction ="DEFAULT_ACTION"
         }
       }
-    },
-    softButtons =
-    {
-      {
-        type ="BOTH",
-        text ="Close",
-        image =
-        {
-          value = "invalidImage.png",
-          imageType ="DYNAMIC"
-        },
-        isHighlighted = true,
-        softButtonID = 111,
-        systemAction ="DEFAULT_ACTION"
-      }
-    }
-  }
-  local cid = self.mobileSession:SendRPC("UpdateTurnList", request)
+    })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
 end
 
 -------------------------------------------Postconditions-------------------------------------
