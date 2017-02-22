@@ -1,4 +1,4 @@
---Task: APPLINK-32670
+--Requirements: [APPLINK-16420]:[RegisterAppInterface] SUCCESS 
 
 --Description: In case RegisterAppInterface request comes to SDL with correct structure and data
 --with all app parameters and successfuly registered on SDL, SDL must:
@@ -89,8 +89,7 @@ function Test:RegisterAppInterface()
       }
     })
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-  :Timeout(2000)
-  :Do(function(_,data)
+    :Do(function(_,data)
       EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     end)
   EXPECT_NOTIFICATION("OnPermissionsChange")
