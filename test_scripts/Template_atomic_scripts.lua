@@ -1,22 +1,25 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary: 
--- Requirement ID: Name(s) of requirement that is covered.
--- Requirement ID: Name(s) of additional non-functional requirement(s) if applicable
+-- [Requirement ID]: Summary of requirement that is covered.
+-- [Requirement ID]: Summary of additional non-functional requirement(s) if applicable. 
+-- Refer to below example:
+-- [APPLINK-22403]: [Policies]: User consent storage in LocalPT (OnAppPermissionConsent with appID)
 --
 -- Description:
 -- Describe correctly the CASE of requirement that is covered, conditions that will be used.
--- 1. Used preconditions(if applicable)
--- 2. Performed steps
---
+
+-- Preconditions:
+-- 1. App is registered and activated
+-- 2...
+-- Steps:
+-- 1. Mob -> SDL: ...
+-- 2. SDL -> UI: ...
+-- 3. UI -> SDL: ...
+
 -- Expected result:
--- Expected SDL behavior
+-- SDL -> Mob: ...
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
---[[ Required Shared libraries ]]
-local common_functions = require ('user_modules/shared_testcases/commonFunctions')
+require('user_modules/all_common_modules')
 
 --[[ Local Variables ]]
 -- if not applicable remove this section
@@ -31,36 +34,37 @@ local common_functions = require ('user_modules/shared_testcases/commonFunctions
 local function Example(func_param)
   -- body
 end
+---------------------------------------------------------------------------------------------
 
 --[[ General Precondition before ATF start ]]
 -- General precondition for restoring configuration files of SDL:
-common_functions:SDLForceStop()
-
---[[ General Settings for configuration ]]
--- if not applicable remove this section
--- This part is under clarification, based on section for using common functions
-Test = require('connecttest')
-require('user_modules/AppTypes')
+-- such as backup then update preloaded_pt.json
 
 --[[ Preconditions ]]
 -- if not applicable remove this section
-common_functions:newTestCasesGroup("Preconditions")
+common_steps:AddNewTestCasesGroup("Preconditions")
+-- An app is registered and activated
+common_steps:PreconditionSteps("Preconditions", 7)
+common_steps:PutFile("Preconditions_PutFile_action.png", "action.png")
 function Test:Precondition_DESCRIPTION()
   -- body
 end
+---------------------------------------------------------------------------------------------
 
 --[[ Test ]]
-common_functions:newTestCasesGroup("Test")
+common_steps:AddNewTestCasesGroup("Test")
 -- Each Test will be separate and defined as one or few TestSteps
 function Test:TestStep_DESCRIPTION()
   -- body
 end
+---------------------------------------------------------------------------------------------
 
 --[[ Postconditions ]]
 -- if not applicable remove this section
-common_functions:newTestCasesGroup("Postconditions")
+common_steps:AddNewTestCasesGroup("Postconditions")
 function Test:Postcondition_DESCRIPTION()
   -- body
 end
-
-return Test
+local app_name = config.application1.registerAppInterfaceParams.appName
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", app_name)
+common_steps:StopSDL("Postcondition_StopSDL")
