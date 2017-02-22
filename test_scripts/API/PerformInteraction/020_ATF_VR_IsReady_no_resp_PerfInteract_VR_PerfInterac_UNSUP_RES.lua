@@ -134,7 +134,7 @@ function Test:TestStep_VR_PerformInteraction_UNSUPPORTED_RESOURCE()
     :Do(function(_,data3)
       self.hmiConnection:SendNotification("TTS.Started")
       self.hmiConnection:SendNotification("VR.Started")
-      self.hmiConnection:SendResponse(data3.id, "VR.PerformInteraction", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"}, {choiceID = 1001})
+      self.hmiConnection:SendError(data3.id, "VR.PerformInteraction", "UNSUPPORTED_RESOURCE", "unsupported resource")
       self.hmiConnection:SendNotification("TTS.Stopped")
       self.hmiConnection:SendNotification("VR.Stopped")
     end)
@@ -157,7 +157,7 @@ function Test:TestStep_VR_PerformInteraction_UNSUPPORTED_RESOURCE()
       RUN_AFTER(uiResponse, 10)
     end)
 
-  EXPECT_RESPONSE(cor_id, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource", choiceID = 1001 } )
+  EXPECT_RESPONSE(cor_id, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
 end
 
 --[[ Postconditions ]]

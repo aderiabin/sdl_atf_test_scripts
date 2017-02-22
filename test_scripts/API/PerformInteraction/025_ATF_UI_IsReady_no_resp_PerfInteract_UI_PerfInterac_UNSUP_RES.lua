@@ -150,14 +150,14 @@ function Test:TestStep_UI_PerformInteraction_UNSUPPORTED_RESOURCE()
         self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName], systemContext = Input_SystemContext})
       end
       local function uiResponse()
-        self.hmiConnection:SendResponse(data4.id,"UI.PerformInteraction", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
+        self.hmiConnection:SendError(data4.id, "UI.PerformInteraction", "UNSUPPORTED_RESOURCE", "unsupported resource")
         SendOnSystemContext ("VRSESSION")
         SendOnSystemContext ("MAIN")
       end
       RUN_AFTER(uiResponse, 10)
     end)
 
-  EXPECT_RESPONSE(cor_id, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource", choiceID = 1001} )
+  EXPECT_RESPONSE(cor_id, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"} )
 end
 
 --[[ Postconditions ]]
