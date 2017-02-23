@@ -88,7 +88,7 @@ function Test:RegisterAppInterface()
         "VRSyncProxyTester"
       }
     })
-  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+  EXPECT_RESPONSE(CorIdRAI, {success = true, resultCode = "SUCCESS"})
     :Do(function(_,data)
       EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     end)
