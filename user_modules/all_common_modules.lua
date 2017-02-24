@@ -1,6 +1,7 @@
 Test = require('connecttest')
 common_functions = require('user_modules/common_functions')
 common_steps = require('user_modules/common_steps')
+const = require('user_modules/consts')
 json = require('json4lua/json/json')
 require('user_modules/AppTypes')
 mobile_session = require('mobile_session')

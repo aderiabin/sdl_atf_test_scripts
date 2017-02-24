@@ -12,7 +12,8 @@ local Consts = {
   cyan = 36,
   white = 37},
   image_icon_png = "icon.png",
-  sdl_to_mobile_default_timeout = 5000
+  sdl_to_mobile_default_timeout = 5000,
+	default_app_name = config.application1.registerAppInterfaceParams.appName
 }
 -----------------------------------------------------------------------------
 return Consts
