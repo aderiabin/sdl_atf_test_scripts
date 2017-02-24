@@ -1,19 +1,10 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
------------------------------------- Common Variables ---------------------------------------
-local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
-local storagePath = config.pathToSDL .. app_storage_folder .. "/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local appName = config.application1.registerAppInterfaceParams.appName
-
 ------------------------------------ Precondition -------------------------------------------
---1. Delete app_info.dat, logs and policy table
-common_functions:DeleteLogsFileAndPolicyTable()
---2. Backup sdl_preloaded_pt.json then updatePolicy
 common_functions:BackupFile("sdl_preloaded_pt.json")
 update_policy:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PTU_For_Image_Not_Exist.json")
---3. Activate application
+-- Activate application
 common_steps:PreconditionSteps("PreconditionSteps", 7)
 
 --------------------------------------------BODY---------------------------------------------
@@ -21,6 +12,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
+  local invalid_image_full_path = common_functions:GetFullPathIcon("invalidImage.png")
   local cid = self.mobileSession:SendRPC("ShowConstantTBT", {
       navigationText1 ="navigationText1",
       eta ="12:34",
@@ -77,12 +69,12 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       totalDistance ="100miles",
       turnIcon =
       {
-        value = storagePath .. "invalidImage.png",
+        value = invalid_image_full_path,
         imageType ="DYNAMIC"
       },
       nextTurnIcon =
       {
-        value = storagePath .. "invalidImage.png",
+        value = invalid_image_full_path,
         imageType ="DYNAMIC"
       },
       distanceToManeuver = 50.5,
@@ -95,7 +87,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           text = "Close",
           image =
           {
-            value = storagePath .. "invalidImage.png",
+            value = invalid_image_full_path,
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
@@ -113,7 +105,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "IMAGE",
           image =
           {
-            value = storagePath .. "invalidImage.png",
+            value = invalid_image_full_path,
             imageType = "DYNAMIC"
           },
           softButtonID = 5,
@@ -128,6 +120,6 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
 end
 
 -------------------------------------------Postconditions-------------------------------------
-common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", const.default_app_name)
 common_steps:StopSDL("Postcondition_StopSDL")
 common_steps:RestoreIniFile("Postcondition_Restore_PreloadedPT", "sdl_preloaded_pt.json")

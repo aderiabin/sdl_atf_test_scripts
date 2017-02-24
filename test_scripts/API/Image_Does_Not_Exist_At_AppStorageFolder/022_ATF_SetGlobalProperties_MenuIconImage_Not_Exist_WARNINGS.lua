@@ -1,16 +1,11 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
------------------------------------- Common Variables ---------------------------------------
-local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
-local storagePath = config.pathToSDL .. app_storage_folder .. "/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local appName = config.application1.registerAppInterfaceParams.appName
-
 -------------------------------------------Preconditions-------------------------------------
 -- Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
 common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
+
 --------------------------------------------BODY---------------------------------------------
 -- Checking: when all params are correct and image of menuIcon does not exist
 -- SDL -> MOB : {success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"}
@@ -88,7 +83,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           image =
           {
             imageType = "DYNAMIC",
-            value = storagePath.."action.png"
+            value = common_functions:GetFullPathIcon("action.png")
           },
           text = "VR help item"
         }
@@ -96,7 +91,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       menuIcon =
       {
         imageType = "DYNAMIC",
-        value = storagePath.."invalidImage.png"
+        value = common_functions:GetFullPathIcon("invalidImage.png")
       },
       vrHelpTitle = "VR help title",
       keyboardProperties =
@@ -114,5 +109,5 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
 end
 
 -------------------------------------------Postconditions-------------------------------------
-common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", const.default_app_name)
 common_steps:StopSDL("Postcondition_StopSDL")

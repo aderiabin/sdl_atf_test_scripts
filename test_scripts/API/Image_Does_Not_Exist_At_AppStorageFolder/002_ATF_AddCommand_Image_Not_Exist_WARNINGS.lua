@@ -1,16 +1,9 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
------------------------------------- Common Variables ---------------------------------------
-local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
-local storagePath = config.pathToSDL .. app_storage_folder .. "/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local appName = config.application1.registerAppInterfaceParams.appName
-
 -------------------------------------------Preconditions-------------------------------------
 --Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
-common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image of cmdIcon doesn't exist
@@ -41,7 +34,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       cmdID = 11,
       cmdIcon =
       {
-        value = storagePath.."invalidImage.png",
+        value = common_functions:GetFullPathIcon("invalidImage.png"),
         imageType = "DYNAMIC"
       },
       menuParams =
@@ -71,5 +64,5 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
 end
 
 -------------------------------------------Postconditions-------------------------------------
-common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", const.default_app_name)
 common_steps:StopSDL("Postcondition_StopSDL")

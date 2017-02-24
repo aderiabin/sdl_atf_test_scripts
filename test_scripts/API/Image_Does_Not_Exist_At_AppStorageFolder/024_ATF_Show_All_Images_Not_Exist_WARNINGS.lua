@@ -1,12 +1,6 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
------------------------------------- Common Variables ---------------------------------------
-local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
-local storagePath = config.pathToSDL .. app_storage_folder .. "/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local appName = config.application1.registerAppInterfaceParams.appName
-
 -------------------------------------------Preconditions-------------------------------------
 -- Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
@@ -16,6 +10,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
+  local invalid_image_full_path = common_functions:GetFullPathIcon("invalidImage.png")
   local cid = self.mobileSession:SendRPC("Show", {
       mainField1 = "a",
       statusBar= "a",
@@ -25,12 +20,12 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       graphic =
       {
         imageType = "DYNAMIC",
-        value = "invalidImage_1.png"
+        value = "invalidImage.png"
       },
       secondaryGraphic =
       {
         imageType = "DYNAMIC",
-        value = "invalidImage_2.png"
+        value = "invalidImage.png"
       },
       softButtons =
       {
@@ -39,7 +34,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           text = "Close",
           image =
           {
-            value = "invalidImage_3.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
@@ -57,7 +52,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "IMAGE",
           image =
           {
-            value = "invalidImage_4.png",
+            value = "invalidImage.png",
             imageType = "DYNAMIC"
           },
           softButtonID = 5,
@@ -88,13 +83,13 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       graphic =
       {
         imageType = "DYNAMIC",
-        value = storagePath .. "invalidImage_1.png"
+        value = invalid_image_full_path
       },
       alignment = "CENTERED",
       secondaryGraphic =
       {
         imageType = "DYNAMIC",
-        value = storagePath .. "invalidImage_2.png"
+        value = invalid_image_full_path
       },
       softButtons =
       {
@@ -103,7 +98,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           text = "Close",
           image =
           {
-            value = storagePath .. "invalidImage_3.png",
+            value = invalid_image_full_path,
             imageType = "DYNAMIC"
           },
           isHighlighted = true,
@@ -121,7 +116,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           type = "IMAGE",
           image =
           {
-            value = storagePath .. "invalidImage_4.png",
+            value = invalid_image_full_path,
             imageType = "DYNAMIC"
           },
           softButtonID = 5,
@@ -136,5 +131,5 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
 end
 
 -------------------------------------------Postconditions-------------------------------------
-common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", const.default_app_name)
 common_steps:StopSDL("Postcondition_StopSDL")

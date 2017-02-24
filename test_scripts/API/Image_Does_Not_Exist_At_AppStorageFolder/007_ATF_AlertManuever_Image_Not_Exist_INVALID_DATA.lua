@@ -1,16 +1,10 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
------------------------------------- Common Variables ---------------------------------------
-local appName = config.application1.registerAppInterfaceParams.appName
-
 ------------------------------------ Preconditions ------------------------------------------
---1. Delete app_info.dat, logs and policy table
-common_functions:DeleteLogsFileAndPolicyTable()
---2. Backup sdl_preloaded_pt.json then updatePolicy
 common_functions:BackupFile("sdl_preloaded_pt.json")
 update_policy:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PTU_For_Image_Not_Exist.json")
---3. Activate application
+--. Activate application
 common_steps:PreconditionSteps("PreconditionSteps", 7)
 
 --------------------------------------------BODY---------------------------------------------
@@ -68,6 +62,6 @@ function Test:Verify_TextInvalid_ImageNotExist_INVALID_DATA()
 end
 
 -------------------------------------------Postconditions-------------------------------------
-common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", const.default_app_name)
 common_steps:StopSDL("Postcondition_StopSDL")
 common_steps:RestoreIniFile("Postcondition_Restore_PreloadedPT", "sdl_preloaded_pt.json")

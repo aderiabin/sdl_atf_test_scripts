@@ -1,9 +1,6 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
------------------------------------- Common Variables ---------------------------------------
-local appName = config.application1.registerAppInterfaceParams.appName
-
 -------------------------------------------Preconditions-------------------------------------
 -- Register App -> Activate App
 common_steps:PreconditionSteps("PreconditionSteps", 7)
@@ -66,5 +63,5 @@ function Test:Verify_AlertText1Incorrect_ImageNotExist_INVALID_DATA()
 end
 
 -------------------------------------------Postconditions-------------------------------------
-common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", const.default_app_name)
 common_steps:StopSDL("Postcondition_StopSDL")

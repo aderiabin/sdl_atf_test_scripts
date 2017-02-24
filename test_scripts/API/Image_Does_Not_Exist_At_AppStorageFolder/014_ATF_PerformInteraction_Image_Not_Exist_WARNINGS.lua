@@ -1,12 +1,6 @@
 -----------------------------Required Shared Libraries---------------------------------------
 require('user_modules/all_common_modules')
 
------------------------------------- Common Variables ---------------------------------------
-local app_storage_folder = common_functions:GetValueFromIniFile("AppStorageFolder")
-local storagePath = config.pathToSDL .. app_storage_folder .. "/"
-..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local appName = config.application1.registerAppInterfaceParams.appName
-
 -------------------------------------------Preconditions-------------------------------------
 -- Activate application
 common_steps:PreconditionSteps("PreconditionSteps", 7)
@@ -25,14 +19,14 @@ function Test:Verify_CreateInteractionChoiceSet_SUCCESS()
           },
           image =
           {
-            value = "invalidImage_1.png",
+            value = "invalidImage.png",
             imageType ="DYNAMIC",
           },
-          secondaryImage=
-          {
-            value = "invalidImage_2.png",
-            imageType ="DYNAMIC",
-          }
+          -- secondaryImage=
+          -- {
+          -- value = "invalidImage.png",
+          -- imageType ="DYNAMIC",
+          -- }
         }
       }
     })
@@ -55,6 +49,7 @@ end
 -- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
+  local invalid_image_full_path = common_functions:GetFullPathIcon("invalidImage.png")
   local cid = self.mobileSession:SendRPC("PerformInteraction",{
       initialText = "StartPerformInteraction",
       initialPrompt = {
@@ -117,7 +112,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
       }
     })
   :Do(function(_,data)
-      appID = common_functions:GetHmiAppId(appName, self)
+      appID = common_functions:GetHmiAppId(const.default_app_name, self)
       self.hmiConnection:SendNotification("VR.Started")
       self.hmiConnection:SendNotification("TTS.Started")
       self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = appID, systemContext = "VRSESSION"})
@@ -139,14 +134,14 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
         choiceID = 100,
         image =
         {
-          value = storagePath .. "invalidImage_1.png",
+          value = invalid_image_full_path,
           imageType ="DYNAMIC",
         },
-        secondaryImage=
-        {
-          value = "invalidImage_2.png",
-          imageType ="DYNAMIC",
-        },
+        -- secondaryImage=
+        -- {
+        -- value = invalid_image_full_path,
+        -- imageType ="DYNAMIC",
+        -- },
         menuName = "Choice100"
       },
       initialText =
@@ -159,7 +154,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           image =
           {
             imageType = "DYNAMIC",
-            value = storagePath .. "invalidImage.png"
+            value = invalid_image_full_path
           },
           text = "NewVRHelpv",
           position = 1
@@ -192,5 +187,5 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
 end
 
 -------------------------------------------Postconditions-------------------------------------
-common_steps:UnregisterApp("Postcondition_UnRegisterApp", appName)
+common_steps:UnregisterApp("Postcondition_UnRegisterApp", const.default_app_name)
 common_steps:StopSDL("Postcondition_StopSDL")
