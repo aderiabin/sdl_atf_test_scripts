@@ -1,4 +1,5 @@
--- Requirements: APPLINK-32689, APPLINK-19333
+--Requirements: [APPLINK-19334]: [AddCommand] SUCCESS: getting SUCCESS on VR and UI.AddCommand()
+--[APPLINK-32689]: Absence of information about SDL behaviour when UI part absent, VR present and cmdicon is sent.
 
 -- Description:
 -- In case the request comes to SDL when the command has only VR menu, cmdId and cmdIcon
@@ -10,13 +11,13 @@
 -- cmdIcon.
 
 -- Expected result:
--- 1. SDL responds with resultCode:"Success" and success: "true" value for VR.AddCommand and
--- send UI.AddCommand to HMI; the command should be added to the end of the list of commands.
+-- 1. SDL sends VR.AddCommand with VR part and UI.AddCommand with cmdIcon of AddCommand received 
+-- from mobile and sends resultCode:"Success" and success: "true" value to the mobile after receiving 
+-- sucessful responses for UI.AddCommand and VR.AddCommand from HMI.
 
 require('user_modules/all_common_modules')
 local const = require('user_modules/consts')
 -- -------------------------------------------Preconditions-------------------------------------
-common_functions:CheckSdlPath()
 common_steps:PreconditionSteps("Preconditions",7)
 common_steps:PutFile("PutFile", const.image_icon_png)
 -- ------------------------------------------Body-----------------------------------------------
@@ -30,7 +31,7 @@ function Test:AddCommand_OnlyVrCommandAndCmdIcon()
       },
       cmdIcon =
       {
-        value ="icon.png",
+        value = const.image_icon_png,
         imageType ="DYNAMIC"
       }
     })
@@ -38,9 +39,8 @@ function Test:AddCommand_OnlyVrCommandAndCmdIcon()
     {
       cmdID = 11,
     })
-
   :ValidIf(function(_, data)
-      local full_path_icon = common_functions:GetFullPathIcon(const.image_icon_png )
+      local full_path_icon = common_functions:GetFullPathIcon(const.image_icon_png)
       if data.params.cmdIcon.value ~= full_path_icon then
         local msg = "value of menuIcon is WRONG. Expected: ".. full_path_icon.. "; Real: " .. data.params.cmdIcon.value
         common_functions:UserPrint(const.color.red, msg)
@@ -69,7 +69,7 @@ function Test:AddCommand_OnlyVrCommandAndCmdIcon()
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+  EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 -- -------------------------------------------Postcondition-------------------------------------

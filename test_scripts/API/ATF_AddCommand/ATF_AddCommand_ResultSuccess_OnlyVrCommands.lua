@@ -1,4 +1,4 @@
---Requirements: APPLINK-19333
+--Requirements: [APPLINK-19333]: [AddCommand] SUCCESS: getting SUCCESS:VR.AddCommand()
 
 --Description:
 --In case the request comes to SDL when the command has only VR menu.
