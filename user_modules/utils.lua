@@ -11,7 +11,7 @@ function module.GetUnorderedTableKeyset(source_table)
   local keyset = {}
 
   for k in pairs(source_table) do
-      table.insert(keyset, k)
+    table.insert(keyset, k)
   end
   return keyset
 end
@@ -51,6 +51,19 @@ function module.GetStructValueFromMobileApi(struct_name, param_name, value_to_re
     return nil
   end
   return interface_schema.struct[struct_name].param[param_name][value_to_read]
+end
+
+--! @brief Function allows to get an enum from mobile api
+--! @param enum_name - enum name which we are going to get
+--! @param Function usage example: local sampling_rates = utils.GetEnumFromMobileApi("SamplingRate")
+function module.GetEnumFromMobileApi(enum_name)
+  if not interface_schema.enum[enum_name] then
+    common_functions:UserPrint(31, "Enum with name:", " ")
+    common_functions:UserPrint(0, enum_name, " ")
+    common_functions:UserPrint(31, "does not exist")
+    return nil
+  end
+  return module.GetUnorderedTableKeyset(interface_schema.enum[enum_name])
 end
 
 --! @brief Function allows to get any enum size(number of elements) from mobile api
