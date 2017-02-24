@@ -7,7 +7,7 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image of subMenuIcon doesn't exist
--- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
+-- SDL->MOB: RPC (success:true, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
   local cid = self.mobileSession:SendRPC("AddSubMenu",

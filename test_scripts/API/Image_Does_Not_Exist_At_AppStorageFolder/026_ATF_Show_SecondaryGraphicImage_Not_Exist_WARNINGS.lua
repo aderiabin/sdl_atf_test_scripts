@@ -8,7 +8,7 @@ common_steps:PutFile("PreconditionSteps_PutFile_action.png", "action.png")
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image of graphic does not exist
--- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
+-- SDL->MOB: RPC (success:true, resultCode:"WARNINGS", info:"Reference image(s) not found")
 ---------------------------------------------------------------------------------------------
 function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
   local invalid_image_full_path = common_functions:GetFullPathIcon("invalidImage.png")

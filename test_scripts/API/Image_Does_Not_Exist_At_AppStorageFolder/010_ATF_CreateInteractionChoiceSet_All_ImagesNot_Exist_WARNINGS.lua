@@ -7,9 +7,9 @@ common_steps:PreconditionSteps("PreconditionSteps", 7)
 
 --------------------------------------------BODY---------------------------------------------
 -- Verify: when all params are correct and image and secondaryImage of choiceSet doesn't exist
--- SDL->MOB: RPC (success:false, resultCode:"WARNINGS", info:"Reference image(s) not found")
+-- SDL->MOB: RPC (success:true, resultCode:"SUCCESS")
 ---------------------------------------------------------------------------------------------
-function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
+function Test:Verify_AllParamsCorrect_ImageNotExist_SUCCESS()
   local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
     {
       interactionChoiceSetID = 1001,
@@ -45,7 +45,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
     end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 

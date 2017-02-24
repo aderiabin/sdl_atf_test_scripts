@@ -22,11 +22,11 @@ function Test:Verify_CreateInteractionChoiceSet_SUCCESS()
             value = "invalidImage.png",
             imageType ="DYNAMIC",
           },
-          -- secondaryImage=
-          -- {
-          -- value = "invalidImage.png",
-          -- imageType ="DYNAMIC",
-          -- }
+          secondaryImage=
+          {
+            value = "invalidImage.png",
+            imageType ="DYNAMIC",
+          }
         }
       }
     })
@@ -137,12 +137,11 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
           value = invalid_image_full_path,
           imageType ="DYNAMIC",
         },
-        -- secondaryImage=
-        -- {
-        -- value = invalid_image_full_path,
-        -- imageType ="DYNAMIC",
-        -- },
-        menuName = "Choice100"
+        secondaryImage=
+        {
+          value = invalid_image_full_path,
+          imageType ="DYNAMIC",
+        }
       },
       initialText =
       {
