@@ -105,8 +105,7 @@ function Test:Verify_AllParamsCorrect_ImageNotExist_WARNINGS()
     })
   :Do(function(_,data)
       local appID = common_functions:GetHmiAppId(const.default_app_name, self)
-      self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = appID, systemContext = "ALERT"})
-      alert_id = data.id
+      self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = appID, systemContext = "ALERT"})     
       local function alert_response()
         self.hmiConnection:SendError(data.id, data.method, "WARNINGS","Reference image(s) not found")
       end
