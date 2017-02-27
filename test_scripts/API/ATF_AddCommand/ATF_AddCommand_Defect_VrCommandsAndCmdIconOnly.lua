@@ -16,7 +16,6 @@
 -- sucessful responses for UI.AddCommand and VR.AddCommand from HMI.
 
 require('user_modules/all_common_modules')
-local const = require('user_modules/consts')
 -- -------------------------------------------Preconditions-------------------------------------
 common_steps:PreconditionSteps("Preconditions",7)
 common_steps:PutFile("PutFile", const.image_icon_png)
