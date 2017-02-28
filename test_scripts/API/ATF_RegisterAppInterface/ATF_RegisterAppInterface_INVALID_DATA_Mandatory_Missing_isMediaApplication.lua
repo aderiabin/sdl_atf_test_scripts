@@ -46,7 +46,7 @@ common_steps:PreconditionSteps("Start_SDL_To_Add_Mobile_Session", 5)
 function Test:RegisterAppInterface_Mandatory_Missing_isMediaApplication()
   local cor_id = self.mobileSession:SendRPC("RegisterAppInterface", rai_rpc_args)
   self.mobileSession:ExpectResponse(cor_id, { success = false, resultCode = "INVALID_DATA" })
-    :Timeout(consts.sdl_to_mobile_default_timeout)
+    :Timeout(const.sdl_to_mobile_default_timeout)
 end
 
 ---------------------------------------------------------------------------------------------
