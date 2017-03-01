@@ -97,7 +97,7 @@ end
 --------------------------------------------------------------------------
 function external_consent_common_functions:UpdatePolicy(self, json_file_path, input_app_id)
   if not input_app_id then
-    input_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
+    input_app_id = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   end
   --hmi side: sending SDL.GetURLS request
   local request_id_get_urls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -107,7 +107,8 @@ function external_consent_common_functions:UpdatePolicy(self, json_file_path, in
     --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
     self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {
       requestType = "PROPRIETARY",
-      fileName = "PolicyTableUpdate"
+      fileName = "PolicyTableUpdate",
+      appID = input_app_id
     })
     --mobile side: expect OnSystemRequest notification
     EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })   
@@ -115,8 +116,7 @@ function external_consent_common_functions:UpdatePolicy(self, json_file_path, in
       --mobile side: sending SystemRequest request
       local corid = self.mobileSession:SendRPC("SystemRequest",{
         fileName = "PolicyTableUpdate",
-        requestType = "PROPRIETARY",
-        appID = input_app_id
+        requestType = "PROPRIETARY"
       },
       json_file_path
       )
@@ -136,7 +136,7 @@ function external_consent_common_functions:UpdatePolicy(self, json_file_path, in
           self.hmiConnection:SendResponse(system_request_id,"BasicCommunication.SystemRequest", "SUCCESS", {})
         end
         
-        RUN_AFTER(to_run, 500)
+        RUN_AFTER(to_run, 1500)
       end)
       --hmi side: expect SDL.OnStatusUpdate
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
