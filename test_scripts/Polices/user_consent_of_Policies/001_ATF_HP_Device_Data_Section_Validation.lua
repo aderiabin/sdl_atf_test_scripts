@@ -38,7 +38,7 @@
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('user_modules/shared_testcases_genivi/connecttest')
+require('user_modules/all_common_modules')
 require('cardinalities')
 
 --[[ Required Shared libraries ]]
@@ -49,8 +49,6 @@ local utils = require('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
-commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable()
 
 --[[ Local Variables ]]
 local pathToSnapshot
@@ -91,10 +89,10 @@ local function CompareTimestamps(valuesFromPTS, verificationValues, key)
   local date_from_os = verificationValues[key]
   local pts_epoch_seconds = utils.ConvertTZDateToEpochSeconds(date_from_pts)
   local os_eposh_seconds = utils.ConvertTZDateToEpochSeconds(date_from_os)
-  if pts_epoch_seconds  < os_eposh_seconds then
+  if pts_epoch_seconds < os_eposh_seconds then
     print("\nWrong snapshot value of \"" .. key .. "\" received!")
     print("Expected: " .. date_from_os )
-    print("Actual:   " .. date_from_pts .. "\n")
+    print("Actual: " .. date_from_pts .. "\n")
     return false
   end
   return true
@@ -102,6 +100,9 @@ end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
+-- Register app
+common_steps:PreconditionSteps("Preconditions",6)
+
 function Test:Precondition_Get_List_Of_Connected_Devices()
   self.hmiConnection:SendNotification("BasicCommunication.OnStartDeviceDiscovery")
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
@@ -122,7 +123,9 @@ function Test:Precondition_Get_List_Of_Connected_Devices()
 end
 
 function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
+
+  local hmi_app_id = common_functions:GetHmiAppId(const.default_app_name, self)
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
       local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
@@ -137,7 +140,9 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
           :Times(AtLeast(1))
         end)
     end)
+
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,_)
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -157,38 +162,34 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
                       policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
                     })
                   self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-                  :Do(
-                    function()
-                      EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true})
-                      :Do(function(_,_)
-                          local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["Test Application"] })
-                          EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
-                            { result = {
-                                code = 0,
-                                allowedFunctions = {{name = "Location"}} },
-                              method = "SDL.GetListOfPermissions"})
-                          :Do(function(_,data1)
-                              local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Location"}})
-                              EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-                              :Do(function(_,_)
-                                  local functionalGroupID = data1.result.allowedFunctions[1].id
-                                  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-                                    { appID = self.applications["Test Application"], source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
-                                  GetCurrentTimeStampGroupConsent()
-                                end)
-                            end)
-                        end)
-                      EXPECT_NOTIFICATION("OnPermissionsChange", {})
-                    end
-                  )
-                  :Timeout(500)
                   self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
                 end)
             end)
         end)
     end)
 
+  -- Check SDL sends SDL.OnAppPermissionChanged to HMI and OnPermissionsChange to mobile
+  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true})
+  :Do(function(_,_)
+      local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = hmi_app_id })
+      EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
+        { result = {
+            code = 0,
+            allowedFunctions = {{name = "Location"}} },
+          method = "SDL.GetListOfPermissions"})
+      :Do(function(_,data1)
+          local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Location"}})
+          EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+          :Do(function(_,_)
+              local functionalGroupID = data1.result.allowedFunctions[1].id
+              self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                { appID = hmi_app_id, source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
+              GetCurrentTimeStampGroupConsent()
+            end)
+        end)
+    end)
+  EXPECT_NOTIFICATION("OnPermissionsChange", {})
 end
 
 --[[ Test ]]
@@ -215,7 +216,7 @@ function Test:Validate_Snapshot_Values()
         elseif v ~= verificationValues[k] then
           print("\nWrong snapshot value of \"" .. k .. "\" received!")
           print("Expected: " .. verificationValues[k] )
-          print("Actual:   " .. v .. "\n")
+          print("Actual: " .. v .. "\n")
           result = false
         end
       end
