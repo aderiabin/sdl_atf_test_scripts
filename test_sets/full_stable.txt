@@ -289,3 +289,4 @@
 ./test_scripts/API/ATF_OnExitAllApplications/ATF_OnExitAllApplications_DIFFERENT_HMI_STATUS.lua
 ./test_scripts/API/ATF_OnExitAllApplications/ATF_OnExitAllApplications_NORMAL_CASES.lua
 ./test_scripts/API/ATF_OnExitAllApplications/ATF_OnExitAllApplications_SPECIAL_CASES.lua
+./test_scripts/API/ATF_PutFile/ATF_Putfile_Response_INVALID_DATA_Mandatory_spaceAvailable_Missing.lua
