@@ -5,7 +5,7 @@ require('user_modules/all_common_modules')
 local function AddNewParamIntoJSonFile(json_file, parent_item, testing_value, test_case_name)
   Test["AddNewParamInto_"..test_case_name] = function(self)
     local match_result = "null"
-    local temp_replace_value = "\"Thi123456789\""
+    local temp_replace_value = "\"temp_replace_value123456789\""
     local file = assert(io.open(json_file, "r"))
     local json_data = file:read("*all")
     file:close()
@@ -53,11 +53,7 @@ Test["RemoveExistedLPT"] = function(self)
 end
 
 local parent_item = {"policy_table", "module_config"}
-Test["Precondition_ChangedPreloadedPt"] = function(self)
-  os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
-end
-
--- Add valid entityType and entityID into PreloadedPT
+-- Add device_data into sdl_preloaded_pt.json file
 local added_item_into_preloadedpt =
 [[
 {
@@ -113,12 +109,12 @@ function Test:Verify_PTU_Failed_With_Existed_External_Status_Consent_Groups()
         end
         RUN_AFTER(to_run, 500)
       end)
-      --hmi side: expect SDL.OnStatusUpdate
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-      :Times(0)
+      
       --mobile side: expect SystemRequest response
       EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
     end)
+    --hmi side: expect SDL.OnStatusUpdate
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
   end)		
 end
 
@@ -155,7 +151,11 @@ function Test:UpdateTurnList_Disallowed()
   }
   local cor_id_update_turn_list = self.mobileSession:SendRPC("UpdateTurnList", request)
   --mobile side: expect UpdateTurnList response
-  self.mobileSession:ExpectResponse(cor_id_update_turn_list, { success = false, resultCode = "DISALLOWED" })
+  self.mobileSession:ExpectResponse(cor_id_update_turn_list, {success = false, resultCode = "DISALLOWED"})
 end
 -------------------------------------- Postconditions ----------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
+--------------------------------------Postcondition------------------------------------------
+Test["Stop_SDL"] = function(self)
+  StopSDL()
+end

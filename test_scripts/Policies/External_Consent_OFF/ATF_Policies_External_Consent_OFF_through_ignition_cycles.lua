@@ -21,11 +21,11 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
     --mobile side: send SubscribeWayPoints request
     local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
     --mobile side: SubscribeWayPoints response
-    EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
+    EXPECT_RESPONSE(corid, {success = false , resultCode = "USER_DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
   end
-
+  
   --------------------------------------------------------------------------
   -- Main check:
   -- RPC of Group002 is allowed to process.
@@ -34,9 +34,9 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
     local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
     EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
     :Do(function(_,data)
-        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-      end)
-    EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+    end)
+    EXPECT_RESPONSE(corid, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange")
   end
 end -- function CheckGroup001IsNotConsentedAndGroup002IsConsented()
@@ -52,14 +52,14 @@ local function CheckGroup001IsConsentedAndGroup002IsNotConsented()
     --hmi side: expected SubscribeWayPoints request
     EXPECT_HMICALL("Navigation.SubscribeWayPoints")
     :Do(function(_,data)
-        --hmi side: sending Navigation.SubscribeWayPoints response
-        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-      end)
+      --hmi side: sending Navigation.SubscribeWayPoints response
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
+    end)
     --mobile side: SubscribeWayPoints response
-    EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+    EXPECT_RESPONSE(corid, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange")
   end
-
+  
   --------------------------------------------------------------------------
   -- Main check:
   -- RPC of Group002 is disallowed to process.
@@ -79,7 +79,7 @@ local function IgnitionOffOnActivateApp(test_case_name)
   common_steps:RegisterApplication("Precondition_Register_Application_1_" .. test_case_name, "mobileSession", config.application1.registerAppInterfaceParams)
   common_steps:ActivateApplication("Precondition_Activate_Application_1_" .. test_case_name, config.application1.registerAppInterfaceParams.appName)
   Test["Precondition_Wait_For_Database_After_Activate_Application_1_" .. test_case_name] = function(self)
-      common_functions:DelayedExp(5000)
+    common_functions:DelayedExp(5000)
   end 
 end
 
@@ -105,7 +105,7 @@ Test[TEST_NAME_OFF.."Precondition_Update_Policy_Table"] = function(self)
   -- insert Group001 into "functional_groupings"
   data.policy_table.functional_groupings.Group001 = {
     user_consent_prompt = "ConsentGroup001",
-    disallowed_by_external_consent_entities_off = {{
+      disallowed_by_external_consent_entities_off = {{
         entityType = 2,
         entityID = 5
     }},
@@ -118,7 +118,7 @@ Test[TEST_NAME_OFF.."Precondition_Update_Policy_Table"] = function(self)
   -- insert Group002 into "functional_groupings"
   data.policy_table.functional_groupings.Group002 = {
     user_consent_prompt = "ConsentGroup002",
-    disallowed_by_external_consent_entities_on = {{
+      disallowed_by_external_consent_entities_on = {{
         entityType = 2,
         entityID = 5
     }},
@@ -155,7 +155,7 @@ Test[TEST_NAME_OFF.."Precondition_Update_Policy_Table"] = function(self)
   -- remove preload_pt from json file
   local parent_item = {"policy_table","module_config"}
   local removed_json_items = {"preloaded_pt"}
-  common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items)  
+  common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items) 
   -- update policy table
   common_functions_external_consent:UpdatePolicy(self, "/tmp/ptu_update.json")
 end
@@ -169,16 +169,16 @@ Test[TEST_NAME_OFF.."Precondition_GetListOfPermissions"] = function(self)
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
   -- hmi side: expect SDL.GetListOfPermissions response
   EXPECT_HMIRESPONSE(request_id,{
-      result = {
-        code = 0,
-        method = "SDL.GetListOfPermissions",
-        allowedFunctions = {
-          {name = "ConsentGroup001", allowed = nil},
-          {name = "ConsentGroup002", allowed = nil}
-        },
-        externalConsentStatus = {}
-      }
-    })
+    result = {
+      code = 0,
+      method = "SDL.GetListOfPermissions",
+      allowedFunctions = {
+        {name = "ConsentGroup001", allowed = nil},
+        {name = "ConsentGroup002", allowed = nil}
+      },
+      externalConsentStatus = {}
+    }
+  })
 end
 
 --------------------------------------------------------------------------
@@ -189,15 +189,15 @@ Test[TEST_NAME_OFF .. "Precondition_HMI_sends_OnAppPermissionConsent_externalCon
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-      appID = hmi_app_id_1, source = "GUI",
-      externalConsentStatus = {{entityType = 2, entityID = 5, status = "OFF"}}
-    })
+    appID = hmi_app_id_1, source = "GUI",
+    externalConsentStatus = {{entityType = 2, entityID = 5, status = "OFF"}}
+  })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_,data)
     local validate_result_1 = common_functions_external_consent:ValidateHMIPermissions(data, 
-      "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})  
+    "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}}) 
     local validate_result_2 = common_functions_external_consent:ValidateHMIPermissions(data, 
-      "SubscribeVehicleData", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
+    "SubscribeVehicleData", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
     return (validate_result_1 and validate_result_2)
   end)
 end
@@ -230,17 +230,17 @@ Test[TEST_NAME_OFF .. "Precondition_HMI_sends_OnAppPermissionConsent_externalCon
   hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-      appID = hmi_app_id_1, source = "GUI",
-      externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
-    })
+    appID = hmi_app_id_1, source = "GUI",
+    externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
+  })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_,data)
     local validate_result_1 = common_functions_external_consent:ValidateHMIPermissions(data, 
-      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})  
+    "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}}) 
     local validate_result_2 = common_functions_external_consent:ValidateHMIPermissions(data, 
-      "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+    "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
     return (validate_result_1 and validate_result_2)
-	end)
+  end)
 end
 
 --------------------------------------------------------------------------
