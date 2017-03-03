@@ -23,13 +23,14 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --Heartbeat is supported after protocolversion 3
 --config.defaultProtocolVersion = 2
+config.defaultProtocolVersion = 3
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
 local commonPreconditions = require ('user_modules/shared_testcases_genivi/commonPreconditions')
-
+config.defaultProtocolVersion = 3
 --[[ Local Variables ]]
 local time_prev = 0
 local time_now = 0
@@ -51,7 +52,7 @@ require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 local events = require('events')
 local constants = require('protocol_handler/ford_protocol_constants')
-
+config.defaultProtocolVersion = 3
 --[[ Local Functions ]]
 local function DelayedExp(time)
   local event = events.Event()
@@ -85,10 +86,6 @@ local function DelayedExp(time)
   --[[ Test ]]
   function Test:TestStep_GetAndCheck_HeartBeat_Time()
     local index = 0
-    self.mobileSession.sendHeartbeatToSDL = true
-    self.mobileSession.answerHeartbeatFromSDL = true
-    self.mobileSession.ignoreSDLHeartBeatACK=false
-
     local event = events.Event()
     event.matches = function(_, data)
       return data.frameType == 0 and
@@ -122,6 +119,13 @@ local function DelayedExp(time)
             HBTime_max = HB_interval
           end
         end
+
+        self.mobileSession:Send(
+          { frameType = constants.FRAME_TYPE.CONTROL_FRAME,
+            serviceType = constants.SERVICE_TYPE.CONTROL,
+            frameInfo = constants.FRAME_INFO.HEARTBEAT_ACK
+          }
+        )
         end):Times(AtLeast(1))
 
       DelayedExp(20000)
