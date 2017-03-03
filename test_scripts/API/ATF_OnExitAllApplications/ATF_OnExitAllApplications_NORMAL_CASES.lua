@@ -71,9 +71,8 @@ function Test:Exit_Ignition_Off()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
     {appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), unexpectedDisconnect = false})
   self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {reason = "IGNITION_OFF"})
-  :Do(function(_,data)
-      StopSDL()
-    end)
+  common_functions:DelayedExp(2000)
+  StopSDL()
 end
 
 common_steps:PreconditionSteps("Precondition", 7)
@@ -83,9 +82,8 @@ function Test:Exit_Factory_Defaults()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
     {appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), unexpectedDisconnect = false})
   self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "FACTORY_DEFAULTS"}})
-  :Do(function(_,data)
-      StopSDL()
-    end)
+  common_functions:DelayedExp(2000)
+  StopSDL()
 end
 
 common_steps:PreconditionSteps("Precondition", 7)
@@ -113,9 +111,8 @@ function Test:Exit_Many_Apps_Ignition_Off()
   :Times(2)
   self.mobile_session1:ExpectNotification("OnAppInterfaceUnregistered", {reason = "IGNITION_OFF"})
   self.mobile_session2:ExpectNotification("OnAppInterfaceUnregistered", {reason = "IGNITION_OFF"})
-  :Do(function(_,data)
-      StopSDL()
-    end)
+  common_functions:DelayedExp(2000)
+  StopSDL()
 end
 
 common_steps:PreconditionSteps("Precondition", 4)

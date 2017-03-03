@@ -74,9 +74,8 @@ function Test:Exit_Fake_Param()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
     {appID = self.applications[config.application1.registerAppInterfaceParams.appName], unexpectedDisconnect = false})
   self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "IGNITION_OFF"}})
-  :Do(function(_,data)
-      StopSDL()
-    end)
+  common_functions:DelayedExp(2000)
+  StopSDL()
 end
 
 common_steps:PreconditionSteps("Precondition", 7)
@@ -86,9 +85,8 @@ function Test:Exit_Fake_Param_From_Another_API()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
     {appID = self.applications[config.application1.registerAppInterfaceParams.appName], unexpectedDisconnect = false})
   self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "IGNITION_OFF"}})
-  :Do(function(_,data)
-      StopSDL()
-    end)
+  common_functions:DelayedExp(2000)
+  StopSDL()
 end
 
 common_steps:PreconditionSteps("Precondition", 7)
@@ -142,9 +140,8 @@ function Test:Exit_Many_Apps_Master_Reset()
   :Times(2)
   self.mobile_session1:ExpectNotification("OnAppInterfaceUnregistered", {reason = "MASTER_RESET"})
   self.mobile_session2:ExpectNotification("OnAppInterfaceUnregistered", {reason = "MASTER_RESET"})
-  :Do(function(_,data)
-      StopSDL()
-    end)
+  common_functions:DelayedExp(2000)
+  StopSDL()
 end
 
 -------------------------------------------Postconditions-------------------------------------
