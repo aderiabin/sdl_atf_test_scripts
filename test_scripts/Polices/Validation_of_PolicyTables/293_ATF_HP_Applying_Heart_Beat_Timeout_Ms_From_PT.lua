@@ -33,6 +33,8 @@ local commonPreconditions = require ('user_modules/shared_testcases_genivi/commo
 --[[ Local Variables ]]
 local time_prev = 0
 local time_now = 0
+local HBTime_min = 0
+local HBTime_max = 0
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
@@ -128,7 +130,7 @@ local function DelayedExp(time)
     function Test:TestStep_Check_HeartBeat_Time()
       -- Check HBTime_min and HBTime_max are around 1000 ms [700 - 1300].
       if (HBTime_min > 700) and (HBTime_max < 1300) and (HBTime_min < HBTime_max) then
-        print(" HearBeat is in range ["..HBTime_min.." ; "..HBTime_max.."]ms ")
+        print(" HearBeat is in range ["..HBTime_min.." ; "..HBTime_max.."]ms , expected HeartBeat is 1000 ms")
       else
         self:FailTestCase("Wrong HearBeat time! Expected: 1000 ms, Actual: HBTime_min = "..HBTime_min..", HBTime_max = " .. HBTime_max .. " ms ")
       end
