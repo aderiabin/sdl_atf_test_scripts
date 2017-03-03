@@ -5,7 +5,7 @@
 -- Description:
 -- In case an application sends RPC in HMILevel NONE which is restricted and declined by Policies,
 -- Policy Manager must increment "count_of_rpcs_sent_in_hmi_none" section value of
--- Local Policy Table for the corresponding application. For more details refer APPLINK-16145
+-- Local Policy Table for the corresponding application. For more details refer APPLINK-23472 and APPLINK-16145
 
 -- Pre-conditions:
 -- a. SDL and HMI are started
@@ -33,7 +33,18 @@ Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
---[[ Test ]]
+--[[ Local Variables ]]
+local count_before = {}
+local count_after = {}
+
+--[[ Test ]] 
+function Test:GetDB_count_of_rpcs_sent_in_hmi_none()
+  local db_path = config.pathToSDL.."storage/policy.sqlite"
+  local sql_query = "SELECT count_of_rpcs_sent_in_hmi_none FROM app_level WHERE application_id = '0000001'"
+  count_before = commonFunctions:get_data_policy_sql(db_path, sql_query)
+  commonFunctions:userPrint(32,"count_of_rpcs_sent_in_hmi_none: " .. tostring(count_before[1]))
+end
+
 function Test:SendDissalowedRpcInNone()
   local cid = self.mobileSession:SendRPC("AddCommand",
     {
@@ -47,13 +58,14 @@ function Test:SendDissalowedRpcInNone()
   EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
 end
 
-function Test:CheckDB_updated_count_of_rejections_duplicate_name()
-  StopSDL()
+function Test:GetDB_Increase_count_of_rpcs_sent_in_hmi_none()
   local db_path = config.pathToSDL.."storage/policy.sqlite"
   local sql_query = "SELECT count_of_rpcs_sent_in_hmi_none FROM app_level WHERE application_id = '0000001'"
-  local exp_result = {"1"}
-  if commonFunctions:is_db_contains(db_path, sql_query, exp_result) ==false then
-    self:FailTestCase("DB doesn't include expected value for count_of_rpcs_sent_in_hmi_none. Exp: "..exp_result[1])
+  count_after = commonFunctions:get_data_policy_sql(db_path, sql_query)
+  commonFunctions:userPrint(32,"count_of_rpcs_sent_in_hmi_none: " .. tostring(count_after[1]))
+  local count_after_exp = count_before[1] + 1
+  if not count_after[1] == count_after_exp then
+    self:FailTestCase("DB doesn't increase value for count_of_rpcs_sent_in_hmi_none.")
   end
 end
 
