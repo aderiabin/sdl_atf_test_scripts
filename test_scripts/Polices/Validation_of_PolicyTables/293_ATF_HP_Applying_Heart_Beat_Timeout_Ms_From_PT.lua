@@ -58,11 +58,11 @@ local function DelayedExp(time)
   event.matches = function(self, e) return self == e end
   EXPECT_EVENT(event, "Delayed event")
   :Timeout(time+1000)
-
+  
   RUN_AFTER(function()
-      RAISE_EVENT(event, event)
-    end,
-    time)
+    RAISE_EVENT(event, event)
+  end,
+  time)
 end
 
 function Test:Precondition_ConnectMobile_FirstLifeCycle()
@@ -78,8 +78,8 @@ function Test:Precondition_Register_Activate_Consent_App_And_Update_Policy_With_
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   :Do(function(_,data)
-      self.HMIAppID = data.params.application.appID
-    end)
+    self.HMIAppID = data.params.application.appID
+  end)
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
@@ -94,64 +94,62 @@ function Test:TestStep_GetAndCheck_HeartBeat_Time()
     (data.frameInfo == 0) --HeartBeat
   end
   print("No heartbeat yet")
-
+  
   self.mobileSession:ExpectEvent(event, "Heartbeat")
   :Do(
-    function()
-      index = index + 1
-      print("HB[" .. index .. "] occurs at " .. tostring(timestamp()))
-      local HB_interval = 0
-      if index == 1 then
-        time_prev = timestamp()
-      elseif index == 2 then
-        time_now = timestamp()
-        HB_interval = time_now - time_prev
-        HBTime_min = HB_interval
-        HBTime_max = HB_interval
-        print("HB_interval: " .. tostring(HB_interval))
-      else
-        time_prev = time_now
-        time_now = timestamp()
-        HB_interval = time_now - time_prev
-        print("HB_interval: " .. tostring(HB_interval))
-        if HB_interval < HBTime_min then
-          HBTime_min = HB_interval
-        end
-        if HB_interval > HBTime_max then
-          HBTime_max = HB_interval
-        end
-      end
-
-      self.mobileSession:Send(
-        { frameType = constants.FRAME_TYPE.CONTROL_FRAME,
-          serviceType = constants.SERVICE_TYPE.CONTROL,
-          frameInfo = constants.FRAME_INFO.HEARTBEAT_ACK
-        }
-      )
-      end):Times(AtLeast(1))
-
-    DelayedExp(20000)
-  end
-
-  function Test:TestStep_Check_HeartBeat_Time()
-    -- Check HBTime_min and HBTime_max are around 1000 ms [700 - 1300].
-    if (HBTime_min > 700) and (HBTime_max < 1300) and (HBTime_min < HBTime_max) then
-      print(" HearBeat is in range ["..HBTime_min.." ; "..HBTime_max.."]ms , expected HeartBeat is 1000 ms")
+  function()
+    index = index + 1
+    print("HB[" .. index .. "] occurs at " .. tostring(timestamp()))
+    local HB_interval = 0
+    if index == 1 then
+      time_prev = timestamp()
+    elseif index == 2 then
+      time_now = timestamp()
+      HB_interval = time_now - time_prev
+      HBTime_min = HB_interval
+      HBTime_max = HB_interval
+      print("HB_interval: " .. tostring(HB_interval))
     else
-      self:FailTestCase("Wrong HearBeat time! Expected: 1000 ms, Actual: HBTime_min = "..HBTime_min..", HBTime_max = " .. HBTime_max .. " ms ")
+      time_prev = time_now
+      time_now = timestamp()
+      HB_interval = time_now - time_prev
+      print("HB_interval: " .. tostring(HB_interval))
+      if HB_interval < HBTime_min then
+        HBTime_min = HB_interval
+      end
+      if HB_interval > HBTime_max then
+        HBTime_max = HB_interval
+      end
     end
+    
+    self.mobileSession:Send(
+    { frameType = constants.FRAME_TYPE.CONTROL_FRAME,
+      serviceType = constants.SERVICE_TYPE.CONTROL,
+      frameInfo = constants.FRAME_INFO.HEARTBEAT_ACK
+    }
+    )
+  end):Times(AtLeast(1))
+  
+  DelayedExp(20000)
+end
+
+function Test:TestStep_Check_HeartBeat_Time()
+  -- Check HBTime_min and HBTime_max are around 1000 ms [700 - 1300].
+  if (HBTime_min > 700) and (HBTime_max < 1300) and (HBTime_min < HBTime_max) then
+    print(" HearBeat is in range ["..HBTime_min.." ; "..HBTime_max.."]ms , expected HeartBeat is 1000 ms")
+  else
+    self:FailTestCase("Wrong HearBeat time! Expected: 1000 ms, Actual: HBTime_min = "..HBTime_min..", HBTime_max = " .. HBTime_max .. " ms ")
   end
+end
 
-  --[[ Postconditions ]]
-  commonFunctions:newTestCasesGroup("Postconditions")
-  testCasesForPolicyTable:Restore_preloaded_pt()
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
 
-  function Test.Postcondition_Restore_INI_file()
-    commonPreconditions:RestoreFile("smartDeviceLink.ini")
-  end
+function Test.Postcondition_Restore_INI_file()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
+end
 
-  function Test.Postcondition_StopSDL()
-    StopSDL()
-  end
-
-  return Test
+function Test.Postcondition_StopSDL()
+  StopSDL()
+end
