@@ -20,7 +20,7 @@
 -- 4. Send "SetGlobalProperties" RPC again and verifies RPC's respond status
 --
 -- Expected result:
--- Status of response: sucess = false, resultCode = "DISALLOWED"
+-- Status of response: success = false, resultCode = "DISALLOWED"
 
 ---------------------------------------------------------------------------------------------
 
@@ -73,9 +73,8 @@ function Test:CheckPermissions()
   local corId = self.mobileSession2:SendRPC("SetGlobalProperties",{ menuTitle = "Menu Title"})
   EXPECT_HMICALL("UI.SetGlobalProperties",{})
   :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
-
-  EXPECT_HMICALL("TTS.SetGlobalProperties",{}):Times(0)
-
+  EXPECT_HMICALL("TTS.SetGlobalProperties",{})
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
   self.mobileSession2:ExpectResponse(corId, {success = true, resultCode = "SUCCESS" })
 end
 
