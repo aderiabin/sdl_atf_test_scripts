@@ -230,7 +230,7 @@ function Test:AddCommand_PositiveCase()
 		}
 	})
 	:Do(function(_,data)
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
 	EXPECT_HMICALL("VR.AddCommand",
 	{
@@ -248,6 +248,23 @@ function Test:AddCommand_PositiveCase()
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 	EXPECT_NOTIFICATION("OnHashChange")
 end
+
+------------------------------------------------------------------------------
+-- TC_Description: OnCommand
+function Test:OnCommand_UI()	
+  self.hmiConnection:SendNotification("UI.OnCommand", {
+    cmdID = 11,
+    appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)})
+  EXPECT_NOTIFICATION("OnCommand", {cmdID = 11, triggerSource= "MENU"})
+end
+
+function Test:OnCommand_VR()
+  self.hmiConnection:SendNotification("VR.OnCommand", {
+    cmdID = 11,
+    appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)})
+  EXPECT_NOTIFICATION("OnCommand", {cmdID = 11, triggerSource= "VR"})
+end
+
 ------------------------------------------------------------------------------
 -- TC5_Description: DeleteCommand
 function Test:DeleteCommand_PositiveCase()
@@ -455,35 +472,105 @@ function Test:Alert_PositiveCase()
 end
 -------------------------------------------------------------------------------
 -- TC9_Description: CreateInteractionChoiceSet
-function Test:createInteractionChoiceSet(choiceSetID, choiceID)
-	cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-	{
-		interactionChoiceSetID = choiceSetID,
-		choiceSet = setChoiseSet(choiceID),
-	})
-	EXPECT_HMICALL("VR.AddCommand",
-	{
-		cmdID = choiceID,
-		type = "Choice",
-		vrCommands = {"VrChoice"..tostring(choiceID) }
-	})
-	:Do(function(_,data)
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true })
-end
 choice_set_id_values = {0, 100, 200, 300, 2000000000}
+choice_id_values     = {0, 100, 200, 300, 65535}
 for i=1, #choice_set_id_values do
-	Test["CreateInteractionChoiceSet" .. choice_set_id_values[i] .. "_PositiveCase"] = function(self)
-		if (choice_set_id_values[i] == 2000000000) then
-			self:createInteractionChoiceSet(choice_set_id_values[i], 65535)
-		else
-			self:createInteractionChoiceSet(choice_set_id_values[i], choice_set_id_values[i])
-		end
-	end
+  Test["CreateInteractionChoiceSet_Positive_Id_" .. tostring(choice_set_id_values[i])] = function(self)
+    local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet", {
+      interactionChoiceSetID = choice_set_id_values[i],
+      choiceSet = {{
+        choiceID = choice_id_values[i],
+        menuName = "Choice" .. tostring(choice_id_values[i]),
+        vrCommands = {"Choice" .. tostring(choice_id_values[i])},
+        image = {
+          value ="action.png",
+          imageType ="DYNAMIC"}}}})
+    EXPECT_HMICALL("VR.AddCommand", {
+      cmdID = choice_id_values[i],
+      appID = applicationID,
+      type = "Choice",
+      vrCommands = {"Choice" .. tostring(choice_id_values[i])}})
+    :Do(function(_,data)
+      grammarIDValue = data.params.grammarID
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+    EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+    EXPECT_NOTIFICATION("OnHashChange")
+  end
 end
+
 -------------------------------------------------------------------------------
--- TC10_Description: DeleteInteractionChoiceSet
+-- TC10_Description: PerformInteraction
+local interaction_modes = {"MANUAL_ONLY", "VR_ONLY", "BOTH"}
+local interaction_layouts = {"ICON_ONLY", "ICON_WITH_SEARCH", "LIST_ONLY", "LIST_WITH_SEARCH", "KEYBOARD"}
+for i = 1, #interaction_layouts do
+  local interaction_mode
+  if i > #interaction_modes then
+    interaction_mode = interaction_modes[#interaction_modes]
+  else
+    interaction_mode = interaction_modes[i]
+  end
+  Test["PerformInteraction_Positive_Mode_" .. interaction_mode .. "_layout_" .. interaction_layouts[i]] = function(self)
+    local cid = self.mobileSession:SendRPC("PerformInteraction", {
+      initialText ="StartPerformInteraction",
+      initialPrompt = {{
+        text ="Makeyourchoice",
+        type ="TEXT"}},
+      interactionMode = interaction_mode,
+      interactionChoiceSetIDList = {100},
+      helpPrompt = {{
+        text ="ChoosethevariantonUI",
+        type ="TEXT"}},
+      timeoutPrompt = {{
+        text ="Timeisout",
+        type ="TEXT"}},
+      timeout = 5000,
+      vrHelp = {{
+        text = "Help2",
+        position = 1,
+      image = {
+        value ="action.png",
+        imageType ="DYNAMIC"}}},
+      interactionLayout = interaction_layouts[i]})
+    EXPECT_HMICALL("VR.PerformInteraction", {})
+    :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+    local parameter = {event = "KEYPRESS", data = "abc"}
+    EXPECT_HMICALL("UI.PerformInteraction", {})
+    :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      if interaction_layouts[i] == "KEYBOARD" then
+        self.hmiConnection:SendNotification("UI.OnKeyboardInput",parameter)
+      end
+    end)
+    EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+    if interaction_layouts[i] == "KEYBOARD" then
+      EXPECT_NOTIFICATION("OnKeyboardInput", parameter)
+    end
+  end
+end
+
+-------------------------------------------------------------------------------
+-- TC11_Description: OnKeyboardInput
+local keyboard_event = {
+  "KEYPRESS", 
+  "ENTRY_SUBMITTED", 
+  "ENTRY_VOICE", 
+  "ENTRY_CANCELLED", 
+  "ENTRY_ABORTED"}
+for i = 1, #keyboard_event  do
+  Test["OnKeyboardInput_PositiveCase_" .. keyboard_event[i]] = function(self)
+    local parameter = {
+      event = keyboard_event[i], 
+      data = "abc"}
+    self.hmiConnection:SendNotification("UI.OnKeyboardInput",	parameter)
+    EXPECT_NOTIFICATION("OnKeyboardInput", parameter)
+  end
+end
+
+-------------------------------------------------------------------------------
+-- TC12_Description: DeleteInteractionChoiceSet
 function Test:DeleteInteractionChoiceSet_Positive()
 	local cid = self.mobileSession:SendRPC("DeleteInteractionChoiceSet",{interactionChoiceSetID = 0})
 	EXPECT_HMICALL("VR.DeleteCommand",
@@ -499,8 +586,9 @@ function Test:DeleteInteractionChoiceSet_Positive()
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 	EXPECT_NOTIFICATION("OnHashChange")
 end
+
 -------------------------------------------------------------------------------
--- TC11_Description: DeleteFile
+-- TC13_Description: DeleteFile
 function Test:DeleteFile_PositiveCase()
 	local cid = self.mobileSession:SendRPC("DeleteFile",{ syncFileName = "action.png"})
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnFileRemoved", {
@@ -511,7 +599,7 @@ function Test:DeleteFile_PositiveCase()
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 end
 -------------------------------------------------------------------------------
--- TC12_Description: ListFiles
+-- TC14_Description: ListFiles
 function Test:ListFiles_PositiveCase()
 	local cid = self.mobileSession:SendRPC("ListFiles", {} )
 	EXPECT_RESPONSE(cid,
@@ -525,330 +613,7 @@ function Test:ListFiles_PositiveCase()
 		},
 	})
 end
--------------------------------------------------------------------------------
--- TC13_Description: CreateInteractionChoiceSet
--- -- Common function for createInteractionChoiceSet
-function performInteractionAllParams()
-	local temp = {
-		initialText = "StartPerformInteraction",
-			initialPrompt = {{
-				text = "Make your choice",
-				type = "TEXT"
-		}},
-		interactionMode = "BOTH",
-		interactionChoiceSetIDList =
-		{
-			100, 200, 300
-		},
-		helpPrompt = {
-			{
-				text = "Help Promptv ",
-				type = "TEXT"
-			},
-			{
-				text = "Help Promptvv ",
-				type = "TEXT"
-		}},
-			timeoutPrompt = {{
-				text = "Timeoutv",
-				type = "TEXT"
-			},
-			{
-				text = "Timeoutvv",
-				type = "TEXT"
-		}},
-		timeout = 5000,
-		vrHelp = {
-			{
-				image =
-				{
-					imageType = "DYNAMIC",
-					value = storagePath.."icon.png"
-				},
-				text = "NewVRHelpv",
-				position = 1
-			},
-			{
-				image =
-				{
-					imageType = "DYNAMIC",
-					value = storagePath.."icon.png"
-				},
-				text = "NewVRHelpvv",
-				position = 2
-			},
-			{
-				image =
-				{
-					imageType = "DYNAMIC",
-					value = storagePath.."icon.png"
-				},
-				text = "NewVRHelpvvv",
-				position = 3
-			}
-		},
-		interactionLayout = "ICON_ONLY"
-	}
-	return temp
-end
 
-function setChoiseSet(choiceIDValue, size)
-	if (size == nil) then
-			local temp = {{
-				choiceID = choiceIDValue,
-				menuName ="Choice" .. tostring(choiceIDValue),
-				vrCommands =
-				{
-					"VrChoice" .. tostring(choiceIDValue),
-				},
-				image =
-				{
-					value ="icon.png",
-					imageType ="STATIC"
-				}
-		}}
-		return temp
-	else
-		local temp = {}
-		for i = 1, size do
-			temp[i] = {
-				choiceID = choiceIDValue+i-1,
-				menuName ="Choice" .. tostring(choiceIDValue+i-1),
-				vrCommands =
-				{
-					"VrChoice" .. tostring(choiceIDValue+i-1),
-				},
-				image =
-				{
-					value ="icon.png",
-					imageType ="STATIC"
-				}
-			}
-		end
-		return temp
-	end
-end
-
-function setExChoiseSet(choiceIDValues)
-	local exChoiceSet = {}
-	for i = 1, #choiceIDValues do
-		exChoiceSet[i] = {
-			choiceID = choiceIDValues[i],
-			image =
-			{
-				value = "icon.png",
-				imageType = "STATIC",
-			},
-			menuName = Choice100
-		}
-		if (choiceIDValues[i] == 2000000000) then
-			exChoiceSet[i].choiceID = 65535
-		end
-	end
-	return exChoiceSet
-end
--------------------------------------------------------------------------------
--- TC14_Description: PerformInteraction
-local request_parameters = performInteractionAllParams()
-function Test:PerformInteraction_PositiveCase_VR_ONLY_SUCCESS()
-	request_parameters.interactionMode = "VR_ONLY"
-	cid = self.mobileSession:SendRPC("PerformInteraction",request_parameters)
-	EXPECT_HMICALL("VR.PerformInteraction",{
-		helpPrompt = request_parameters.helpPrompt,
-		initialPrompt = request_parameters.initialPrompt,
-		timeout = request_parameters.timeout,
-		timeoutPrompt = request_parameters.timeoutPrompt
-	})
-	:Do(function(_,data)
-		self.hmiConnection:SendNotification("TTS.Started")
-		self.hmiConnection:SendNotification("VR.Started")
-		self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), systemContext = "VRSESSION"})
-		self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-		self.hmiConnection:SendNotification("TTS.Stopped")
-		self.hmiConnection:SendNotification("VR.Stopped")
-		self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), systemContext = "MAIN"})
-	end)
-	:ValidIf(function(_,data)
-		if data.params.fakeParam or
-		data.params.helpPrompt[1].fakeParam or
-		data.params.initialPrompt[1].fakeParam or
-		data.params.timeoutPrompt[1].fakeParam or
-		data.params.ttsChunks then
-			print(" \27[36m SDL re-sends fakeParam parameters to HMI in VR.PerformInteraction request \27[0m ")
-			return false
-		else
-			return true
-		end
-	end)
-	EXPECT_HMICALL("UI.PerformInteraction",{
-		timeout = request_parameters.timeout,
-		vrHelp = request_parameters.vrHelp,
-		vrHelpTitle = request_parameters.initialText,
-	})
-	:Do(function(_,data)
-		local function uiResponse()
-			self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-		end
-		RUN_AFTER(uiResponse, 10)
-	end)
-	:ValidIf(function(_,data)
-		if data.params.fakeParam or
-		data.params.vrHelp[1].fakeParam or
-		data.params.ttsChunks then
-			print(" \27[36m SDL re-sends fakeParam parameters to HMI in UI.PerformInteraction request \27[0m ")
-			return false
-		else
-			return true
-		end
-	end)
-	EXPECT_NOTIFICATION("OnHMIStatus",
-	{ hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
-	{ hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"},
-	{ hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "VRSESSION"},
-	{ hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "VRSESSION"},
-	{ hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-	:Times(5)
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT" })
-end
-
-function Test:PerformInteraction_PositiveCase_MANUAL_ONLY_SUCCESS()
-	request_parameters.interactionMode = "MANUAL_ONLY"
-	cid = self.mobileSession:SendRPC("PerformInteraction", request_parameters)
-	EXPECT_HMICALL("VR.PerformInteraction",
-	{
-		helpPrompt = request_parameters.helpPrompt,
-		initialPrompt = request_parameters.initialPrompt,
-		timeout = request_parameters.timeout,
-		timeoutPrompt = request_parameters.timeoutPrompt
-	})
-	:Do(function(_,data)
-		self.hmiConnection:SendNotification("TTS.Started")
-		self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-	end)
-	:ValidIf(function(_,data)
-		if data.params.fakeParam or
-		data.params.helpPrompt[1].fakeParam or
-		data.params.initialPrompt[1].fakeParam or
-		data.params.timeoutPrompt[1].fakeParam or
-		data.params.ttsChunks then
-			print(" \27[36m SDL re-sends fakeParam parameters to HMI in VR.PerformInteraction request \27[0m ")
-			return false
-		else
-			return true
-		end
-	end)
-	EXPECT_HMICALL("UI.PerformInteraction",{
-		timeout = request_parameters.timeout,
-		choiceSet = setExChoiseSet(request_parameters.interactionChoiceSetIDList),
-		initialText =
-		{
-			fieldName = "initialInteractionText",
-			fieldText = request_parameters.initialText
-		}
-	})
-	:Do(function(_,data)
-		self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), systemContext = "HMI_OBSCURED"})
-		self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-		self.hmiConnection:SendNotification("TTS.Stopped")
-		self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), systemContext = "MAIN"})
-	end)
-	:ValidIf(function(_,data)
-		if data.params.fakeParam or
-		data.params.ttsChunks then
-			print(" \27[36m SDL re-sends fakeParam parameters to HMI in UI.PerformInteraction request \27[0m ")
-			return false
-		else
-			return true
-		end
-	end)
-	EXPECT_NOTIFICATION("OnHMIStatus",
-	{ hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
-	{ hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "HMI_OBSCURED"},
-	{ hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "HMI_OBSCURED"},
-	{ hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-	:Times(4)
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT"})
-end
-
-function Test:PerformInteraction_PositiveCase_BOTH_SUCCESS()
-	request_parameters.interactionMode = "BOTH"
-	cid = self.mobileSession:SendRPC("PerformInteraction",request_parameters)
-	EXPECT_HMICALL("VR.PerformInteraction", {
-		helpPrompt = request_parameters.helpPrompt,
-		initialPrompt = request_parameters.initialPrompt,
-		timeout = request_parameters.timeout,
-		timeoutPrompt = request_parameters.timeoutPrompt
-	})
-	:Do(function(_,data)
-		self.hmiConnection:SendNotification("VR.Started")
-		self.hmiConnection:SendNotification("TTS.Started")
-		self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), systemContext = "VRSESSION"})
-		local function firstSpeakTimeOut()
-			self.hmiConnection:SendNotification("TTS.Stopped")
-			self.hmiConnection:SendNotification("TTS.Started")
-		end
-		RUN_AFTER(firstSpeakTimeOut, 5)
-		local function vrResponse()
-			self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-			self.hmiConnection:SendNotification("VR.Stopped")
-		end
-		RUN_AFTER(vrResponse, 20)
-	end)
-	:ValidIf(function(_,data)
-		if data.params.fakeParam or
-		data.params.helpPrompt[1].fakeParam or
-		data.params.initialPrompt[1].fakeParam or
-		data.params.timeoutPrompt[1].fakeParam or
-		data.params.ttsChunks then
-			print(" \27[36m SDL re-sends fakeParam parameters to HMI in VR.PerformInteraction request \27[0m ")
-			return false
-		else
-			return true
-		end
-	end)
-	EXPECT_HMICALL("UI.PerformInteraction", {
-		timeout = request_parameters.timeout,
-		choiceSet = setExChoiseSet(request_parameters.interactionChoiceSetIDList),
-		initialText =
-		{
-			fieldName = "initialInteractionText",
-			fieldText = request_parameters.initialText
-		},
-		vrHelp = request_parameters.vrHelp,
-		vrHelpTitle = request_parameters.initialText
-	})
-	:Do(function(_,data)
-		local function choiceIconDisplayed()
-			self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), systemContext = "HMI_OBSCURED"})
-		end
-		RUN_AFTER(choiceIconDisplayed, 25)
-		local function uiResponse()
-			self.hmiConnection:SendNotification("TTS.Stopped")
-			self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-			self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), systemContext = "MAIN"})
-		end
-		RUN_AFTER(uiResponse, 30)
-	end)
-	:ValidIf(function(_,data)
-		if data.params.fakeParam or
-		data.params.vrHelp[1].fakeParam or
-		data.params.ttsChunks then
-			print(" \27[36m SDL re-sends fakeParam parameters to HMI in UI.PerformInteraction request \27[0m ")
-			return false
-		else
-			return true
-		end
-	end)
-	EXPECT_NOTIFICATION("OnHMIStatus",
-	{ hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"},
-	{ hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "VRSESSION"},
-	{ hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "VRSESSION"},
-	{ hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "HMI_OBSCURED"},
-	{ hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "HMI_OBSCURED"},
-	{ hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-	:Times(6)
-	EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT" })
-end
 -------------------------------------------------------------------------------
 -- TC15_Description: ScrollableMessage
 function Test:ScrollableMessage_PositiveCase()
@@ -2014,6 +1779,23 @@ for i=1,#buttonName do
 	end
 end
 -------------------------------------------------------------------------------
+-- TC_Description: OnButtonEvent, OnButtonPress
+local button_press_modes = {"SHORT", "LONG"}
+for i =1, #buttonName do
+  for j =1, #button_press_modes do
+    Test["OnButtonEvent_OnButtonPress_PositiveCase_" .. tostring(buttonName[i]) .. "_PressMode_" .. tostring(button_press_modes[j]) .. "_SUCCESS"] = function(self)
+      self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = buttonName[i], mode = "BUTTONDOWN"})
+      self.hmiConnection:SendNotification("Buttons.OnButtonEvent",{name = buttonName[i], mode = "BUTTONUP"})
+      self.hmiConnection:SendNotification("Buttons.OnButtonPress",{name = buttonName[i], mode = button_press_modes[j]})
+      EXPECT_NOTIFICATION("OnButtonEvent", 
+          {buttonName = buttonName[i], buttonEventMode = "BUTTONDOWN"},
+          {buttonName = buttonName[i], buttonEventMode = "BUTTONUP"})
+      :Times(2)
+      EXPECT_NOTIFICATION("OnButtonPress", {buttonName = buttonName[i], buttonPressMode = button_press_modes[j]})
+    end
+  end
+end
+-------------------------------------------------------------------------------
 -- TC25_Description: UnSubscribeButton
 local function unSubscribeButton(self, btnName, strTestCaseName)
 	Test[strTestCaseName] = function(self)
@@ -2203,6 +1985,81 @@ function Test:GetVehicleData_PositiveCase()
 	EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS"})
 	common_functions:DelayedExp(300)
 end
+-------------------------------------------------------------------------------
+local vehicleDataValues_expect = {
+	gps = {
+		longitudeDegrees = 25.5,
+		latitudeDegrees = 45.5
+	},
+	speed = 100.5,
+	rpm = 1000,
+	fuelLevel= 50.5,
+	fuelLevel_State="NORMAL",
+	instantFuelConsumption=1000.5,
+	externalTemperature=55.5,
+	prndl="DRIVE",
+	tirePressure={
+		pressureTelltale = "ON",
+	},
+	odometer= 8888,
+	beltStatus={
+		driverBeltDeployed = "NOT_SUPPORTED"
+	},
+	bodyInformation={
+		parkBrakeActive = true,
+		ignitionStableStatus = "MISSING_FROM_TRANSMITTER",
+		ignitionStatus = "UNKNOWN"
+	},
+	deviceStatus={
+		voiceRecOn = true
+	},
+	driverBraking="NOT_SUPPORTED",
+	wiperStatus="MAN_LOW",
+	headLampStatus={
+		lowBeamsOn = true,
+		highBeamsOn = true,
+		ambientLightSensorStatus = "NIGHT"
+	},
+	engineTorque=555.5,
+	accPedalPosition=55.5,
+	steeringWheelAngle=555.5,
+	eCallInfo={
+		eCallNotificationStatus = "NORMAL",
+		auxECallNotificationStatus = "NORMAL",
+		eCallConfirmationStatus = "NORMAL"
+	},
+	airbagStatus={
+		driverAirbagDeployed = "NOT_SUPPORTED",
+		driverSideAirbagDeployed = "NOT_SUPPORTED",
+		driverCurtainAirbagDeployed = "NOT_SUPPORTED",
+		passengerAirbagDeployed = "NOT_SUPPORTED",
+		passengerCurtainAirbagDeployed = "NOT_SUPPORTED",
+		driverKneeAirbagDeployed = "NOT_SUPPORTED",
+		passengerSideAirbagDeployed = "NOT_SUPPORTED",
+		passengerKneeAirbagDeployed = "NOT_SUPPORTED"
+	},
+	emergencyEvent={
+		emergencyEventType = "NO_EVENT",
+		fuelCutoffStatus = "NORMAL_OPERATION",
+		rolloverEvent = "NO_EVENT",
+		maximumChangeVelocity = 0,
+		multipleEvents = "NO_EVENT"
+	},
+	clusterModeStatus={
+		powerModeActive = true,
+		powerModeQualificationStatus = "POWER_MODE_UNDEFINED",
+		carModeStatus = "TRANSPORT",
+		powerModeStatus = "KEY_OUT"
+	},
+	myKey={
+		e911Override = "NO_DATA_EXISTS"
+	}
+}
+function Test:OnVehicleData_PositiveCase()
+  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", vehicleDataValues)
+  EXPECT_NOTIFICATION("OnVehicleData", vehicleDataValues_expect)
+end
+
 -------------------------------------------------------------------------------
 -- TC28_Description: UnSubscribeVehicleData
 local USVDValues = {gps="VEHICLEDATA_GPS", speed="VEHICLEDATA_SPEED", rpm="VEHICLEDATA_RPM", fuelLevel="VEHICLEDATA_FUELLEVEL", fuelLevel_State="VEHICLEDATA_FUELLEVEL_STATE", instantFuelConsumption="VEHICLEDATA_FUELCONSUMPTION", externalTemperature="VEHICLEDATA_EXTERNTEMP", prndl="VEHICLEDATA_PRNDL", tirePressure="VEHICLEDATA_TIREPRESSURE", odometer="VEHICLEDATA_ODOMETER", beltStatus="VEHICLEDATA_BELTSTATUS", bodyInformation="VEHICLEDATA_BODYINFO", deviceStatus="VEHICLEDATA_DEVICESTATUS", driverBraking="VEHICLEDATA_BRAKING", wiperStatus="VEHICLEDATA_WIPERSTATUS", headLampStatus="VEHICLEDATA_HEADLAMPSTATUS", engineTorque="VEHICLEDATA_ENGINETORQUE", accPedalPosition="VEHICLEDATA_ACCPEDAL", steeringWheelAngle="VEHICLEDATA_STEERINGWHEEL", eCallInfo="VEHICLEDATA_ECALLINFO", airbagStatus="VEHICLEDATA_AIRBAGSTATUS", emergencyEvent="VEHICLEDATA_EMERGENCYEVENT", clusterModeStatus="VEHICLEDATA_CLUSTERMODESTATUS", myKey="VEHICLEDATA_MYKEY"}
@@ -2425,6 +2282,9 @@ function Test:GenericResponse_PositiveCase()
 		payload = '{}'
 	}
 	self.mobileSession:Send(msg)
+--[[
+  --[TODO][nhphi] Below code can only be checked by manual reading ATF log. 
+  -- ATF does not support below checking still [APPLINK-33041] is implemented. 
 	EXPECT_RESPONSE(self.mobileSession.correlationId)
 	:ValidIf(function(_,data)
 		if data.rpcFunctionId == generic_response_id then
@@ -2438,6 +2298,7 @@ function Test:GenericResponse_PositiveCase()
 			return false
 		end
 	end)
+--]]
 end
 -------------------------------------------------------------------------------
 -- TC32_Description: OnDriverDistraction
@@ -2712,7 +2573,7 @@ end
 -------------------------------------------------------------------------------
 -- TC41_Description: RegisterAppInterface
 function Test:RegisterAppInterface_PositiveCase()
-	local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
+  local app_params = 
 	{
 		syncMsgVersion =
 		{
@@ -2749,7 +2610,9 @@ function Test:RegisterAppInterface_PositiveCase()
 			carrier = "carrier",
 			maxNumberRFCOMMPorts = 5
 		}
-	})
+	}
+  common_functions:StoreApplicationData("mobileSession", "SyncProxyTester", app_params, _, self)
+	local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", app_params)
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {
 		application =
 		{
@@ -2782,10 +2645,16 @@ function Test:RegisterAppInterface_PositiveCase()
 			"VRSyncProxyTester",
 		}
 	})
+  :Do(function(_,data)
+    common_functions:StoreHmiAppId("SyncProxyTester", data.params.application.appID, self)
+  end)
 	EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
 	:Timeout(2000)
 	:Do(function(_,data)
 		EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    :Do(function(_,data)
+      common_functions:StoreHmiStatus("SyncProxyTester", data.payload, self)
+    end)
 	end)
 	EXPECT_NOTIFICATION("OnPermissionsChange")
 end
@@ -2821,6 +2690,36 @@ function Test:SubscribeWayPoints_PositiveCase ()
 	EXPECT_NOTIFICATION("OnHashChange")
 end
 -------------------------------------------------------------------------------
+-- TC_Description: OnWayPointChange
+common_steps:ActivateApplication("Activate_App_Before_OnWayPointChange", "SyncProxyTester", "FULL")
+function Test:OnWayPointChange_ParamsAreValid()
+  local notifications = {
+    wayPoints = {{
+      coordinate = {
+        latitudeDegrees = -90,
+        longitudeDegrees = -180},
+      locationName = "Ho Chi Minh City",
+      addressLines = {"182 LDH"},
+      locationDescription = "Flemington Building",
+      phoneNumber = "1234321",
+      locationImage = {
+        value = config.pathToSDL .."icon.png",
+        imageType = "DYNAMIC"},
+      searchAddress = {
+        countryName = "aaa",
+        countryCode = "084",
+        postalCode = "test",
+        administrativeArea = "aa",
+        subAdministrativeArea="a",
+        locality="a",
+        subLocality="a",
+        thoroughfare="a",
+        subThoroughfare="a"}}}}
+  self.hmiConnection:SendNotification("Navigation.OnWayPointChange", notifications)	 		
+  EXPECT_NOTIFICATION("OnWayPointChange")
+end
+
+-------------------------------------------------------------------------------
 -- TC44_Description: UnsubscribeWayPoints
 function Test:UnsubscribeWayPoints_PositiveCase ()
 	local cid = self.mobileSession:SendRPC("UnsubscribeWayPoints",{})
@@ -2831,8 +2730,170 @@ function Test:UnsubscribeWayPoints_PositiveCase ()
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 	EXPECT_NOTIFICATION("OnHashChange")
 end
+
 -------------------------------------------------------------------------------
--- TC45_Description: GetWayPoints
+-- TC45_Description: OnLanguageChange
+function Test:OnLanguageChange_UI()
+  self.hmiConnection:SendNotification("UI.OnLanguageChange", {language = "DE-DE"})
+  EXPECT_NOTIFICATION("OnLanguageChange",{language="EN-US", hmiDisplayLanguage="DE-DE"})
+  -- App name = "SyncProxyTester" which is registered from TC41: RegisterAppInterface
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {
+      appID = common_functions:GetHmiAppId("SyncProxyTester", self),
+      unexpectedDisconnect =  false})
+  EXPECT_NOTIFICATION("OnAppInterfaceUnregistered", {reason = "LANGUAGE_CHANGE"})
+end
+
+local app_params_language_change_ui = {
+  hmiDisplayLanguageDesired = "DE-DE",
+  deviceInfo = {
+    maxNumberRFCOMMPorts = 1,
+    carrier = "Megafon",
+    os = "Android",
+    osVersion = "4.4.2",
+    firmwareRev = "Name: Linux, Version: 3.4.0-perf"},
+  appName = "Test Application",
+  isMediaApplication = true,
+  languageDesired = "EN-US",
+  syncMsgVersion = {
+    majorVersion = 3,
+    minorVersion = 0},
+  appHMIType = {"NAVIGATION"},
+  appID = "0000001"}
+common_steps:RegisterApplication("Register_App_After_OnLanguageChange_UI", "mobileSession", app_params_language_change_ui)
+
+function Test:OnLanguageChange_TTS_VR()
+  self.hmiConnection:SendNotification("TTS.OnLanguageChange", {language = "FR-CA"})
+  self.hmiConnection:SendNotification("VR.OnLanguageChange", {language = "FR-CA"})
+  EXPECT_NOTIFICATION("OnLanguageChange",{language="FR-CA", hmiDisplayLanguage="DE-DE"})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {
+      appID = common_functions:GetHmiAppId("Test Application", self),
+      unexpectedDisconnect =  false})
+  EXPECT_NOTIFICATION("OnAppInterfaceUnregistered", {reason = "LANGUAGE_CHANGE"})
+end
+
+local app_params_language_change_tts_vr = {
+  hmiDisplayLanguageDesired = "DE-DE",
+  deviceInfo = {
+    maxNumberRFCOMMPorts = 1,
+    carrier = "Megafon",
+    os = "Android",
+    osVersion = "4.4.2",
+    firmwareRev = "Name: Linux, Version: 3.4.0-perf"},
+  appName = "Test Application",
+  isMediaApplication = true,
+  languageDesired = "FR-CA",
+  syncMsgVersion = {
+    majorVersion = 3,
+    minorVersion = 0},
+  appHMIType = {"NAVIGATION"},
+  appID = "0000001"}
+common_steps:RegisterApplication("Register_App_After_OnLanguageChange_TTS_VR", "mobileSession", app_params_language_change_tts_vr)
+common_steps:ActivateApplication("Activate_App_After_OnLanguageChange_TTS_VR", app_params_language_change_tts_vr.appName, "FULL")
+-------------------------------------------------------------------------------
+-- TC46_Description: OnTBTClientState
+local tbt_states = {
+  "ROUTE_UPDATE_REQUEST",
+	"ROUTE_ACCEPTED",
+	"ROUTE_REFUSED",
+	"ROUTE_CANCELLED",
+	"ETA_REQUEST",
+	"NEXT_TURN_REQUEST",
+	"ROUTE_STATUS_REQUEST",
+	"ROUTE_SUMMARY_REQUEST",
+	"TRIP_STATUS_REQUEST",
+	"ROUTE_UPDATE_REQUEST_TIMEOUT"}
+for i = 1, #tbt_states do
+  Test["OnTBTClientState_" .. tbt_states[i]] = function(self)
+    self.hmiConnection:SendNotification("Navigation.OnTBTClientState", {state = tbt_states[i]})
+    EXPECT_NOTIFICATION("OnTBTClientState", {state = tbt_states[i]})
+  end
+end
+
+-------------------------------------------------------------------------------
+-- TC47_Description: OnTouchEvent
+local ontouch_types = {
+  "BEGIN",
+  "MOVE",
+  "END"
+} 
+for i = 1, #ontouch_types do
+  Test["OnTouchEvent_" .. ontouch_types[i]] = function(self)
+    local notification = {
+      type = ontouch_types[i], 
+      event = {{id = i, ts = {100+i,100+i}, c = {{x = i, y = i}}}}}
+    self.hmiConnection:SendNotification("UI.OnTouchEvent", notification)
+    EXPECT_NOTIFICATION("OnTouchEvent", notification)
+  end
+end
+
+-------------------------------------------------------------------------------
+-- TC48_Description: OnAppPermissionConsent and OnPermissionsChange
+local group_id
+
+function Test:Precondition_CreateJsonFile()
+  assert(os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json /tmp/update_ptu.json" ))
+  -- remove preload_pt
+  local parent_removed_item = {"policy_table", "module_config"}
+  local removed_json_items = {"preloaded_pt"}
+  common_functions:RemoveItemsFromJsonFile("/tmp/update_ptu.json", parent_removed_item, removed_json_items)
+  -- add application policy
+  local parent_added_item = {"policy_table", "app_policies"}
+  local added_json_items ={}
+  added_json_items["0000001"] = {
+      keep_context = false,
+      steal_focus = false,
+      priority = "NONE",
+      default_hmi = "NONE",
+      groups = {"Base-4", "Group001"}
+    }
+  common_functions:AddItemsIntoJsonFile("/tmp/update_ptu.json", parent_added_item, added_json_items)
+  -- add function group
+  local parent_added_item_2 = {"policy_table", "functional_groupings"}
+  local added_json_items_2 ={}
+  added_json_items_2["Group001"] = {
+    user_consent_prompt = "ConsentGroup001",
+    rpcs = {GetWayPoints = {hmi_levels = {"BACKGROUND","FULL","LIMITED","NONE"}}}}
+  common_functions:AddItemsIntoJsonFile("/tmp/update_ptu.json", parent_added_item_2, added_json_items_2)    
+end
+
+update_policy:updatePolicy("/tmp/update_ptu.json", nil, "Precondition_Update_Policy")
+
+function Test:Precondition_Get_List_Of_Permissions()
+  local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
+  EXPECT_HMIRESPONSE(request_id,{
+    result = {
+      code = 0,
+      method = "SDL.GetListOfPermissions",
+      allowedFunctions = {{name = "ConsentGroup001"}}}})
+  :Do(function(_,data)
+    for i = 1, #data.result.allowedFunctions do
+      if(data.result.allowedFunctions[i].name == "ConsentGroup001") then
+        group_id = data.result.allowedFunctions[i].id
+      end
+    end
+  end)
+end
+
+function Test:OnAppPermissionConsent_OnPermissionsChange()
+  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+      source = "GUI",
+      consentedFunctions = {{name = "ConsentGroup001", id = group_id, allowed = true}}
+    })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+    for i = 1, #data.payload.permissionItem do
+      if data.payload.permissionItem[i].rpcName == "GetWayPoints" then
+        return common_functions:CompareTables(
+          data.payload.permissionItem[i].hmiPermissions,
+          {allowed = {"BACKGROUND","FULL","LIMITED","NONE"}, userDisallowed = {}})
+      end
+    end
+  end)
+end
+
+-------------------------------------------------------------------------------
+-- TC49_Description: GetWayPoints
+-- Note: This RPC is disallowed and need TC48 to allowed in Policy Table.
 function Test:GetWayPoints_PositiveCase()
 	local cid = self.mobileSession:SendRPC("GetWayPoints", { wayPointType = "ALL"})
 	local response = {}
@@ -2875,6 +2936,61 @@ function Test:GetWayPoints_PositiveCase()
 	end)
 	EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS"})
 end
+
+-------------------------------------------------------------------------------
+-- TC50_Description: OnAppInterfaceUnregistered
+function Test:OnAppInterfaceUnregistered_IGNITION_OFF()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
+  self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {reason = "IGNITION_OFF"})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
+  common_functions:DelayedExp(2000)  
+  StopSDL()
+end
+
+common_steps:PreconditionSteps("Precondition", 7)
+
+function Test:OnAppInterfaceUnregistered_FACTORY_DEFAULTS()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "FACTORY_DEFAULTS"})
+  self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "FACTORY_DEFAULTS"}})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
+  common_functions:DelayedExp(2000)
+  StopSDL()
+end
+
+common_steps:PreconditionSteps("Precondition", 7)
+
+function Test:OnAppInterfaceUnregistered_UNSUPPORTED_HMI_RESOURCE()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {
+    appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self), 
+    reason = "UNSUPPORTED_HMI_RESOURCE"})
+  self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "UNSUPPORTED_HMI_RESOURCE"}})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
+  common_functions:DelayedExp(2000)
+  StopSDL()
+end
+
+common_steps:PreconditionSteps("Precondition", 7)
+
+function Test:OnAppInterfaceUnregistered_UNAUTHORIZED_TRANSPORT_REGISTRATION()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {
+    appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self),
+    reason = "UNAUTHORIZED_TRANSPORT_REGISTRATION"})
+  self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "UNAUTHORIZED_TRANSPORT_REGISTRATION"}})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
+  common_functions:DelayedExp(2000)
+  StopSDL()
+end
+
+common_steps:PreconditionSteps("Precondition", 7)
+
+function Test:OnAppInterfaceUnregistered_MASTER_RESET()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "MASTER_RESET"})
+  self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", {{reason = "MASTER_RESET"}})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
+  common_functions:DelayedExp(2000)
+  StopSDL()
+end
+
 -------------------------------------------Postconditions-------------------------------------
 common_steps:RestoreIniFile("Restore_PreloadedPT", "sdl_preloaded_pt.json")
 function Test:RestoreHmiCapabilities()

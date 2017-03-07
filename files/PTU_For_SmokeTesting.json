@@ -44,6 +44,20 @@
               "LIMITED"
             ]
           },
+          "OnTBTClientState": {
+            "hmi_levels": [
+              "BACKGROUND",
+              "FULL",
+              "LIMITED"
+            ]
+          },
+          "OnWayPointChange": {
+            "hmi_levels": [
+              "BACKGROUND",
+              "FULL",
+              "LIMITED"
+            ]
+          },
           "SubscribeWayPoints": {
             "hmi_levels": [
               "NONE",
@@ -53,14 +67,6 @@
             ]
           },
           "UnsubscribeWayPoints": {
-            "hmi_levels": [
-              "NONE",
-              "BACKGROUND",
-              "FULL",
-              "LIMITED"
-            ]
-          },
-          "GetWayPoints": {
             "hmi_levels": [
               "NONE",
               "BACKGROUND",
