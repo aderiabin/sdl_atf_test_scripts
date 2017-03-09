@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/smartdevicelink/sdl_atf_test_scripts.svg?branch=master)](https://travis-ci.org/smartdevicelink/sdl_atf_test_scripts)
-
 # Automated Test Framework (ATF) scripts
 This repository contains ATF scripts and data to run it.
 
