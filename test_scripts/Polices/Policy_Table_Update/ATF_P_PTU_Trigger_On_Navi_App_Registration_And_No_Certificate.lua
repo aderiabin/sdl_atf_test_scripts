@@ -36,6 +36,8 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 Test = require('user_modules/shared_testcases_genivi/connecttest')
 require('cardinalities')
 local mobile_session = require('mobile_session')
+local common_functions = require('user_modules/common_functions')
+local endpoints_rpc_url = common_functions:GetItemsFromJsonFile(config.pathToSDL .. "sdl_preloaded_pt.json", {"policy_table", "module_config", "endpoints", "0x07", "default", 1})
 
 --[[ Preconditions ]]
 
@@ -58,7 +60,7 @@ end
 
 function Test:Precondition_UpdatePolicyWithPTU()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}}}})
   :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
