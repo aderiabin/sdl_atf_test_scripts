@@ -1,3 +1,4 @@
+
 --Requirements: [APPLINK-16307][RegisterAppInterface] WARNINGS AppHMIType(s) partially coincide
 --or not coincide with current non-empty data stored in PolicyTable
 
@@ -16,6 +17,10 @@
 
 --Performed steps
 --1.Mobile app sends RegisterAppInterface rpc with value of AppHMIType {"MESSAGING", "TESTING"}
+
+-- Postconditions:
+-- 1. Restore sdl_preloaded_pt.json
+-- 2. Stop SDL
 
 -- Expected result:
 --1. SDL->apps: (WARNINGS, success: true, 'info': "all HMI types that are got in request but
@@ -113,5 +118,7 @@ function Test:RegisterAppInterface_SuccessResultWithWarnings()
   EXPECT_NOTIFICATION("OnPermissionsChange")
 end
 -- -------------------------------------------Postcondition-------------------------------------
-common_functions:RestoreFile("sdl_preloaded_pt.json",1)
+Test["Restore file"] = function(self)
+  common_functions:RestoreFile("sdl_preloaded_pt.json",1)
+end
 common_steps:StopSDL("StopSDL")
