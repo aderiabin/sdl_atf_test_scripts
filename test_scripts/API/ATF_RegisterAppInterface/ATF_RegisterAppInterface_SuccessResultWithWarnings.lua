@@ -119,6 +119,6 @@ function Test:RegisterAppInterface_SuccessResultWithWarnings()
 end
 -- -------------------------------------------Postcondition-------------------------------------
 Test["Restore file"] = function(self)
-  common_functions:RestoreFile("sdl_preloaded_pt.json",1)
+  common_functions:RestoreFile("sdl_preloaded_pt.json", 1)
 end
 common_steps:StopSDL("StopSDL")
