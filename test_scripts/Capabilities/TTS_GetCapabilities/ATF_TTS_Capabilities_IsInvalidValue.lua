@@ -15,29 +15,26 @@
 -- 3. Register App
 -- Expected result:
 -- 4. SDL->Mob: {success = true, speechCapabilities = <value from hmi_capabilities.json>})
+-- -- SDL must NOT provide prerecordedSpeech parameter within a response to RegisterAppInterface request.
 
 ------------------------------------ Common Variables And Functions -------------------------
 require('user_modules/all_common_modules')
-local speechCapabilities_Default = "TEXT"
+local speechCapabilities_Default = common_functions:GetParameterValueInJsonFile
+(config.pathToSDL.."hmi_capabilities.json", {"TTS", "capabilities"})
 local speechCapabilities_invalid_value ={("INVALID")}
-local speechCapabilities =
-{
-
+local speechCapabilities = {
   ("TEXT"),
   ("SAPI_PHONEMES"),
   ("LHPLUS_PHONEMES"),
   ("PRE_RECORDED"),
-  ("SILENCE")
-}
+  ("SILENCE")}
 local prerecordedSpeech_invalid_value = {("INVALID")}
-local prerecordedSpeech =
-{
+local prerecordedSpeech = {
   ("HELP_JINGLE"),
   ("INITIAL_JINGLE"),
   ("LISTEN_JINGLE"),
   ("POSITIVE_JINGLE"),
-  ("NEGATIVE_JINGLE")
-}
+  ("NEGATIVE_JINGLE")}
 
 local function ExpectRequest(self, name, mandatory, params)
   local event = events.Event()
@@ -58,8 +55,7 @@ local function ExpectRequest(self, name, mandatory, params)
 end
 
 local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
-  return
-  {
+  return {
     name = name,
     shortPressAvailable = shortPressAvailable == nil and true or shortPressAvailable,
     longPressAvailable = longPressAvailable == nil and true or longPressAvailable,
@@ -68,8 +64,7 @@ local function button_capability(name, shortPressAvailable, longPressAvailable, 
 end
 
 local function text_field(name, characterSet, width, rows)
-  return
-  {
+  return {
     name = name,
     characterSet = characterSet or "TYPE2SET",
     width = width or 500,
@@ -78,29 +73,24 @@ local function text_field(name, characterSet, width, rows)
 end
 
 local function image_field(name, width, height)
-  return
-  {
+  return {
     name = name,
-    imageTypeSupported =
-    {
+    imageTypeSupported = {
       "GRAPHIC_BMP",
       "GRAPHIC_JPEG",
       "GRAPHIC_PNG"
     },
-    imageResolution =
-    {
+    imageResolution = {
       resolutionWidth = width or 64,
       resolutionHeight = height or 64
     }
   }
-
 end
 
 local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerecordedSpeech)
   ExpectRequest(self,"BasicCommunication.MixingAudioSupported",true,
     { attenuatedSupported = true })
-  ExpectRequest(self,"BasicCommunication.GetSystemInfo", false,
-    {
+  ExpectRequest(self,"BasicCommunication.GetSystemInfo", false, {
       ccpu_version = "ccpu_version",
       language = "EN-US",
       wersCountryCode = "wersCountryCode"
@@ -135,8 +125,7 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
         "NO-NO","NL-BE","EL-GR","HU-HU","FI-FI","SK-SK" }
     })
   ExpectRequest(self,"VehicleInfo.GetVehicleType", true, {
-      vehicleType =
-      {
+      vehicleType = {
         make = "Ford",
         model = "Fiesta",
         modelYear = "2013",
@@ -144,11 +133,8 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
       }
     })
   ExpectRequest(self,"VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-
-  local buttons_capabilities =
-  {
-    capabilities =
-    {
+  local buttons_capabilities = {
+    capabilities = {
       button_capability("PRESET_0"),
       button_capability("PRESET_1"),
       button_capability("PRESET_2"),
@@ -171,16 +157,12 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
   ExpectRequest(self,"VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
   ExpectRequest(self,"TTS.GetCapabilities", true, {
       speechCapabilities = speechCapabilities,
-
       prerecordedSpeechCapabilities = prerecordedSpeech
     })
-
   ExpectRequest(self,"UI.GetCapabilities", true, {
-      displayCapabilities =
-      {
+      displayCapabilities = {
         displayType = "GEN2_8_DMA",
-        textFields =
-        {
+        textFields = {
           text_field("mainField1"),
           text_field("mainField2"),
           text_field("mainField3"),
@@ -214,8 +196,7 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
           text_field("addressLines"),
           text_field("phoneNumber")
         },
-        imageFields =
-        {
+        imageFields = {
           image_field("softButtonImage"),
           image_field("choiceImage"),
           image_field("choiceSecondaryImage"),
@@ -226,8 +207,7 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
           image_field("showConstantTBTIcon"),
           image_field("locationImage")
         },
-        mediaClockFormats =
-        {
+        mediaClockFormats = {
           "CLOCK1",
           "CLOCK2",
           "CLOCK3",
@@ -239,11 +219,9 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
         graphicSupported = true,
         imageCapabilities = { "DYNAMIC", "STATIC" },
         templatesAvailable = { "TEMPLATE" },
-        screenParams =
-        {
+        screenParams = {
           resolution = { resolutionWidth = 800, resolutionHeight = 480 },
-          touchEventAvailable =
-          {
+          touchEventAvailable = {
             pressAvailable = true,
             multiTouchAvailable = true,
             doublePressAvailable = false
@@ -251,15 +229,13 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
         },
         numCustomPresetsAvailable = 10
       },
-      audioPassThruCapabilities =
-      {
+      audioPassThruCapabilities = {
         samplingRate = "44KHZ",
         bitsPerSample = "8_BIT",
         audioType = "PCM"
       },
       hmiZoneCapabilities = "FRONT",
-      softButtonCapabilities =
-      {
+      softButtonCapabilities = {
         {
           shortPressAvailable = true,
           longPressAvailable = true,
@@ -268,7 +244,6 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
         }
       }
     })
-
   ExpectRequest(self,"VR.IsReady", true, { available = true })
   ExpectRequest(self,"TTS.IsReady", true, { available = true })
   ExpectRequest(self,"UI.IsReady", true, { available = true })
@@ -285,18 +260,15 @@ local function HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerec
         self.applications[app.appName] = app.appID
       end
     end)
-
   self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end
 
 local function MobileRegisterAppAndVerifyTTSCapabilities(self)
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface",
     config.application1.registerAppInterfaceParams)
-  EXPECT_RESPONSE(correlationId, {
-      success = true, speechCapabilities = speechCapabilities_Default,
-      prerecordedSpeech = prerecordedSpeech
-    })
-  :Do(function(_,data)
+  EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = speechCapabilities_Default})
+  :ValidIf(function(_, data)
+      return not data.payload.prerecordedSpeech
     end)
 end
 ---------------------------------------- Steps ---------------------------------------
@@ -306,14 +278,16 @@ local function verifyTTSCapabilitiesWhenSpeechCapabilitiesInvalid()
   common_steps:StartSDL("Precondition_StartSDL")
   common_steps:InitializeHmi("Precondition_InitHMI")
 
-  Test["Verify_HMI_Send_TTS_Capabilities_Invalid"] = function(self)
+  function Test:Verify_HMI_Send_TTS_Capabilities_Invalid()
     HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities_not_exist, prerecordedSpeech)
   end
   common_steps:AddMobileConnection("Precondition_AddMobileConnection")
   common_steps:AddMobileSession("Precondition_AddMobileSession")
 
-  Test["Mobile_Register_App_And_Verify_TTS_Capabilities"] = function(self)
-    MobileRegisterAppAndVerifyTTSCapabilities(self)
+  function Test:Mobile_Register_App_And_Verify_TTS_Capabilities()
+    if (MobileRegisterAppAndVerifyTTSCapabilities(self) == false) then
+      self.FailTestCase("prerecordedSpeech is not null")
+    end
   end
   common_steps:StopSDL("PostCondition_StopSDL")
 end
@@ -325,14 +299,16 @@ local function verifyTTSCapabilitiesWhenPrerecordSpeechCapabilitiesInvalid()
   common_steps:StartSDL("Precondition_StartSDL")
   common_steps:InitializeHmi("Precondition_InitHMI")
 
-  Test["Verify_HMI_Send_TTS_Capabilities_Invalid"] = function(self)
+  function Test:Verify_HMI_Send_TTS_Capabilities_Invalid()
     HMISendTTSGetCapabilitiesInvalid(self, speechCapabilities, prerecordedSpeech_not_exist)
   end
   common_steps:AddMobileConnection("Precondition_AddMobileConnection")
   common_steps:AddMobileSession("Precondition_AddMobileSession")
 
-  Test["Mobile_Register_App_And_Verify_TTS_Capabilities"] = function(self)
-    MobileRegisterAppAndVerifyTTSCapabilities(self)
+  function Test:Mobile_Register_App_And_Verify_TTS_Capabilities()
+    if (MobileRegisterAppAndVerifyTTSCapabilities(self) == false) then
+      self.FailTestCase("prerecordedSpeech is not null")
+    end
   end
   common_steps:StopSDL("PostCondition_StopSDL")
 end

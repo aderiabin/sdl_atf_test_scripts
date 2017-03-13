@@ -12,20 +12,18 @@
 -- 2. InitHMIOnready
 -- 3. Register App
 -- Expected result:
--- 4. SDL->Mob: {success = true, speechCapabilities = <value from hmi>, prerecordedSpeech = <value from HMI>})
+-- 4. SDL->Mob: {success = true, speechCapabilities = <value from HMI>, prerecordedSpeech = <value from HMI>})
 
 ------------------------------------ Common Variables And Functions -------------------------
 require('user_modules/all_common_modules')
-local speechCapabilities_list =
-{
+local speechCapabilities_list = {
   ("TEXT"),
   ("SAPI_PHONEMES"),
   ("LHPLUS_PHONEMES"),
   ("PRE_RECORDED"),
   ("SILENCE")
 }
-local prerecordedSpeech_list =
-{
+local prerecordedSpeech_list = {
   ("HELP_JINGLE"),
   ("INITIAL_JINGLE"),
   ("LISTEN_JINGLE"),
@@ -41,8 +39,7 @@ local function ExpectRequest(self, name, mandatory, params)
   EXPECT_HMIEVENT(event, name)
   :Times(mandatory and 1 or AnyNumber())
   :Do(function(_, data)
-      xmlReporter.AddMessage("hmi_connection","SendResponse",
-        {
+      xmlReporter.AddMessage("hmi_connection","SendResponse", {
           ["methodName"] = tostring(name),
           ["mandatory"] = mandatory ,
           ["params"]= params
@@ -52,8 +49,7 @@ local function ExpectRequest(self, name, mandatory, params)
 end
 
 local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
-  return
-  {
+  return {
     name = name,
     shortPressAvailable = shortPressAvailable == nil and true or shortPressAvailable,
     longPressAvailable = longPressAvailable == nil and true or longPressAvailable,
@@ -80,8 +76,7 @@ for i = 1, #speechCapabilities_list +1 do
   function Test:HMI_Send_TTS_GetCapabilities_Response()
     ExpectRequest(self,"BasicCommunication.MixingAudioSupported",true,
       { attenuatedSupported = true })
-    ExpectRequest(self,"BasicCommunication.GetSystemInfo", false,
-      {
+    ExpectRequest(self,"BasicCommunication.GetSystemInfo", false, {
         ccpu_version = "ccpu_version",
         language = "EN-US",
         wersCountryCode = "wersCountryCode"
@@ -125,11 +120,8 @@ for i = 1, #speechCapabilities_list +1 do
         }
       })
     ExpectRequest(self,"VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-
-    local buttons_capabilities =
-    {
-      capabilities =
-      {
+    local buttons_capabilities = {
+      capabilities = {
         button_capability("PRESET_0"),
         button_capability("PRESET_1"),
         button_capability("PRESET_2"),
@@ -146,19 +138,17 @@ for i = 1, #speechCapabilities_list +1 do
         button_capability("TUNEUP"),
         button_capability("TUNEDOWN")
       },
-      presetBankCapabilities = { onScreenPresetsAvailable = true }
+      presetBankCapabilities = {onScreenPresetsAvailable = true}
     }
     ExpectRequest(self,"Buttons.GetCapabilities", true, buttons_capabilities)
-    ExpectRequest(self,"VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
+    ExpectRequest(self,"VR.GetCapabilities", true, { vrCapabilities = {"TEXT"}})
     ExpectRequest(self,"TTS.GetCapabilities", true, {
         speechCapabilities = SpeechCapabilities,
-
         prerecordedSpeechCapabilities = PrerecordedSpeechCapabilities
       })
 
     local function text_field(name, characterSet, width, rows)
-      return
-      {
+      return {
         name = name,
         characterSet = characterSet or "TYPE2SET",
         width = width or 500,
@@ -166,30 +156,23 @@ for i = 1, #speechCapabilities_list +1 do
       }
     end
     local function image_field(name, width, height)
-      return
-      {
+      return {
         name = name,
-        imageTypeSupported =
-        {
+        imageTypeSupported = {
           "GRAPHIC_BMP",
           "GRAPHIC_JPEG",
           "GRAPHIC_PNG"
         },
-        imageResolution =
-        {
+        imageResolution = {
           resolutionWidth = width or 64,
           resolutionHeight = height or 64
         }
       }
-
     end
-
     ExpectRequest(self,"UI.GetCapabilities", true, {
-        displayCapabilities =
-        {
+        displayCapabilities = {
           displayType = "GEN2_8_DMA",
-          textFields =
-          {
+          textFields = {
             text_field("mainField1"),
             text_field("mainField2"),
             text_field("mainField3"),
@@ -223,8 +206,7 @@ for i = 1, #speechCapabilities_list +1 do
             text_field("addressLines"),
             text_field("phoneNumber")
           },
-          imageFields =
-          {
+          imageFields = {
             image_field("softButtonImage"),
             image_field("choiceImage"),
             image_field("choiceSecondaryImage"),
@@ -235,8 +217,7 @@ for i = 1, #speechCapabilities_list +1 do
             image_field("showConstantTBTIcon"),
             image_field("locationImage")
           },
-          mediaClockFormats =
-          {
+          mediaClockFormats = {
             "CLOCK1",
             "CLOCK2",
             "CLOCK3",
@@ -246,13 +227,11 @@ for i = 1, #speechCapabilities_list +1 do
             "CLOCKTEXT4"
           },
           graphicSupported = true,
-          imageCapabilities = { "DYNAMIC", "STATIC" },
-          templatesAvailable = { "TEMPLATE" },
-          screenParams =
-          {
-            resolution = { resolutionWidth = 800, resolutionHeight = 480 },
-            touchEventAvailable =
-            {
+          imageCapabilities = {"DYNAMIC", "STATIC"},
+          templatesAvailable = {"TEMPLATE"},
+          screenParams = {
+            resolution = {resolutionWidth = 800, resolutionHeight = 480},
+            touchEventAvailable = {
               pressAvailable = true,
               multiTouchAvailable = true,
               doublePressAvailable = false
@@ -260,15 +239,13 @@ for i = 1, #speechCapabilities_list +1 do
           },
           numCustomPresetsAvailable = 10
         },
-        audioPassThruCapabilities =
-        {
+        audioPassThruCapabilities = {
           samplingRate = "44KHZ",
           bitsPerSample = "8_BIT",
           audioType = "PCM"
         },
         hmiZoneCapabilities = "FRONT",
-        softButtonCapabilities =
-        {
+        softButtonCapabilities = {
           {
             shortPressAvailable = true,
             longPressAvailable = true,
@@ -277,13 +254,11 @@ for i = 1, #speechCapabilities_list +1 do
           }
         }
       })
-
-    ExpectRequest(self,"VR.IsReady", true, { available = true })
-    ExpectRequest(self,"TTS.IsReady", true, { available = true })
-    ExpectRequest(self,"UI.IsReady", true, { available = true })
-    ExpectRequest(self,"Navigation.IsReady", true, { available = true })
-    ExpectRequest(self,"VehicleInfo.IsReady", true, { available = true })
-
+    ExpectRequest(self,"VR.IsReady", true, {available = true})
+    ExpectRequest(self,"TTS.IsReady", true, {available = true})
+    ExpectRequest(self,"UI.IsReady", true, {available = true})
+    ExpectRequest(self,"Navigation.IsReady", true, {available = true})
+    ExpectRequest(self,"VehicleInfo.IsReady", true, {available = true})
     self.applications = { }
     ExpectRequest(self,"BasicCommunication.UpdateAppList", false, { })
     :Pin()
@@ -305,13 +280,10 @@ for i = 1, #speechCapabilities_list +1 do
   function Test:MobileRegisterAppAndVerifyTTSCapabilities()
     local correlationId = self.mobileSession:SendRPC("RegisterAppInterface"
       , config.application1.registerAppInterfaceParams)
-    EXPECT_RESPONSE(correlationId,
-      {
+    EXPECT_RESPONSE(correlationId, {
         success = true, speechCapabilities = SpeechCapabilities,
         prerecordedSpeech = PrerecordedSpeechCapabilities
       })
-    :Do(function(_,data)
-      end)
   end
   common_steps:StopSDL("PostCondition_StopSDL")
 end

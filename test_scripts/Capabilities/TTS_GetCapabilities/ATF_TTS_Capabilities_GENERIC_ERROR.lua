@@ -4,31 +4,29 @@
 -- [APPLINK-19635]: SDL must retrieve default value from 'HMi_capabilities.json' file and return to app
 -- [APPLINK-16101]: [RegisterAppInterface] prerecordedSpeech is NOT provided by HMI
 -- Description:
--- In case HMI responds speechCapabilities param or prerecordedSpeech param has wrong type
--- SDL must retrieve default value from 'hmi_capabilities.json' file and return to app
+-- In case HMI -> SDL: GERERIC_ERROR: TTS.GetCapabilities_response()
+-- SDL must NOT provide prerecordedSpeech parameter within a response to RegisterAppInterface request
 -- Preconditions:
 -- 1. StartSDL
 -- 2. InitHMI
 -- Steps:
--- 1. HMI->SDL: TTS.Capabilities (speechCapabilities or prerecordedSpeech has wrong type)
--- 2. InitHMIOnready
+-- 1. SDL -> HMI: TTS.GetCapabilities()
+-- 2. HMI -> SDL: GERERIC_ERROR: TTS.GetCapabilities_response()
 -- 3. Register App
 -- Expected result:
--- 4. SDL->Mob: {success = true, speechCapabilities = <value from hmi_capabilities.json>})
+-- 4. SDL->Mob: {success = true, speechCapabilities = <value from HMI>})
 -- -- SDL must NOT provide prerecordedSpeech parameter within a response to RegisterAppInterface request.
 
 ------------------------------------ Common Variables And Functions -------------------------
 require('user_modules/all_common_modules')
 local speechCapabilities_Default = common_functions:GetParameterValueInJsonFile
 (config.pathToSDL.."hmi_capabilities.json", {"TTS", "capabilities"})
-local speechCapabilities_wrong_type ={(123)}
 local speechCapabilities = {
   ("TEXT"),
   ("SAPI_PHONEMES"),
   ("LHPLUS_PHONEMES"),
   ("PRE_RECORDED"),
   ("SILENCE")}
-local prerecordedSpeech_wrong_type = {(123)}
 local prerecordedSpeech = {
   ("HELP_JINGLE"),
   ("INITIAL_JINGLE"),
@@ -44,12 +42,17 @@ local function ExpectRequest(self, name, mandatory, params)
   EXPECT_HMIEVENT(event, name)
   :Times(mandatory and 1 or AnyNumber())
   :Do(function(_, data)
-      xmlReporter.AddMessage("hmi_connection","SendResponse",{
+      xmlReporter.AddMessage("hmi_connection","SendResponse",
+        {
           ["methodName"] = tostring(name),
           ["mandatory"] = mandatory ,
           ["params"]= params
         })
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+      if tostring(name) == "TTS.GetCapabilities" then
+        self.hmiConnection:SendError(data.id, data.method, "GENERIC_ERROR", "Error message.")
+      else
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+      end
     end)
 end
 
@@ -86,7 +89,7 @@ local function image_field(name, width, height)
   }
 end
 
-local function HMISendTTSGetCapabilitiesWrongType(self, speechCapabilities, prerecordedSpeech)
+local function HMISendTTSGetCapabilitiesWithTTS_GENERIC_ERROR(self, speechCapabilities, prerecordedSpeech)
   ExpectRequest(self,"BasicCommunication.MixingAudioSupported",true,
     { attenuatedSupported = true })
   ExpectRequest(self,"BasicCommunication.GetSystemInfo", false, {
@@ -216,8 +219,8 @@ local function HMISendTTSGetCapabilitiesWrongType(self, speechCapabilities, prer
           "CLOCKTEXT4"
         },
         graphicSupported = true,
-        imageCapabilities = {"DYNAMIC", "STATIC"},
-        templatesAvailable = {"TEMPLATE"},
+        imageCapabilities = { "DYNAMIC", "STATIC" },
+        templatesAvailable = { "TEMPLATE" },
         screenParams = {
           resolution = { resolutionWidth = 800, resolutionHeight = 480 },
           touchEventAvailable = {
@@ -248,6 +251,7 @@ local function HMISendTTSGetCapabilitiesWrongType(self, speechCapabilities, prer
   ExpectRequest(self,"UI.IsReady", true, { available = true })
   ExpectRequest(self,"Navigation.IsReady", true, { available = true })
   ExpectRequest(self,"VehicleInfo.IsReady", true, { available = true })
+
   self.applications = { }
   ExpectRequest(self,"BasicCommunication.UpdateAppList", false, { })
   :Pin()
@@ -258,28 +262,28 @@ local function HMISendTTSGetCapabilitiesWrongType(self, speechCapabilities, prer
         self.applications[app.appName] = app.appID
       end
     end)
-
   self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end
 
 local function MobileRegisterAppAndVerifyTTSCapabilities(self)
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface",
+    config.application1.registerAppInterfaceParams)
   EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = speechCapabilities_Default})
   :ValidIf(function(_, data)
       return not data.payload.prerecordedSpeech
     end)
 end
+
 ---------------------------------------- Steps ---------------------------------------
-local function verifyTTSCapabilitiesWhenSpeechCapabilitiesWrongType()
+local function verifyTTSCapabilitiesWhenGENERIC_ERROR()
   common_steps:AddNewTestCasesGroup("Test case: HMI sends TTS.GetCapabilities " ..
-  "with speechCapabilities has wrong type")
+  "with GENERIC_ERROR")
   common_steps:StartSDL("Precondition_StartSDL")
   common_steps:InitializeHmi("Precondition_InitHMI")
 
-  function Test:Verify_HMI_Send_TTS_Capabilities_Invalid()
-    HMISendTTSGetCapabilitiesWrongType(self, speechCapabilities_wrong_type, prerecordedSpeech)
+  function Test:Verify_HMI_Send_TTS_Capabilities_GENERIC_ERROR()
+    HMISendTTSGetCapabilitiesWithTTS_GENERIC_ERROR(self, speechCapabilities_not_exist, prerecordedSpeech)
   end
-
   common_steps:AddMobileConnection("Precondition_AddMobileConnection")
   common_steps:AddMobileSession("Precondition_AddMobileSession")
 
@@ -290,26 +294,4 @@ local function verifyTTSCapabilitiesWhenSpeechCapabilitiesWrongType()
   end
   common_steps:StopSDL("PostCondition_StopSDL")
 end
-verifyTTSCapabilitiesWhenSpeechCapabilitiesWrongType()
-
-local function verifyTTSCapabilitiesWhenPrerecordSpeechCapabilitiesWrongType()
-  common_steps:AddNewTestCasesGroup("Test case: HMI sends TTS.GetCapabilities " ..
-  "with prerecordedSpeechCapabilities has wrong type")
-  common_steps:StartSDL("Precondition_StartSDL")
-  common_steps:InitializeHmi("Precondition_InitHMI")
-
-  function Test:Verify_HMI_Send_TTS_Capabilities_Invalid()
-    HMISendTTSGetCapabilitiesWrongType(self, speechCapabilities, prerecordedSpeech_wrong_type)
-  end
-
-  common_steps:AddMobileConnection("Precondition_AddMobileConnection")
-  common_steps:AddMobileSession("Precondition_AddMobileSession")
-
-  function Test:Mobile_Register_App_And_Verify_TTS_Capabilities()
-    if (MobileRegisterAppAndVerifyTTSCapabilities(self) == false) then
-      self.FailTestCase("prerecordedSpeech is not null")
-    end
-  end
-  common_steps:StopSDL("PostCondition_StopSDL")
-end
-verifyTTSCapabilitiesWhenPrerecordSpeechCapabilitiesWrongType()
+verifyTTSCapabilitiesWhenGENERIC_ERROR()
