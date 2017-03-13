@@ -25,6 +25,7 @@ local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFun
 local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
+local const = require('user_modules/consts')
 
 --[[ General configuration parameters ]]
 commonFunctions:cleanup_environment()
@@ -36,7 +37,6 @@ testCasesForPolicyTable.Delete_Policy_table_snapshot()
 Test = require('user_modules/shared_testcases_genivi/connecttest')
 local config = require('config')
 require('user_modules/AppTypes')
-
 
 --[[ Local Variables ]]
 local PATH_TO_POLICY_FILE = "files/jsons/Policies/PTU_ValidationRules/ptu_012.json"
@@ -143,7 +143,7 @@ function Test:updatePolicyTable(pathToPolicyFile)
 
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
-  EXPECT_HMIRESPONSE(requestId, {result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(requestId, {result = {code = 0, method = "SDL.GetURLS", urls = {{url = const.endpoints_rpc_url}}}})
   :Do(function(_, _)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
@@ -201,7 +201,6 @@ function Test:Precondition_Check_preloaded_pt_true()
     self:FailTestCase("Error: preloaded_pt.json should be updated. Value of preloaded_pt should be true. Real: "..preloaded_pt_initial)
   end
 end
-
 
 function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)

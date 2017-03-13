@@ -43,8 +43,6 @@ local commonPreconditions = require ('user_modules/shared_testcases_genivi/commo
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
 
-
-
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -174,7 +172,7 @@ end
 
 function Test:Precondition_UpdatePolicyWithPTU()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = const.endpoints_rpc_url}}}})
   :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
