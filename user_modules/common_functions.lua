@@ -713,6 +713,25 @@ function CommonFunctions:CompareTables(t1,t2)
   return true
 end
 
+-- Check if specified value (which also may be a table) is present in a table.
+-- @param value: checked value, may be a table
+-- @param searched_table: table where a value will be searched in
+-- @example: Find("find", { { "find" } }) -> true
+function CommonFunctions:Find(value, searched_table)
+  if CommonFunctions:CompareTables(value, searched_table) then
+    return true
+  end
+  if type(searched_table) ~= "table" then
+    return false
+  end
+  for _, v in pairs(searched_table) do
+    if CommonFunctions:Find(value, v) then
+      return true
+    end
+  end
+  return false
+end
+
 -- COMMON FUNCTIONS TO SDL
 --------------------------------------------------------------------------------
 -- Make reserve copy of file (FileName) in /bin folder

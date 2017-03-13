@@ -29,6 +29,7 @@ config.defaultProtocolVersion = 2
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases_genivi/testCasesForPolicyTable')
+local common_functions = require('user_modules/common_functions')
 
 --[[ Local Variables ]]
 local HMIAppID
@@ -81,7 +82,7 @@ function Test:TestStep_PTU_appPermissionsConsentNeeded_true()
       end
     end)
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}}}})
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "filename"})
 
@@ -111,6 +112,9 @@ function Test:Precondition_trigger_user_request_update_from_HMI()
 end
 
 function Test:Precondition_PTU_revoke_app()
+  local endpoints_rpc_url = common_functions:GetItemsFromJsonFile(
+    "files/PTU_NewPermissionsForUserConsent.json",
+    {"policy_table", "module_config", "endpoints", "0x07", "default", 1})
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(Between(2,3))
   :Do(function(_,data)
       if(data.params.status == "UP_TO_DATE") then
@@ -127,7 +131,7 @@ function Test:Precondition_PTU_revoke_app()
     end)
   HMIAppID = self.applications[config.application1.registerAppInterfaceParams.appName]
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}}}})
   :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "filename"})
 

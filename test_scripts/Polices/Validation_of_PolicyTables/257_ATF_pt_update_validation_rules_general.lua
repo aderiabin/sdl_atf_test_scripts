@@ -23,6 +23,9 @@
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases_genivi/testCasesForPolicySDLErrorsStops')
+endpoints_rpc_url = common_functions:GetItemsFromJsonFile(
+  config.pathToSDL .. "sdl_preloaded_pt.json",
+  {"policy_table", "module_config", "endpoints", "0x07", "default", 1})
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
@@ -45,7 +48,7 @@ local ptuAppRegistered = "files/ptu_app.json"
 function Test:updatePolicyInDifferentSessions(_, appName, mobileSession)
   local iappID = self.applications[appName]
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}}}})
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"} )
 

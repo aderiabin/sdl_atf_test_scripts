@@ -10,6 +10,8 @@ local commonPreconditions = require('user_modules/shared_testcases_genivi/common
 local commonSteps = require('user_modules/shared_testcases_genivi/commonSteps')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
 local json = require('json')
+local common_functions = require('user_modules/common_functions')
+local endpoints_rpc_url = common_functions:GetItemsFromJsonFile(config.pathToSDL .. "sdl_preloaded_pt.json", {"policy_table", "module_config", "endpoints", "0x07", "default", 1})
 
 --Policy template
 local PolicyTableTemplate = "user_modules/shared_testcases_genivi/PolicyTables/DefaultPolicyTableWith_group1.json"
@@ -306,7 +308,7 @@ function testCasesForPolicyTable:updatePolicy(PTName, iappID)
     local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
     --hmi side: expect SDL.GetURLS response from HMI
-    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}}}})
     :Do(function(_,_)
         --print("SDL.GetURLS response is received")
         --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
@@ -406,7 +408,7 @@ function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, a
     local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
     --hmi side: expect SDL.GetURLS response from HMI
-    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}}}})
     :Do(function(_,_)
         --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
         self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",

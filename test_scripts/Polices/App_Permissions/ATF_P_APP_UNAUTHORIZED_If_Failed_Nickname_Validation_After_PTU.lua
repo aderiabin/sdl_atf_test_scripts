@@ -23,6 +23,7 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
+local const = require('user_modules/consts')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
@@ -174,7 +175,7 @@ function Test:TestStep_Update_PT_With_Another_NickName_For_Current_App_And_Check
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,_)
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = const.endpoints_rpc_url}}}})
       :Do(function()
           self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
           EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })

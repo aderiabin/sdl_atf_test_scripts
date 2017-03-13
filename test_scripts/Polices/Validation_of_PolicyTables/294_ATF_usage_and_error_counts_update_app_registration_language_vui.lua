@@ -30,6 +30,7 @@ local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases_genivi/testCasesForPolicyTableSnapshot')
 require('cardinalities')
 require('user_modules/AppTypes')
+local const = require('user_modules/consts')
 
 --[[ General precondition brfore ATF start]]
 commonFunctions:cleanup_environment()
@@ -282,7 +283,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
 
   local iappID = self.applications[appName]
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = const.endpoints_rpc_url}}}})
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"} )
 

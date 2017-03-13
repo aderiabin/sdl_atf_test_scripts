@@ -60,15 +60,15 @@ local function PrepareJsonPTU1(name, new_ptufile)
   testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_ptu_file, new_ptufile, name, app)
 
   -- Update "default" to make it basic
-    local json_default = [[ {
-        "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": [
-          "Base-4"
-        ]
-      }]]
+  local json_default = [[ {
+    "keep_context": false,
+    "steal_focus": false,
+    "priority": "NONE",
+    "default_hmi": "NONE",
+    "groups": [
+    "Base-4"
+    ]
+  }]]
   testCasesForPolicyTable:AddApplicationToPTJsonFile(new_ptufile, new_ptufile, "default", json_default)
 end
 
@@ -151,6 +151,7 @@ function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
             return false
           end
         end)
+      :Times(AtLeast(1))
     end)
 end
 

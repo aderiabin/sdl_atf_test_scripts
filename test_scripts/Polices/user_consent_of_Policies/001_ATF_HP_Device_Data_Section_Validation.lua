@@ -46,6 +46,10 @@ local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
 require('user_modules/AppTypes')
 local utils = require('user_modules/utils')
+local common_functions = require('user_modules/common_functions')
+endpoints_rpc_url = common_functions:GetItemsFromJsonFile(
+  config.pathToSDL .. "sdl_preloaded_pt.json",
+  {"policy_table", "module_config", "endpoints", "0x07", "default", 1})
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
@@ -126,7 +130,7 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
 
   local hmi_app_id = common_functions:GetHmiAppId(const.default_app_name, self)
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = hmi_app_id})
-  EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
+  EXPECT_HMIRESPONSE(RequestId, {code = 0, isSDLAllowed = false, method = "SDL.ActivateApp"})
   :Do(function(_,_)
       local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
       EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
@@ -146,7 +150,7 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,_)
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}}}})
       :Do(function()
           self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
           EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
@@ -174,9 +178,9 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
   :Do(function(_,_)
       local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = hmi_app_id })
       EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
-        { result = {
-            code = 0,
-            allowedFunctions = {{name = "Location"}} },
+        {
+          code = 0,
+          allowedFunctions = {{name = "Location"}},
           method = "SDL.GetListOfPermissions"})
       :Do(function(_,data1)
           local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Location"}})

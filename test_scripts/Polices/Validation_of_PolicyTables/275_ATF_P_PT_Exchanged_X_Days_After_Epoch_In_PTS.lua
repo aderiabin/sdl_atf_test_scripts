@@ -23,6 +23,7 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases_genivi/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases_genivi/commonFunctions')
+local const = require('user_modules/consts')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:cleanup_environment()
@@ -81,7 +82,7 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
       days_after_epoch_prev = getDaysAfterEpochFromPTS(pathToSnapshot)
 
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = const.endpoints_rpc_url}}}})
       :Do(function()
           self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
           EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
@@ -110,8 +111,8 @@ function Test:TestStep_Initiate_PTU_And_Check_Days_After_Epoch_In_PTS()
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate")
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :ValidIf(function()
-    local system_time = getSystemDaysAfterEpoch()
-    local days_after_epoch_current = getDaysAfterEpochFromPTS(pathToSnapshot)
+      local system_time = getSystemDaysAfterEpoch()
+      local days_after_epoch_current = getDaysAfterEpochFromPTS(pathToSnapshot)
 
       if( days_after_epoch_current ~= (days_after_epoch_prev + 1)*system_time ) then
         self:FailTestCase("Days_after_epoch are not changed. Previous: " .. days_after_epoch_prev .. ", Current: " .. days_after_epoch_current)
