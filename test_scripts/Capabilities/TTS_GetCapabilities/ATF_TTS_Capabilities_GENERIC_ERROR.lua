@@ -268,7 +268,7 @@ end
 local function MobileRegisterAppAndVerifyTTSCapabilities(self)
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface",
     config.application1.registerAppInterfaceParams)
-  EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = speechCapabilities_Default})
+  EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = speechCapabilities})
   :ValidIf(function(_, data)
       return not data.payload.prerecordedSpeech
     end)
@@ -282,7 +282,7 @@ local function verifyTTSCapabilitiesWhenGENERIC_ERROR()
   common_steps:InitializeHmi("Precondition_InitHMI")
 
   function Test:Verify_HMI_Send_TTS_Capabilities_GENERIC_ERROR()
-    HMISendTTSGetCapabilitiesWithTTS_GENERIC_ERROR(self, speechCapabilities_not_exist, prerecordedSpeech)
+    HMISendTTSGetCapabilitiesWithTTS_GENERIC_ERROR(self, speechCapabilities, prerecordedSpeech)
   end
   common_steps:AddMobileConnection("Precondition_AddMobileConnection")
   common_steps:AddMobileSession("Precondition_AddMobileSession")
