@@ -1,25 +1,26 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
---    [AppIconsFolder]: Value of "AppIconsAmountToRemove" param larger than actual number of icons in the folder
+-- [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage
+-- [AppIconsFolder]: Value of "AppIconsAmountToRemove" param larger than actual number of icons in the folder
 -- Description:
---    SDL behavior if AppIconsAmountToRemove param in .ini file is greater than actual number of icons in the icons folder  
+-- SDL behavior if AppIconsAmountToRemove param in .ini file is greater than actual number of icons in the icons folder
 -- 1. Used preconditions:
---      Stop SDL
---      Set AppIconsFolder in .ini file
---      Start SDL and HMI
---      Connect mobile
---      Make AppIconsFolder full
+-- Stop SDL
+-- Set AppIconsFolder in .ini file
+-- Start SDL and HMI
+-- Connect mobile
+-- Make AppIconsFolder full
 -- 2. Performed steps:
---      Register app
---      Send SetAppIcon   
+-- Register app
+-- Send SetAppIcon
 -- Expected result:
---    SDL must:
---      remove all old icons from AppIconsFolder folder;
---      write the new icon to AppIconsFolder folder
+-- SDL must:
+-- remove all old icons from AppIconsFolder folder;
+-- write the new icon to AppIconsFolder folder
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_resumption')
@@ -46,15 +47,15 @@ commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppI
 local function registerApplication(self)
   local corIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", RAIParameters)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-  {
-    application =
     {
-     appName = RAIParameters.appName
-    }
-  })
+      application =
+      {
+        appName = RAIParameters.appName
+      }
+    })
   :Do(function(_,data)
-    self.applications[RAIParameters.appName] = data.params.application.appID
-  end)
+      self.applications[RAIParameters.appName] = data.params.application.appID
+    end)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
@@ -63,9 +64,9 @@ local function pathToAppFolderFunction(appID)
   return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
- local function folderSize(PathToFolder) 
+local function folderSize(PathToFolder)
   local aHandle = assert(io.popen( "du -s -B1 " .. PathToFolder, 'r'))
-  local buff = aHandle:read( '*l' ) 
+  local buff = aHandle:read( '*l' )
   return buff:match("^%d+")
 end
 
@@ -82,11 +83,11 @@ local function makeAppIconsFolderFull(AppIconsFolder)
     if copyFileToAppIconsFolder ~= true then
       commonFunctions:userPrint(31, " Files are not copied to " .. AppIconsFolder)
     end
-     sizeAppIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
-     sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
-      if i > 10 then
-        commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
-        break
+    sizeAppIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
+    sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
+    if i > 10 then
+      commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
+      break
     end
   end
 end
@@ -103,15 +104,15 @@ local function checkFunction()
     commonFunctions:userPrint(31, RAIParameters.appID .. " icon is absent")
     status = false
   end
-   for i=1, 3 do
-   local oldFileToCheck = iconsFolder.. "icon" .. i ..".png"
-   local oldFileToCheckExistsResult = commonSteps:file_exists(oldFileToCheck)
+  for i=1, 3 do
+    local oldFileToCheck = iconsFolder.. "icon" .. i ..".png"
+    local oldFileToCheckExistsResult = commonSteps:file_exists(oldFileToCheck)
     if oldFileToCheckExistsResult~=false then
       commonFunctions:userPrint(31,"Oldest icon" .. i .. ".png is not deleted from AppIconsFolder")
       status = false
     end
   end
-    return status
+  return status
 end
 
 --[[ Preconditions ]]
@@ -133,38 +134,38 @@ function Test:Check_old_icons_deleted_AmountToRemove_greater_than_icons_amount()
   self.mobileSession.version = 4
   self.mobileSession:StartService(7)
   :Do(function()
-    registerApplication(self)
-    EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-    :Do(function()
-     local cidPutFile = self.mobileSession:SendRPC("PutFile",
-      {
-        syncFileName = "iconFirstApp.png",
-        fileType = "GRAPHIC_PNG",
-        persistentFile = false,
-        systemFile = false
-      }, "files/icon.png")
-     EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
-     :Do(function()
-     local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
-     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
-     EXPECT_HMICALL("UI.SetAppIcon",
-      {
-        syncFileName =
-          {
-            imageType = "DYNAMIC",
-            value = pathToAppFolder .. "iconFirstApp.png"
-          }
-       })
-    :Do(function(_,data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      registerApplication(self)
+      EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+      :Do(function()
+          local cidPutFile = self.mobileSession:SendRPC("PutFile",
+            {
+              syncFileName = "iconFirstApp.png",
+              fileType = "GRAPHIC_PNG",
+              persistentFile = false,
+              systemFile = false
+            }, "files/icon.png")
+          EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
+          :Do(function()
+              local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
+              local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+              EXPECT_HMICALL("UI.SetAppIcon",
+                {
+                  syncFileName =
+                  {
+                    imageType = "DYNAMIC",
+                    value = pathToAppFolder .. "iconFirstApp.png"
+                  }
+                })
+              :Do(function(_,data)
+                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                end)
+              EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
+              :ValidIf(function()
+                  return checkFunction()
+                end)
+            end)
+        end)
     end)
-    EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
-    :ValidIf(function()
-     return checkFunction()
-    end)
-    end)
-    end)
-  end)
 end
 
 --[[ Postconditions ]]
@@ -175,10 +176,10 @@ end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
   assert(os.execute( "rm -rf " .. config.pathToSDL .. "Icons"))
-end  
+end
 
 function Test.Postcondition_restoreDefaultValuesInIni()
   commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
   commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 104857600)
   commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
-end  
+end

@@ -1,25 +1,26 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
---    [AppIconsFolder]: Conditions for SDL to remove old icons on value defined at "AppIconsAmountToRemove" param
+-- [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage
+-- [AppIconsFolder]: Conditions for SDL to remove old icons on value defined at "AppIconsAmountToRemove" param
 -- Description:
---    SDL should remove oldest icon due AppIconsAmountToRemove param in .ini file if not enough space 
+-- SDL should remove oldest icon due AppIconsAmountToRemove param in .ini file if not enough space
 -- 1. Used preconditions:
---      Stop SDL
---      Set AppIconsFolder in .ini file
---      Set AppIconsFolder maxSize
---      Set Icons Amount to remove if not enough space 
---      Start SDL and HMI
---      Connect mobile
---      Make AppIconsFolder is full
+-- Stop SDL
+-- Set AppIconsFolder in .ini file
+-- Set AppIconsFolder maxSize
+-- Set Icons Amount to remove if not enough space
+-- Start SDL and HMI
+-- Connect mobile
+-- Make AppIconsFolder is full
 -- 2. Performed steps:
---      Register app
---      Send SetAppIcon
+-- Register app
+-- Send SetAppIcon
 -- Expected result:
---    SDL should delete oldest icon and save a new one in AppIconsFolder  
+-- SDL should delete oldest icon and save a new one in AppIconsFolder
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_resumption')
@@ -47,26 +48,25 @@ commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppI
 local function registerApplication(self)
   local corIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", RAIParameters)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-  {
-    application =
     {
-     appName = RAIParameters.appName
-    }
-  })
+      application =
+      {
+        appName = RAIParameters.appName
+      }
+    })
   :Do(function(_,data)
-    self.applications[RAIParameters.appName] = data.params.application.appID
-  end)
+      self.applications[RAIParameters.appName] = data.params.application.appID
+    end)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
-
 
 local function pathToAppFolderFunction(appID)
   return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
- local function folderSize(PathToFolder) 
+local function folderSize(PathToFolder)
   local aHandle = assert(io.popen( "du -s -B1 " .. PathToFolder, 'r'))
-  local buff = aHandle:read( '*l' ) 
+  local buff = aHandle:read( '*l' )
   return buff:match("^%d+")
 end
 
@@ -130,38 +130,38 @@ function Test:Check_Deleted_one_old_icon_if_space_not_enough()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-    registerApplication(self)
-    EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-    :Do(function()
-     local cidPutFile = self.mobileSession:SendRPC("PutFile",
-      {
-        syncFileName = "iconFirstApp.png",
-        fileType = "GRAPHIC_PNG",
-        persistentFile = false,
-        systemFile = false
-      }, "files/icon.png")
-     EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
-     :Do(function()
-     local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
-     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
-     EXPECT_HMICALL("UI.SetAppIcon",
-      {
-        syncFileName =
-          {
-            imageType = "DYNAMIC",
-            value = pathToAppFolder .. "iconFirstApp.png"
-          }
-       })
-    :Do(function(_,data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      registerApplication(self)
+      EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+      :Do(function()
+          local cidPutFile = self.mobileSession:SendRPC("PutFile",
+            {
+              syncFileName = "iconFirstApp.png",
+              fileType = "GRAPHIC_PNG",
+              persistentFile = false,
+              systemFile = false
+            }, "files/icon.png")
+          EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
+          :Do(function()
+              local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
+              local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+              EXPECT_HMICALL("UI.SetAppIcon",
+                {
+                  syncFileName =
+                  {
+                    imageType = "DYNAMIC",
+                    value = pathToAppFolder .. "iconFirstApp.png"
+                  }
+                })
+              :Do(function(_,data)
+                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                end)
+              EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
+              :ValidIf(function()
+                  return checkOldDeleted()
+                end)
+            end)
+        end)
     end)
-    EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
-    :ValidIf(function()
-      return checkOldDeleted()
-    end)
-    end)
-    end)
-  end)
 end
 
 --[[ Postconditions ]]
@@ -172,8 +172,8 @@ end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
   assert(os.execute( "rm -rf " .. testIconsFolder))
-end  
+end
 
 function Test.Postcondition_restoreDefaultValuesInIni()
   commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
-end 
+end

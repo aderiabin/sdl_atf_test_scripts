@@ -1,21 +1,22 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
---    [AppIconsFolder]: Folder defined at "AppIconsFolder" param does NOT exist but has read-write permissions
+-- [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage
+-- [AppIconsFolder]: Folder defined at "AppIconsFolder" param does NOT exist but has read-write permissions
 -- Description:
---    SDL behavior when on startup AppIconsFolder doesn't exist
+-- SDL behavior when on startup AppIconsFolder doesn't exist
 -- 1. Used preconditions:
---    Delete log files and polisy table from previous cycle if any
---    AppIconsFolder doesn't exist
+-- Delete log files and polisy table from previous cycle if any
+-- AppIconsFolder doesn't exist
 -- 2. Performed steps:
---    Start SDL and HMI
+-- Start SDL and HMI
 -- Expected result:
---    SDL:
---      checks if AppIconsFolder exists;
---      creates AppIconsFolder
+-- SDL:
+-- checks if AppIconsFolder exists;
+-- creates AppIconsFolder
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_resumption')
@@ -43,7 +44,7 @@ function Test:Check_AppIconsFolder_is_created_on_startup()
   if dirExistResult == true then
     commonFunctions:userPrint(32, "AppIconsFolder exists")
   else
-     self:FailTestCase("Icons folder doesn't exist in SDL bin folder")
+    self:FailTestCase("Icons folder doesn't exist in SDL bin folder")
   end
 end
 
@@ -55,8 +56,8 @@ end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
   assert(os.execute( "rm -rf " .. testIconsFolder))
-end  
+end
 
 function Test.Postcondition_restoreDefaultValuesInIni()
   commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
-end 
+end

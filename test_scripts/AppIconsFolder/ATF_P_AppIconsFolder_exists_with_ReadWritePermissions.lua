@@ -1,22 +1,23 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
---    [AppIconsFolder]: SDL must check whether folder defined at "AppIconsFolder" param exists and has read-write permissions
---  
+-- [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage
+-- [AppIconsFolder]: SDL must check whether folder defined at "AppIconsFolder" param exists and has read-write permissions
+--
 -- Description:
---    SDL checks and finds icon related to app if such icons exist
+-- SDL checks and finds icon related to app if such icons exist
 -- 1. Used preconditions:
---      Delete files and policy table from previous ignition cycle if any
---      Set  SDL "IconsFolder" as AppiconsFolder in .ini file
---      Start SDL and HMI
+-- Delete files and policy table from previous ignition cycle if any
+-- Set SDL "IconsFolder" as AppiconsFolder in .ini file
+-- Start SDL and HMI
 -- 2. Performed steps:
---      Register app
---      Send SetAppIcon with appid as icon name
+-- Register app
+-- Send SetAppIcon with appid as icon name
 -- Expected result:
---      SDL correctly finds app related icons
+-- SDL correctly finds app related icons
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_resumption')
@@ -42,15 +43,15 @@ commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFold
 local function registerApplication(self)
   local corIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", RAIParameters)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-  {
-    application =
     {
-     appName = RAIParameters.appName
-    }
-  })
+      application =
+      {
+        appName = RAIParameters.appName
+      }
+    })
   :Do(function(_,data)
-    self.applications[RAIParameters.appName] = data.params.application.appID
-  end)
+      self.applications[RAIParameters.appName] = data.params.application.appID
+    end)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
@@ -66,13 +67,13 @@ local function checkFunction()
     local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
     if applicationFileExistsResult == false then
       commonFunctions:userPrint(31, RAIParameters.appID .. " icon is not written to folder")
-       status = false
-    end
-    else 
-      commonFunctions:userPrint(31, "IconsFolder folder does not exist in SDL bin folder" )
       status = false
     end
-    return status
+  else
+    commonFunctions:userPrint(31, "IconsFolder folder does not exist in SDL bin folder" )
+    status = false
+  end
+  return status
 end
 
 --[[ Preconditions ]]
@@ -89,38 +90,38 @@ function Test:Check_SDL_finds_icons_saved_in_AppIconsFolder()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-    registerApplication(self)
-    EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-    :Do(function()
-     local cidPutFile = self.mobileSession:SendRPC("PutFile",
-      {
-        syncFileName = "iconFirstApp.png",
-        fileType = "GRAPHIC_PNG",
-        persistentFile = false,
-        systemFile = false
-      }, "files/icon.png")
-     EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
-     :Do(function()
-     local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
-     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
-     EXPECT_HMICALL("UI.SetAppIcon",
-      {
-        syncFileName =
-          {
-            imageType = "DYNAMIC",
-            value = pathToAppFolder .. "iconFirstApp.png"
-          }
-       })
-    :Do(function(_,data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      registerApplication(self)
+      EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+      :Do(function()
+          local cidPutFile = self.mobileSession:SendRPC("PutFile",
+            {
+              syncFileName = "iconFirstApp.png",
+              fileType = "GRAPHIC_PNG",
+              persistentFile = false,
+              systemFile = false
+            }, "files/icon.png")
+          EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
+          :Do(function()
+              local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
+              local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+              EXPECT_HMICALL("UI.SetAppIcon",
+                {
+                  syncFileName =
+                  {
+                    imageType = "DYNAMIC",
+                    value = pathToAppFolder .. "iconFirstApp.png"
+                  }
+                })
+              :Do(function(_,data)
+                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                end)
+              EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
+              :ValidIf(function()
+                  return checkFunction()
+                end)
+            end)
+        end)
     end)
-    EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
-    :ValidIf(function()
-      return checkFunction()
-    end)
-    end)
-    end)
-  end)
 end
 
 --[[ Postconditions ]]
@@ -135,4 +136,4 @@ end
 
 function Test.Postcondition_restoreDefaultValueInIni()
   commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
-end 
+end
