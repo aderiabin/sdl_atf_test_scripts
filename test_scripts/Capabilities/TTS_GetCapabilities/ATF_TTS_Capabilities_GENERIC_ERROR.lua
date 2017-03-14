@@ -268,7 +268,7 @@ end
 local function MobileRegisterAppAndVerifyTTSCapabilities(self)
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface",
     config.application1.registerAppInterfaceParams)
-  EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = speechCapabilities})
+  EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = speechCapabilities_Default})
   :ValidIf(function(_, data)
       return not data.payload.prerecordedSpeech
     end)
