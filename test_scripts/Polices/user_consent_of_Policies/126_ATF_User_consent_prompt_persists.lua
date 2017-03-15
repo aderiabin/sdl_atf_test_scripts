@@ -216,7 +216,7 @@ end
 function Test:Precondition_PTU_user_consent_prompt_present()
   local is_test_passed = true
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "https://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "filename"})
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })

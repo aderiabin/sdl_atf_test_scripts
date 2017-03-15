@@ -84,7 +84,7 @@ common_steps:PutFile("Putfile_Icon.png", "icon.png")
 function Test:Verify_PTU_Failed_With_Existed_External_Status_Consent_Groups()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
     EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", 
-  urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  urls = {{url = "https://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,data)
     self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
       requestType = "PROPRIETARY",

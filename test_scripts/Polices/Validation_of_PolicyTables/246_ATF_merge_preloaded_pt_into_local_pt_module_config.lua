@@ -57,7 +57,7 @@ local TESTED_DATA = {
       endpoints =
       {
         ["0x07"] = {
-          default = {"http://policies.telematics.ford.com/api/policies"}
+          default = {"https://policies.telematics.ford.com/api/policies"}
         },
         ["0x04"] = {
           default = {"http://ivsu.software.ford.com/api/getsoftwareupdates"}
@@ -91,7 +91,7 @@ local TESTED_DATA = {
           default = {"http://ivsu.software.ford.com/api/getsoftwareupdates"},
         },
         ["0x04"] = {
-          default = {"http://policies.telematics.ford.com/api/policies"}
+          default = {"https://policies.telematics.ford.com/api/policies"}
         }
       },
       notifications_per_minute_by_priority =
@@ -119,8 +119,8 @@ local TESTED_DATA = {
       endpoints =
       {
        ["0x07"] = {
-          default = {"http://policies.telematics.ford.com/api/policies"},
-          new = {"http://policies.telematics.ford.com/api/policies2"}
+          default = {"https://policies.telematics.ford.com/api/policies"},
+          new = {"https://policies.telematics.ford.com/api/policies2"}
         },
         ["0x04"] = {
           default = {"http://ivsu.software.ford.com/api/getSoftwareUpdates"}
@@ -457,7 +457,7 @@ function Test:Test_NewLocalPT()
        { query = 'select * from seconds_between_retry',
      expectedValues = {"0|"..tostring(TESTED_DATA[2].module_config.seconds_between_retries[1])} },
           { query = 'select * from endpoint where service is 4',
-     expectedValues = {"4|http://policies.telematics.ford.com/api/policies|default"} }
+     expectedValues = {"4|https://policies.telematics.ford.com/api/policies|default"} }
   }
 
   if not self.checkLocalPT(checks) then

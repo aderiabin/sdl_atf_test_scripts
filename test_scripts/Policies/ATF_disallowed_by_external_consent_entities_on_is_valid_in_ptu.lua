@@ -61,7 +61,7 @@ local function UpdatePolicy(test_case_name, PTName, appName)
     --hmi side: sending SDL.GetURLS request
     local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
     --hmi side: expect SDL.GetURLS response from HMI
-    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "https://policies.telematics.ford.com/api/policies"}}}})
     :Do(function(_,data)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
       {
@@ -178,7 +178,9 @@ for i=1, #valid_entity_type_cases do
       -- remove preload_pt from json file
       local parent_item = {"policy_table","module_config"}
       local removed_json_items = {"preloaded_pt"}
-      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items) 
+      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items)
+      local removed_json_items_preloaded_date = {"preloaded_date"}
+      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items_preloaded_date) 
     end
     
     AddNewParamIntoJSonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, testing_value, "InPTU")
@@ -240,7 +242,9 @@ for i=1, #valid_entity_type_cases do
       -- remove preload_pt from json file
       local parent_item = {"policy_table","module_config"}
       local removed_json_items = {"preloaded_pt"}
-      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items) 
+      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items)
+      local removed_json_items_preloaded_date = {"preloaded_date"}
+      common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items_preloaded_date)
     end
     
     -- Add valid entityType and entityID into PTU

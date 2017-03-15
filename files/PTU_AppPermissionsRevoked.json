@@ -20,7 +20,7 @@
         },
         "0x07": {
           "default": [
-            "http://policies.telematics.ford.com/api/policies"
+            "https://policies.telematics.ford.com/api/policies"
           ]
         }
       },

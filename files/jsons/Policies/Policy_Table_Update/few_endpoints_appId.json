@@ -13,9 +13,9 @@
             625],
             "endpoints": {
                 "0x07": {
-                    "default": ["http://policies.telematics.ford.com/api/policies1",
-                               "http://policies.telematics.ford.com/api/policies2",
-                               "http://policies.telematics.ford.com/api/policies3"
+                    "default": ["https://policies.telematics.ford.com/api/policies1",
+                               "https://policies.telematics.ford.com/api/policies2",
+                               "https://policies.telematics.ford.com/api/policies3"
                                ],
 		    "0000001": ["http://policies.telematics.ford.com/api/test_apllication"],
 		    "0000002": ["http://policies.telematics.ford.com/api/not_registered_app"]
