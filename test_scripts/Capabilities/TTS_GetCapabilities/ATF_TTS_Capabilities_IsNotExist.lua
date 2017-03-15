@@ -19,7 +19,7 @@
 
 ------------------------------------ Common Variables And Functions -------------------------
 require('user_modules/all_common_modules')
-local speechCapabilities_Default = common_functions:GetParameterValueInJsonFile
+local TTSCapabilities_Default = common_functions:GetParameterValueInJsonFile
 (config.pathToSDL.."hmi_capabilities.json", {"TTS", "capabilities"})
 local speechCapabilities = {
   ("TEXT"),
@@ -274,7 +274,7 @@ end
 local function MobileRegisterAppAndVerifyTTSCapabilities(self)
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface"
     , config.application1.registerAppInterfaceParams)
-  EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = speechCapabilities_Default})
+  EXPECT_RESPONSE(correlationId, {success = true, speechCapabilities = TTSCapabilities_Default})
   :ValidIf(function(_, data)
       return not data.payload.prerecordedSpeech
     end)
