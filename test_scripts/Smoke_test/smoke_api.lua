@@ -243,6 +243,7 @@ function Test:AddCommand_PositiveCase()
 		}
 	})
 	:Do(function(_,data)
+    grammarIDValue = data.params.grammarID
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
@@ -261,7 +262,7 @@ end
 function Test:OnCommand_VR()
   self.hmiConnection:SendNotification("VR.OnCommand", {
     cmdID = 11,
-    appID = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)})
+    grammarID = grammarIDValue})
   EXPECT_NOTIFICATION("OnCommand", {cmdID = 11, triggerSource= "VR"})
 end
 
