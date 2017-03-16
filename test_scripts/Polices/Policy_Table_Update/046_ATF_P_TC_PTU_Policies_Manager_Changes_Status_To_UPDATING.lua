@@ -46,40 +46,40 @@ function Test:TestStep_CheckMessagesSequence()
   local is_test_fail = false
   local message_number = 1
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}} }} )
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = endpoints_rpc_url}} }} )
   :Do(function(_,_)
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
 
-    if(message_number ~= 1) then
-      commonFunctions:printError("Error: SDL.GetURLS reponse is not received as message 1 after SDL.GetURLS request. Real: "..message_number)
-      is_test_fail = true
-    else
-      print("SDL.GetURLS is received as message "..message_number.." after SDL.GetURLS request")
-    end
-    message_number = message_number + 1
-  end)
+      if(message_number ~= 1) then
+        commonFunctions:printError("Error: SDL.GetURLS reponse is not received as message 1 after SDL.GetURLS request. Real: "..message_number)
+        is_test_fail = true
+      else
+        print("SDL.GetURLS is received as message "..message_number.." after SDL.GetURLS request")
+      end
+      message_number = message_number + 1
+    end)
 
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
   :Do(function(_,_)
-    if( (message_number ~= 2) and (message_number ~= 3)) then
-      commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
-      is_test_fail = true
-    else
-      print("OnSystemRequest is received as message "..message_number.." after SDL.GetURLS request")
-    end
-    message_number = message_number + 1
-  end)
+      if( (message_number ~= 2) and (message_number ~= 3)) then
+        commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
+        is_test_fail = true
+      else
+        print("OnSystemRequest is received as message "..message_number.." after SDL.GetURLS request")
+      end
+      message_number = message_number + 1
+    end)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATING"})
   :Do(function(_,data)
-    if( (message_number ~= 2) and (message_number ~= 3)) then
-      commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
-      is_test_fail = true
-    else
-      print("SDL.OnStatusUpdate("..data.params.status..") is received as message "..message_number.." after SDL.GetURLS request")
-    end
-    message_number = message_number + 1
-  end)
+      if( (message_number ~= 2) and (message_number ~= 3)) then
+        commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
+        is_test_fail = true
+      else
+        print("SDL.OnStatusUpdate("..data.params.status..") is received as message "..message_number.." after SDL.GetURLS request")
+      end
+      message_number = message_number + 1
+    end)
 
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
