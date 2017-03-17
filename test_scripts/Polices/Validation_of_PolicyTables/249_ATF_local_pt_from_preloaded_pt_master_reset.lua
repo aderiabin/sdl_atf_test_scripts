@@ -43,7 +43,7 @@ local TESTED_DATA = {
       endpoints =
       {
         ["0x07"] = {
-          default = {"http://policies.telematics.ford.com/api/policies"}
+          default = {"https://policies.telematics.ford.com/api/policies"}
         },
         ["0x04"] = {
           default = {"http://ivsu.software.ford.com/api/getsoftwareupdates"}

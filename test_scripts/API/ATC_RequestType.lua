@@ -487,7 +487,7 @@ end
 		-- EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {
 		-- 																							{
 		-- 																								appID =  self.applications["Test Application"],
-		-- 	                                                                                      		url = "http://policies.telematics.ford.com/api/policies"
+		-- 	                                                                                      		url = "https://policies.telematics.ford.com/api/policies"
 		-- 																						  }
 		-- 																						}}})
 	end

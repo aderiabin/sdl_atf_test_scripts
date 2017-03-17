@@ -11,7 +11,7 @@ local function UpdatePolicy(test_case_name, PTName, appName)
     --hmi side: sending SDL.GetURLS request
     local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
     --hmi side: expect SDL.GetURLS response from HMI
-    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "https://policies.telematics.ford.com/api/policies"}}}})
     :Do(function(_,data)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
       {
