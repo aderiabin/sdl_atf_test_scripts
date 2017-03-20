@@ -310,4 +310,5 @@
 ./test_scripts/Smoke_test/ATF_App_Unregistered_After_PTU_Success_Wrong_Nickname.lua
 ./test_scripts/Smoke_test/ATF_App_UnreATF_Register_DISALLOWED_With_Wrong_Nickname.lua
 ./test_scripts/Smoke_test/ATF_Register_SUCCESS_With_Same_Nicknames.lua
-
+./test_scripts/Smoke_test/ATF_Register_RevokedApp.lua APPLINK-32944
+./test_scripts/Smoke_test/ATF_RevokedApp_DISALLOWED_RPCs.lua APPLINK-32944

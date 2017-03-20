@@ -9,7 +9,7 @@ local mobile_session = require('mobile_session')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-
+const = require('user_modules/consts')
 
 --Policy template
 local PolicyTableTemplate = "user_modules/shared_testcases/PolicyTables/DefaultPolicyTableWith_group1.json"
@@ -313,7 +313,7 @@ function testCasesForPolicyTable:updatePolicy(PTName, iappID, TestName)
 		local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 		
 		--hmi side: expect SDL.GetURLS response from HMI
-		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "https://policies.telematics.ford.com/api/policies"}}}})
+		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = const.endpoints_rpc_url}}}})
 		:Do(function(_,data)
 			--print("SDL.GetURLS response is received")
 			--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
