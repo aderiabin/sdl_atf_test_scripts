@@ -17,7 +17,13 @@ local Consts = {
 
   sdl_to_mobile_default_timeout = 5000,
 
-  default_app_name = config.application1.registerAppInterfaceParams.appName
+  default_app_name = config.application1.registerAppInterfaceParams.appName,
+  
+  default_app = config.application1.registerAppInterfaceParams,
+  
+  endpoints_rpc_url = common_functions:GetParameterValueInJsonFile(
+    config.pathToSDL .. "sdl_preloaded_pt.json",
+    {"policy_table", "module_config", "endpoints", "0x07", "default", 1})
 }
 -----------------------------------------------------------------------------
 return Consts
