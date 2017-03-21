@@ -30,8 +30,10 @@ function PreconditonSteps(mobile_connection_name, mobile_session_name_1, mobile_
   common_steps:RegisterApplication("Register_Application_1", mobile_session_name_1, config.application1.registerAppInterfaceParams)
   common_steps:ActivateApplication("Activate_Application_1", config.application1.registerAppInterfaceParams.appName)
   -- register second application (appID = "0000002")
-  common_steps:AddMobileSession("Add_Mobile_Session_2", mobile_connection_name, mobile_session_name_2)
-  common_steps:RegisterApplication("Register_Application_2", mobile_session_name_2, config.application2.registerAppInterfaceParams)
+  if mobile_session_name_2 then
+    common_steps:AddMobileSession("Add_Mobile_Session_2", mobile_connection_name, mobile_session_name_2)
+    common_steps:RegisterApplication("Register_Application_2", mobile_session_name_2, config.application2.registerAppInterfaceParams)
+  end
 end
 
 --------------------------------------------------------------------------
@@ -138,31 +140,31 @@ function External_Consent_informing_HMI_common_functions:UpdatePolicy(self, json
         RUN_AFTER(to_run, 1500)
       end)
       --hmi side: expect SDL.OnStatusUpdate
+      local success = false
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
       :ValidIf(function(exp,data)
-        if
-        exp.occurences == 1 and
-        data.params.status == "UP_TO_DATE" then
-          return true
-        elseif
-        exp.occurences == 1 and
-        data.params.status == "UPDATING" then
-          return true
-        elseif
-        exp.occurences == 2 and
-        data.params.status == "UP_TO_DATE" then
-          return true
-        else
-          if
-          exp.occurences == 1 then
-            print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in first occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status) .. "' \27[0m")
-          elseif exp.occurences == 2 then
-            print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in second occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status) .. "' \27[0m")
+        if (success == false) then         
+          if common_functions:InRange(1, 2, exp.occurences) and 
+          data.params.status == "UPDATING" then
+            return true
+          elseif common_functions:InRange(1, 3, exp.occurences) and 
+          data.params.status == "UP_TO_DATE" then 
+            success = true
+            return true
+          else
+            if exp.occurences == 1 then
+              common_functions:PrintError("SDL.OnStatusUpdate came with wrong values. Expected in first occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status))
+            elseif exp.occurences == 2 then
+              common_functions:PrintError("SDL.OnStatusUpdate came with wrong values. Expected in second occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status))
+            elseif exp.occurences == 3 then
+              common_functions:PrintError("SDL.OnStatusUpdate came with wrong values. Expected in third occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status))            
+            end
+            return false
           end
-          return false
         end
+        return true        
       end)
-      :Times(Between(1,2))
+      :Times(Between(1,3))
       --mobile side: expect SystemRequest response
       EXPECT_RESPONSE(corid, { success = true, resultCode = "SUCCESS"})
       :Do(function(_,data)
@@ -170,9 +172,11 @@ function External_Consent_informing_HMI_common_functions:UpdatePolicy(self, json
         local request_id_GetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
         --hmi side: expect SDL.GetUserFriendlyMessage response
         EXPECT_HMIRESPONSE(request_id_GetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage", messages = {{line1 = "Up-To-Date", messageCode = "StatusUpToDate", textBody = "Up-To-Date"}}}})
+        common_functions:DelayedExp(2000)
       end) -- Do EXPECT_RESPONSE: SystemRequest response
     end) -- Do EXPECT_NOTIFICATION: "OnSystemRequest" notification
   end) -- Do EXPECT_HMIRESPONSE: SDL.GetURLS response from HMI
+
 end
 
 --------------------------------------------------------------------------

@@ -835,4 +835,17 @@ function CommonFunctions:GetFullPathIcon(image_file_name, appId)
   return full_path_icon
 end
 
+-----------------------------------------------------------------------------
+-- Get value in range
+-- @param lower_bound: min value of range
+-- @param upper_bound: max value of range
+-- @param value_to_check: value to check it is in range
+-----------------------------------------------------------------------------
+function CommonFunctions:InRange(lower_bound, upper_bound, value_to_check)
+  if lower_bound <= value_to_check and value_to_check <= upper_bound then
+    return true
+  end
+  return false
+end
+
 return CommonFunctions

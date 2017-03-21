@@ -10,7 +10,7 @@ local allowedfunctions_list = {}
 local status_values = {"ON","OFF"}
 
 ---------------------------------------Preconditions--------------------------------------------------
-PreconditonSteps("mobileConnection","mobileSession" , "mobileSession_2")
+PreconditonSteps("mobileConnection", "mobileSession")
 
 ------------------------------------------Body--------------------------------------------------------
 -- TEST-05: Upperbound of number externalConsentStatus arrays.
