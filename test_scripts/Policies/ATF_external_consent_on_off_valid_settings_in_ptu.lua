@@ -175,7 +175,7 @@ Test[test_case_name .. "_Precondition_Created_PTU"] = function(self)
   os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
   -- remove preload_pt from json file
   local parent_item = {"policy_table","module_config"}
-  local removed_json_items = {"preloaded_pt"}
+  local removed_json_items = {"preloaded_pt", "preloaded_date"}
   common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items) 
 end
 
@@ -231,7 +231,7 @@ Test[test_case_name .. "_Precondition_Created_PTU"] = function (self)
   os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json".. " " .. config.pathToSDL .. "update_sdl_preloaded_pt.json")
   -- remove preload_pt from json file
   local parent_item = {"policy_table","module_config"}
-  local removed_json_items = {"preloaded_pt"}
+  local removed_json_items = {"preloaded_pt", "preloaded_date"}
   common_functions:RemoveItemsFromJsonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, removed_json_items) 
 end
 AddNewParamIntoJSonFile(config.pathToSDL .. "update_sdl_preloaded_pt.json", parent_item, testing_value, "InPTU")
