@@ -23,7 +23,18 @@ local Consts = {
   
   endpoints_rpc_url = common_functions:GetParameterValueInJsonFile(
     config.pathToSDL .. "sdl_preloaded_pt.json",
-    {"policy_table", "module_config", "endpoints", "0x07", "default", 1})
+    {"policy_table", "module_config", "endpoints", "0x07", "default", 1}),
+  
+  precondition = {
+    START_SDL = 1,
+    INIT_HMI = 2,
+    INIT_HMI_ONREADY = 3,
+    CONNECT_MOBILE = 4,
+    ADD_MOBILE_SESSION = 5,
+    REGISTER_APP = 6,
+    ACTIVATE_APP = 7
+  }
+
 }
 -----------------------------------------------------------------------------
 return Consts
