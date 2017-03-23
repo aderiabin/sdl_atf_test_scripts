@@ -40,6 +40,8 @@ function CommonSteps:AddMobileConnection(test_case_name, mobile_connection_name)
     event_dispatcher:AddConnection(self[mobile_connection_name])
     self[mobile_connection_name]:Connect()
     common_functions:StoreConnectionData(mobile_connection_name, self)
+    -- Wait for mobile connection is created completely.
+    os.execute("sleep 1")
   end
 end
 

@@ -1,8 +1,6 @@
 {
 	"policy_table": {
 		"module_config": {
-			"preloaded_pt": true,
-                        "preloaded_date": "2015-12-02", 
 			"exchange_after_x_ignition_cycles": 100,
 			"exchange_after_x_kilometers": 1800,
 			"exchange_after_x_days": 30,
@@ -14,7 +12,7 @@
 			625],
 			"endpoints": {
 				"0x07": {
-					"default": ["http://policies.telematics.ford.com/api/policies"]
+					"default": ["https://policies.telematics.ford.com/api/policies"]
 				},
 				"0x04": {
 					"default": ["http://ivsu.software.ford.com/api/getsoftwareupdates"]
@@ -31,8 +29,7 @@
 		},
 		"functional_groupings": {
 			"Base-4": {
-				"rpcs": 
-				{
+				"rpcs": {
 					"SubscribeWayPoints": {
 						"hmi_levels": [
 						  "BACKGROUND",

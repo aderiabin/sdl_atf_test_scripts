@@ -119,7 +119,7 @@ function CommonFunctions:GetValueFromIniFile(parameter_name)
   end
   file:close()
   if value == "" then
-    commonFunctions:PrintError(" smartDeviceLink.ini does not have parameter name: " .. tostring(parameter_name))
+    CommonFunctions:PrintError(" smartDeviceLink.ini does not have parameter name: " .. tostring(parameter_name))
   end
   return value
 end
@@ -196,7 +196,7 @@ function CommonFunctions:AddItemsIntoJsonFile(json_file, parent_item, added_json
   local match_result = "null"
   local temp_replace_value = "\"Temporary_Text\""
   local file = io.open(json_file, "r")
-  local json_data = file:read("*all") 
+  local json_data = file:read("*all")
   file:close()
   json_data = string.gsub(json_data, match_result, temp_replace_value)
   local json = require("modules/json")
@@ -231,18 +231,18 @@ end
 --------------------------------------------------------------------------------
 function CommonFunctions:GetParameterValueInJsonFile(json_file, path_to_parameter)
   local file = io.open(json_file, "r")
-  if not file then 
+  if not file then
     common_functions:PrintError("Open " .. json_file .. " unsuccessfully")
     return nil
   end
   local json_data = file:read("*all")
   file:close()
-  if json_data == "" then 
+  if json_data == "" then
     common_functions:PrintError("There is no data in " .. json_file .. " file")
     return nil
   end
   local json = require("modules/json")
-  local data = json.decode(json_data) 
+  local data = json.decode(json_data)
   local parameter = data
   for i = 1, #path_to_parameter do
     parameter = parameter[path_to_parameter[i]]
@@ -260,7 +260,7 @@ function CommonFunctions:RemoveItemsFromJsonFile(json_file, parent_item, removed
   local match_result = "null"
   local temp_replace_value = "\"Temporary_Text\""
   local file = io.open(json_file, "r")
-  local json_data = file:read("*all") 
+  local json_data = file:read("*all")
   file:close()
   json_data = string.gsub(json_data, match_result, temp_replace_value)
   local json = require("modules/json")
@@ -270,8 +270,8 @@ function CommonFunctions:RemoveItemsFromJsonFile(json_file, parent_item, removed
   for i = 1, #parent_item do
     if not parent[parent_item[i]] then
       parent[parent_item[i]] = {}
-    end  
-    parent = parent[parent_item[i]] 
+    end
+    parent = parent[parent_item[i]]
   end
   -- Remove items
   for i = 1, #removed_items do
@@ -285,14 +285,14 @@ function CommonFunctions:RemoveItemsFromJsonFile(json_file, parent_item, removed
 end
 --------------------------------------------------------------------------------
 -- Get items from json file
--- @param json_file: file name of a JSON file 
+-- @param json_file: file name of a JSON file
 -- @param parent_item: contains the value want to get
 --------------------------------------------------------------------------------
 function CommonFunctions:GetItemsFromJsonFile(json_file, parent_item)
-  if not self:IsFileExist(json_file) then			
-			CommonFunctions:PrintError("File is not existed")
-			return 
-		end		
+  if not self:IsFileExist(json_file) then
+    CommonFunctions:PrintError("File is not existed")
+    return
+  end
   local file = io.open(json_file, "r")
   local json_data = file:read("*all")
   file:close()
@@ -302,10 +302,10 @@ function CommonFunctions:GetItemsFromJsonFile(json_file, parent_item)
   for i = 1, #parent_item do
     if not value[parent_item[i]] then
       return nil
-    end  
-    value = value[parent_item[i]] 
+    end
+    value = value[parent_item[i]]
   end
-  return value  
+  return value
 end
 --------------------------------------------------------------------------------
 -- Compare 2 JSON files
@@ -713,6 +713,25 @@ function CommonFunctions:CompareTables(t1,t2)
   return true
 end
 
+-- Check if specified value (which also may be a table) is present in a table.
+-- @param value: checked value, may be a table
+-- @param searched_table: table where a value will be searched in
+-- @example: Find("find", { { "find" } }) -> true
+function CommonFunctions:Find(value, searched_table)
+  if CommonFunctions:CompareTables(value, searched_table) then
+    return true
+  end
+  if type(searched_table) ~= "table" then
+    return false
+  end
+  for _, v in pairs(searched_table) do
+    if CommonFunctions:Find(value, v) then
+      return true
+    end
+  end
+  return false
+end
+
 -- COMMON FUNCTIONS TO SDL
 --------------------------------------------------------------------------------
 -- Make reserve copy of file (FileName) in /bin folder
@@ -737,9 +756,9 @@ function CommonFunctions:CheckSdlPath()
   end
 end
 
-
-function CommonFunctions:UserPrint(color, message)
-  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+function CommonFunctions:UserPrint(color, message, delimeter)
+  delimeter = delimeter or "\n"
+  io.write("\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m", delimeter)
 end
 
 function CommonFunctions:CreateIntegersArray(value, size)
@@ -762,15 +781,14 @@ function CommonFunctions:CreateStructsArray(structure, size)
 end
 
 function CommonFunctions:PrintError(errorMessage)
-	print()
-	print(" \27[31m " .. errorMessage .. " \27[0m ")
+  print()
+  print(" \27[31m " .. errorMessage .. " \27[0m ")
 end
 
 function CommonFunctions:StoreHmiAppId(app_name, hmi_app_id, self)
   local mobile_connection_name, mobile_session_name = CommonFunctions:GetMobileConnectionNameAndSessionName(app_name, self)
   self.mobile_connections[mobile_connection_name][mobile_session_name][app_name].hmi_app_id = hmi_app_id
-end 
-
+end
 
 -----------------------------------------------------------------------------
 -- Remove a test function from Test module
@@ -805,5 +823,29 @@ function CommonFunctions:RemoveTest(test_name, test_module)
   end
 end
 
+-----------------------------------------------------------------------------
+-- Get full path to image
+-- @param image_file_name: name of the image
+-----------------------------------------------------------------------------
+function CommonFunctions:GetFullPathIcon(image_file_name, appId)
+  if not appId then 
+    appId = config.application1.registerAppInterfaceParams.appID
+  end
+  local full_path_icon = table.concat({config.pathToSDL, "storage/", appId, "_", config.deviceMAC, "/", image_file_name})
+  return full_path_icon
+end
+
+-----------------------------------------------------------------------------
+-- Get value in range
+-- @param lower_bound: min value of range
+-- @param upper_bound: max value of range
+-- @param value_to_check: value to check it is in range
+-----------------------------------------------------------------------------
+function CommonFunctions:InRange(lower_bound, upper_bound, value_to_check)
+  if lower_bound <= value_to_check and value_to_check <= upper_bound then
+    return true
+  end
+  return false
+end
 
 return CommonFunctions

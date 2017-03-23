@@ -1813,7 +1813,7 @@ local function SequenceOnPemissionsChange()
 		local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
 		--hmi side: expect SDL.GetURLS response from HMI
-		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "https://policies.telematics.ford.com/api/policies"}}}})
 		:Do(function(_,data)
 			--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
 			self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
@@ -1826,7 +1826,7 @@ local function SequenceOnPemissionsChange()
 					policyAppID="default",
 					requestType = "HTTP",
 					timeout=500,
-					url="http://policies.telematics.ford.com/api/policies"
+					url="https://policies.telematics.ford.com/api/policies"
 				}
 			)
 			--mobile side: expect OnSystemRequest notification
@@ -1925,7 +1925,7 @@ local function SequenceOnPemissionsChange()
 		local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
 		--hmi side: expect SDL.GetURLS response from HMI
-		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+		EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "https://policies.telematics.ford.com/api/policies"}}}})
 		:Do(function(_,data)
 			--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
 			self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
