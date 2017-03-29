@@ -32,6 +32,7 @@ local function update_connecttest(fileContent, FileName)
 end
 
 function Preconditions:getAbsolutePath(relativePath)
+  print ("Relative path parameter in getAbsolutePath function is " .. relativePath)
   if type(relativePath) == "string" and relativePath ~= ""  and not relativePath:find(" ") then
     local commandToExecute = "readlink -fm " .. relativePath
     local db = assert(io.popen(commandToExecute, 'r'))
