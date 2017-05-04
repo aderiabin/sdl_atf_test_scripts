@@ -200,6 +200,7 @@ function Test:HMIsendOnSystemError()
 end
 
 function Test:StopSDL()
+  os.execute("sleep 5")
   StopSDL(self)
 end
 
@@ -220,7 +221,7 @@ function Test:HMIsendOnSystemError2()
 end
 
 function Test:StopSDL2()
-  os.execute("sleep 1")
+  os.execute("sleep 5")
   StopSDL(self)
 end
 
