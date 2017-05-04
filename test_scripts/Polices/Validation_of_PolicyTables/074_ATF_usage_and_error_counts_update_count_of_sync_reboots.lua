@@ -20,6 +20,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
@@ -197,10 +198,10 @@ function Test:HMIsendOnSystemError()
     os.execute("sleep 2")
     self:onSystemError("SYNC_REBOOTED")
   end
+  commonTestCases:DelayedExp(15000)
 end
 
 function Test:StopSDL()
-  os.execute("sleep 5")
   StopSDL(self)
 end
 
@@ -218,10 +219,10 @@ function Test:HMIsendOnSystemError2()
     os.execute("sleep 2")
     self:onSystemError("SYNC_REBOOTED")
   end
+  commonTestCases:DelayedExp(15000)
 end
 
 function Test:StopSDL2()
-  os.execute("sleep 5")
   StopSDL(self)
 end
 
