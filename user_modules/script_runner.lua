@@ -1,29 +1,17 @@
 local Test = require('user_modules/dummy_connecttest')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
-local stepNumber = 0
-local runnerState = {
-  precondition = true,
-  test = true,
-  postcondition = true,
-  title = false
-}
+local isPrintTitle = false
 local title
-local steps = {}
-
 local runner = {}
-
-
 
 --[ATF]
 local function buildStepName(testStepName)
-  if type(testStepName) == "string"
-    and testStepName ~= "" then
+  if type(testStepName) == "string" and testStepName ~= "" then
     testStepName = testStepName:gsub("%W", "_")
     while testStepName:match("^[%d_]") do
       if #testStepName == 1 then
-        stepNumber = stepNumber + 1
-        return "Unknown_test_step_" .. stepNumber
+        return error("Test step name is incorrect!")
       end
       testStepName = testStepName:sub(2)
     end
@@ -34,38 +22,29 @@ local function buildStepName(testStepName)
   elseif type(testStepName) == "number" then
     return "Test_step_" .. testStepName
   else
-    stepNumber = stepNumber + 1
-    return "Unknown_test_step_" .. stepNumber
+    return error("Test step name is missing!")
   end
 end
 
-local function buildStepImplFunction(testStepImplFunction)
+local function checkStepImplFunction(testStepImplFunction)
   if type(testStepImplFunction) == "function" then
     return testStepImplFunction
   else
-    return function()
-        print ("Dummy step")
-      end
+    return error("Test step function is not specified!")
   end
 end
 
 local function addTestStep(testStepName, testStepImplFunction)
-  local test = Test
   testStepName = buildStepName(testStepName)
-  testStepImplFunction = buildStepImplFunction(testStepImplFunction)
-  if test then
-    test[testStepName] = testStepImplFunction
-  else
-    table.insert(steps, {name = testStepName, implFunc = testStepImplFunction})
-  end
+  testStepImplFunction = checkStepImplFunction(testStepImplFunction)
+  Test[testStepName] = testStepImplFunction
 end
 
---[[ Precondition - Step - Postcondition approach]]
-local function extendedAddTestStep(runnerStateType, messageText, testStepName, testStepImplFunction, paramsTable)
+local function extendedAddTestStep(testStepName, testStepImplFunction, paramsTable)
   local implFunctionsListWithParams = {}
-  if runnerState[runnerStateType] then
-    table.insert(implFunctionsListWithParams, {implFunc = commonFunctions.userPrint, params = {0, 32, messageText, "\n"}})
-    runnerState[runnerStateType] = false
+  if isPrintTitle then
+    table.insert(implFunctionsListWithParams, {implFunc = commonFunctions.userPrint, params = {0, 32, title, "\n"}})
+    isPrintTitle = false
   end
   if not paramsTable then
     paramsTable = {}
@@ -77,19 +56,7 @@ local function extendedAddTestStep(runnerStateType, messageText, testStepName, t
         func.implFunc(unpack(func.params))
       end
     end
-  addTestStep(testStepName, newTestStepImplFunction, paramsTable)
-end
-
-function runner.PRECONDITION(testStepName, testStepImplFunction, paramsTable)
-  extendedAddTestStep("precondition", "--------------------------------Precondition--------------------------------", testStepName, testStepImplFunction, paramsTable)
-end
-
-function runner.STEP(testStepName, testStepImplFunction, paramsTable)
-  extendedAddTestStep("test", "------------------------------------Test------------------------------------", testStepName, testStepImplFunction, paramsTable)
-end
-
-function runner.POSTCONDITION(testStepName, testStepImplFunction, paramsTable)
-  extendedAddTestStep("postcondition", "--------------------------------Postcondition-------------------------------", testStepName, testStepImplFunction, paramsTable)
+  addTestStep(testStepName, newTestStepImplFunction)
 end
 
 --[[ Title + Step approach]]
@@ -111,24 +78,17 @@ local function buildTitle(titleText)
 end
 
 function runner.Title(titleText)
-  if runnerState.title == true then
+  if isPrintTitle == true then
     title = title .. "\n" .. titleText
   else
     title = titleText
-    runnerState.title = true
+    isPrintTitle = true
   end
   title = buildTitle(title)
 end
 
 function runner.Step(testStepName, testStepImplFunction, paramsTable)
-  extendedAddTestStep("title", title, testStepName, testStepImplFunction, paramsTable)
-end
-
-function runner.Run()
-  local test = Test
-  for _, step in pairs(steps) do
-    test[step.name] = step.implFunc
-  end
+  extendedAddTestStep(testStepName, testStepImplFunction, paramsTable)
 end
 
 return runner
