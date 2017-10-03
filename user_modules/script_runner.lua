@@ -1,5 +1,9 @@
+require('user_modules/debuger')
 local Test = require('user_modules/dummy_connecttest')
+DEBUG_MESSAGE("dummy_connecttest was loaded")
+DEBUG_MESSAGE("Test:", Test)
 local testSettings = require('user_modules/test_settings')
+DEBUG_MESSAGE("test_settings was loaded")
 local consts = require('user_modules/consts')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 

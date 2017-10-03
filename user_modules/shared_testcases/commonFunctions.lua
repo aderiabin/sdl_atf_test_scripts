@@ -247,6 +247,12 @@ function commonFunctions:convertTableToString (tbl, i)
       strReturn = strReturn .. tostring(tbl)
     elseif type(tbl) == "string" then
       strReturn = strReturn .."\"".. tbl .."\""
+    elseif type(tbl) == "function" then
+      strReturn = strReturn .. "<function>"
+    elseif type(tbl) == "userdata" then
+      strReturn = strReturn .. "<userdata>"
+    elseif type(tbl) == "thread" then
+      strReturn = strReturn .. "<thread>"
     end
    end
    return strReturn
