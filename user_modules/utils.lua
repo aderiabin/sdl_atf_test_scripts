@@ -229,26 +229,30 @@ end
 --! @return: string
 --]]
 function m.tableToString(pTbl)
+  local function toString(v)
+    if type(v) == "string" then
+      return "'" .. tostring(v) .. "'"
+    end
+      return tostring(v)
+  end
+
   local s = ""
   local function tPrint(tbl, level)
-    if not level then level = 0 end
+    local indent = string.rep(" ", level * 4)
+    s = s .. "{\n"
     for k, v in m.spairs(tbl) do
-      local indent = string.rep(" ", level * 4)
-      s = s .. indent .. "[" .. k .. "]: "
+      s = s .. indent .. "[" .. toString(k) .. "]: "
       if type(v) == "table" then
-        s = s .. "{\n"
         tPrint(v, level + 1)
-        s = s .. indent .. "}"
-      elseif type(v) == "string" then
-        s = s .. "'" .. tostring(v) .. "'"
       else
-        s = s .. tostring(v)
+        s = s .. toString(v)
       end
       s = s .. "\n"
     end
+    s = s .. string.rep(" ", (level - 1) * 4) .. "}"
   end
-  tPrint(pTbl)
-  return string.sub(s, 1, string.len(s) - 1)
+  tPrint(pTbl, 1)
+  return string.sub(s, 1, string.len(s))
 end
 
 --[[ @printTable: print table
@@ -270,6 +274,18 @@ end
 --]]
 function m.printTable(pTbl)
   m.cprintTable(39, pTbl)
+end
+
+--[[ @toString: create string representation for Lua variable
+--! @parameters:
+--! pVar - variable to string
+--! @return: string
+--]]
+function m.toString(pVar)
+  if type(pVar) == "table" then
+    return m.tableToString(pVar)
+  end
+    return tostring(pVar)
 end
 
 --[[ @isFileExist: check if file or directory exists
