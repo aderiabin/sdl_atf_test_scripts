@@ -157,8 +157,9 @@ end
 function m.run.wait(pTimeOut)
   if not pTimeOut then pTimeOut = m.timeout end
   local event = m.run.createEvent()
-  m.hmi.getConnection():ExpectEvent(event, "Delayed event"):Timeout(pTimeOut + 60000)
+  local ret = m.hmi.getConnection():ExpectEvent(event, "Delayed event"):Timeout(pTimeOut + 60000)
   m.run.runAfter(function() m.hmi.getConnection():RaiseEvent(event, "Delayed event") end, pTimeOut)
+  return ret
 end
 
 --[[ @fail: fail test step
