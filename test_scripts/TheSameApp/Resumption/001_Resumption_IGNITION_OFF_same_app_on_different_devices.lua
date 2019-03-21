@@ -9,7 +9,7 @@
 -- 2)Mobile №1 and №2 are connected to SDL and are consented
 -- 3)Application App1 is registered on Mobile №1 and Mobile №2 (two copies of one application)
 --   App1 from Mobile №1 and App1 from Mobile №2 are activated sequentially
---   App1 from Mobile №1 has FULL HMI Level, App1 from Mobile №2 has LIMITED HMI Level
+--   App1 from Mobile №1 has FULL HMI Level, App1 from Mobile №2 has BACKGROUND HMI Level
 --
 -- In case:
 -- 1)User turns ignition off and turns ignition on. User connects Mobile №1 and Mobile №2.
@@ -17,10 +17,10 @@
 -- 2)User re-register App1 from Mobile №1
 -- SDL does:
 -- 1)App1 from Mobile №2 is registered, SDL sends OnAppRegistered with the same HMI appID as in last ignition cycle,
---   then sets App1 from Mobile №2 to LIMITED HMI level
--- 1)App1 from Mobile №1 is registered, SDL sends OnAppRegistered with the same HMI appID as in last ignition cycle,
---   then sends BasicCommunication.ActivateApp to HMI and after success response from HMI,
---   SDL sends to App OnHMIStatus(FULL)
+--   resend AddCommand and AddSubmenu RPCs to HMI and does not set App1 from Mobile №2 to BACKGROUND HMI level
+-- 2)App1 from Mobile №1 is registered, SDL sends OnAppRegistered with the same HMI appID as in last ignition cycle,
+--   resend AddCommand and AddSubmenu RPCs to HMI then sends BasicCommunication.ActivateApp to HMI
+--   and after success response from HMI, SDL sends to App OnHMIStatus(FULL)
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -91,7 +91,7 @@ local function modificationOfPreloadedPT(pPolicyTable)
   pt.functional_groupings["DataConsent-2"].rpcs = common.json.null
 
   local policyAppParams = common.cloneTable(pt.app_policies["default"])
-  policyAppParams.AppHMIType = appParams[1].appHMIType
+  policyAppParams.AppHMIType = common.cloneTable(appParams[1].appHMIType)
   policyAppParams.groups = { "Base-4" }
 
   pt.app_policies[appParams[1].fullAppID] = policyAppParams
@@ -100,12 +100,14 @@ end
 local function addContent(pAppId, pContentData)
   appData[pAppId] = { hmiAppId = common.app.getHMIId(pAppId) }
   common.addCommand(pAppId, pContentData.addCommand)
-  :Do(function()
-      common.addSubMenu(pAppId, pContentData.addSubMenu)
-      :Do(function(_, data)
-          appData[pAppId].hashId = data.payload.hashID
-        end)
+  common.addSubMenu(pAppId, pContentData.addSubMenu)
+  common.mobile.getSession(pAppId):ExpectNotification("OnHashChange")
+  :Do(function(exp, data)
+      if exp.occurences == 2 then
+        appData[pAppId].hashId = data.payload.hashID
+      end
     end)
+  :Times(2)
 end
 
 local function expAppUnregistered()
@@ -117,17 +119,16 @@ local function expAppUnregistered()
   :Times(2)
 end
 
-local function expectHmiContent(pAppId, pContentData)
-
-  local function validateAppId(pRequestName, pExpValue, pActValue)
-    if pActValue ~= pExpValue then
-      local msg = pRequestName .. " request has incorrect appId value. Expected: " .. tostring(pExpValue)
-          .. ", actual: " .. tostring(pActValue)
-      return false, msg
-    end
-    return true
+local function validateAppId(pRequestName, pExpValue, pActValue)
+  if pActValue ~= pExpValue then
+    local msg = pRequestName .. " request has incorrect appId value. Expected: " .. tostring(pExpValue)
+        .. ", actual: " .. tostring(pActValue)
+    return false, msg
   end
+  return true
+end
 
+local function expectHmiContent(pAppId, pContentData)
   local hmi = common.hmi.getConnection()
   local hmiAppId = common.app.getHMIId(pAppId)
   hmi:ExpectRequest("VR.AddCommand", pContentData[pAppId].addCommand.hmi)
@@ -152,9 +153,7 @@ local function expResDataApp1Dev2()
 
   session:ExpectNotification("OnHashChange")
   session:ExpectNotification("OnHMIStatus",
-    { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
-    { hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-  :Times(2)
+    { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
 
   expectHmiContent(2, contentData)
 end
@@ -200,8 +199,8 @@ runner.Title("Test")
 runner.Step("Ignition Off", common.ignitionOff, {devices, expAppUnregistered})
 runner.Step("Start SDL and HMI 2nd cycle", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
-runner.Step("Resume App1 from Device 2", common.reRegisterApp, {2, 2, appData[2], expResDataApp1Dev2})
-runner.Step("Resume App1 from Device 1", common.reRegisterApp, {1, 1, appData[1], expResDataApp1Dev1})
+runner.Step("Resume App1 from Device 2", common.reRegisterAppEx, {2, 2, appData, expResDataApp1Dev2})
+runner.Step("Resume App1 from Device 1", common.reRegisterAppEx, {1, 1, appData, expResDataApp1Dev1})
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})

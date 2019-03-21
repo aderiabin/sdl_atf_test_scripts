@@ -465,7 +465,7 @@ function common.ignitionOff(pDevices, pExpFunc)
         end)
       :Times(AtMost(1))
     end)
-  common.wait(3000)
+  common.run.wait(3000)
   :Do(function()
       if isOnSDLCloseSent == false then common.cprint(35, "BC.OnSDLClose was not sent") end
       if common.sdl.isRunning() then common.sdl.StopSDL() end
@@ -476,15 +476,14 @@ function common.ignitionOff(pDevices, pExpFunc)
 end
 
 function common.addCommand(pAppId, pData)
-  local session = common.mobile.getSession()
+  local session = common.mobile.getSession(pAppId)
   local hmi = common.hmi.getConnection()
-  local cid = session(pAppId):SendRPC("AddCommand", pData.mob)
+  local cid = session:SendRPC("AddCommand", pData.mob)
   hmi:ExpectRequest("VR.AddCommand", pData.hmi)
   :Do(function(_, data)
       hmi:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  session(pAppId):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-  return session(pAppId):ExpectNotification("OnHashChange")
+  return session:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
 function common.addSubMenu(pAppId, pData)
@@ -495,14 +494,18 @@ function common.addSubMenu(pAppId, pData)
   :Do(function(_, data)
       hmi:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  session:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-  return session:ExpectNotification("OnHashChange")
+  return session:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
-function common.reRegisterAppEx(pAppId, pMobConnId, pAppData, pExpResDataFunc)
+function common.reRegisterAppEx(pAppId, pMobConnId, pAppsData, pExpResDataFunc)
+  local appData = pAppsData[pAppId]
   local params = common.cloneTable(common.app.getParams(pAppId))
-  params.hashID = pAppData.hashId
-  local hmiAppId = pAppData.hmiAppId
+  local hmiAppId
+
+  if appData and type(appData) == "table" then
+    params.hashID = appData.hashId
+    hmiAppId = appData.hmiAppId
+  end
 
   local session = common.mobile.createSession(pAppId, pMobConnId)
   local connection = session.mobile_session_impl.connection
