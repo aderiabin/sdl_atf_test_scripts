@@ -2,7 +2,7 @@
 --   Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
 --   Description:
--- Register two mobile applications with the same appNames and same appIDs from different mobile devices.
+-- Register two mobile applications with the same appNames and different appIDs from different mobile devices.
 -- The value of "appHMIType" field is set to "DEFAULT" for these applications.
 -- Set different HMI levels for applications, send OnHMIStatus notification to SDL and check that SDL does not send it
 -- to the App if it is in NONE HMI level. And if not, check whether the value of "hmiLevel" parameter of the
@@ -10,8 +10,8 @@
 --   Precondition:
 -- 1) SDL and HMI are started
 -- 2) Mobile №1 and №2 are connected to SDL
--- 3) App 1 (isMediaApplication = false, appID = 0000001, appName = "Test Application1") is registered from Mobile №1
--- 4) App 2 (isMediaApplication = false, appID = 0000001, appName = "Test Application1") is registered from Mobile №2
+-- 3) App 1 (isMediaApplication = false, appID = 0000001,  appName = "Test Application1") is registered from Mobile №1
+-- 4) App 2 (isMediaApplication = false, appID = 00000022, appName = "Test Application1") is registered from Mobile №2
 --   Steps:
 -- 1) Activate Application 1
 --   CheckSDL:
@@ -81,8 +81,8 @@ local appParams = {
     languageDesired = 'EN-US',
     hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "DEFAULT" },
-    appID = "0001",
-    fullAppID = "0000001",
+    appID = "00022",
+    fullAppID = "00000022",
     deviceInfo =
     {
       os = "Android",
