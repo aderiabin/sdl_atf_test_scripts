@@ -5,12 +5,19 @@
 local utils = require('user_modules/utils')
 local actions = require('user_modules/sequences/actions')
 local events = require("events")
+local constants = require('protocol_handler/ford_protocol_constants')
 
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
 
 --[[ Module ]]
 local common = actions
+
+--[[ Common Data ]]
+common.events      = events
+common.frameInfo   = constants.FRAME_INFO
+common.frameType   = constants.FRAME_TYPE
+common.serviceType = constants.SERVICE_TYPE
 
 --[[ Proxy Functions ]]
 common.getDeviceName = utils.getDeviceName
@@ -45,6 +52,7 @@ end
 function common.connectMobDevice(pMobConnId, deviceInfo, isSDLAllowed)
   if isSDLAllowed == nil then isSDLAllowed = true end
   utils.addNetworkInterface(pMobConnId, deviceInfo.host)
+  print ("deviceInfo.host: " .. deviceInfo.host, " deviceInfo.port: " .. deviceInfo.port)
   common.mobile.createConnection(pMobConnId, deviceInfo.host, deviceInfo.port)
   local mobConnectExp = common.mobile.connect(pMobConnId)
   if isSDLAllowed then
@@ -72,12 +80,11 @@ function common.clearMobDevices(pDevices)
   end
 end
 
-function common.registerAppEx(pAppId, pAppParams, pMobConnId)
+function common.registerAppEx(pAppId, pAppParams, pMobConnId, hasPTU)
   local appParams = common.app.getParams(pAppId)
   for k, v in pairs(pAppParams) do
     appParams[k] = v
   end
-
   local session = common.mobile.createSession(pAppId, pMobConnId)
   session:StartService(7)
   :Do(function()
@@ -95,6 +102,12 @@ function common.registerAppEx(pAppId, pAppParams, pMobConnId)
         })
       :Do(function(_, d1)
         common.app.setHMIId(d1.params.application.appID, pAppId)
+          if hasPTU then
+            common.hmi.getConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
+              :Do(function(_, d2)
+                  common.hmi.getConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
+                end)
+          end
         end)
       session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
@@ -102,6 +115,34 @@ function common.registerAppEx(pAppId, pAppParams, pMobConnId)
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           session:ExpectNotification("OnPermissionsChange")
         end)
+    end)
+end
+
+function common.registerAppFromSameDevice(pAppId, pAppParams, pMobConnId, pResultCode)
+  local appParams = common.app.getParams(pAppId)
+  for k, v in pairs(pAppParams) do
+    appParams[k] = v
+  end
+
+  local session = common.mobile.createSession(pAppId, pMobConnId)
+  session:StartService(7)
+  :Do(function()
+      local corId = session:SendRPC("RegisterAppInterface", appParams)
+      session:ExpectResponse(corId, { success = false, resultCode = pResultCode })
+    end)
+end
+
+function common.registerAppExNegative(pAppId, pAppParams, pMobConnId, pResultCode)
+  local appParams = common.app.getParams(pAppId)
+  for k, v in pairs(pAppParams) do
+    appParams[k] = v
+  end
+  local session = common.mobile.createSession(pAppId, pMobConnId)
+  session:StartService(7)
+  :Do(function()
+      local corId = session:SendRPC("RegisterAppInterface", appParams)
+      common.hmi.getConnection():ExpectNotification("BasicCommunication.OnAppRegistered"):Times(0)
+      session:ExpectResponse(corId, { success = false, resultCode = pResultCode })
     end)
 end
 
@@ -118,7 +159,7 @@ common.mobile.getSession(pAppId):ExpectNotification("OnHMIStatus",
   { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
 
-function common.changeRegistrationSuccess(pAppId, pParams)
+function common.changeRegistrationPositive(pAppId, pParams)
   local cid = common.mobile.getSession(pAppId):SendRPC("ChangeRegistration", pParams)
 
   common.hmi.getConnection():ExpectRequest("VR.ChangeRegistration", {
@@ -152,6 +193,12 @@ function common.changeRegistrationSuccess(pAppId, pParams)
   common.mobile.getSession(pAppId):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
+function common.changeRegistrationNegative(pAppId, pParams, pResultCode)
+  local cid = common.mobile.getSession(pAppId):SendRPC("ChangeRegistration", pParams)
+  common.mobile.getSession(pAppId):ExpectResponse(cid, { success = false, resultCode = pResultCode })
+  common.hmi.getConnection():ExpectNotification("BasicCommunication.OnAppRegistered"):Times(0)
+end
+
 function common.mobile.disallowSDL(pMobConnId)
   if pMobConnId == nil then pMobConnId = 1 end
   local connection = common.mobile.getConnection(pMobConnId)
@@ -177,6 +224,19 @@ function common.getSystemCapability(pAppId, pResultCode)
   local mobileSession = common.mobile.getSession(pAppId)
   local cid = mobileSession:SendRPC("GetSystemCapability", { systemCapabilityType = "NAVIGATION" })
   mobileSession:ExpectResponse(cid, {success = isSuccess, resultCode = pResultCode})
+end
+
+function common.setProtocolVersion (pProtocolVersion)
+  config.defaultProtocolVersion = pProtocolVersion
+end
+
+function common.subscribeOnButton(pAppId, pButtonName)
+  local mobSession = common.mobile.getSession(pAppId)
+  local cid = mobSession:SendRPC("SubscribeButton", {buttonName = pButtonName})
+    common.hmi.getConnection():ExpectNotification("Buttons.OnButtonSubscription",
+        {name = pButtonName, isSubscribed = true, appID = common.app.getHMIId(pAppId) })
+    mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+    mobSession:ExpectNotification("OnHashChange")
 end
 
 function common.sendLocation(pAppId, pResultCode)

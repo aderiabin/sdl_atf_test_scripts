@@ -2,7 +2,7 @@
 --   Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
 --   Description:
--- Two applications was registered with different appIDs and different appNames on different mobile devices.
+-- Two applications was registered with same appIDs and different appNames on different mobile devices.
 -- After that second application calls for ChangeRegistration using same appName as first application has.
 --   Precondition:
 -- 1) SDL and HMI are started
@@ -30,19 +30,19 @@ local devices = {
 
 local appParams = {
   [1] = { appName = "Test Application",   appID = "0001",  fullAppID = "0000001" },
-  [2] = { appName = "Test Application 2", appID = "00022", fullAppID = "00000022" }
+  [2] = { appName = "Test Application 2", appID = "0001", fullAppID = "0000001" }
 }
 
 local changeRegParams = {
   [1] = {
     language ="EN-US",
     hmiDisplayLanguage ="EN-US",
-    appName ="Test Application",
+    appName ="Test Application 2",
     ttsName = {
       {
         text ="SyncProxyTester",
         type ="TEXT"
-      },
+      }
     },
     ngnMediaScreenAppName ="SPT",
     vrSynonyms = {
@@ -60,7 +60,7 @@ runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1
 runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2})
 
 runner.Title("Test")
-runner.Step("ChangeRegistration for App2 from device 2", common.changeRegistrationSuccess, {2, changeRegParams[1]})
+runner.Step("ChangeRegistration for App2 from device 2", common.changeRegistrationPositive, {1, changeRegParams[1]})
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})
