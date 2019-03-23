@@ -6,6 +6,7 @@ local utils = require('user_modules/utils')
 local actions = require('user_modules/sequences/actions')
 local events = require("events")
 local constants = require('protocol_handler/ford_protocol_constants')
+local hmi_values = require("user_modules/hmi_values")
 
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
@@ -26,14 +27,14 @@ common.cloneTable = utils.cloneTable
 common.isTableContains = utils.isTableContains
 
 --[[ Common Functions ]]
-function common.start()
+function common.start(pHMIParams)
   local event = events.Event()
   event.matches = function(e1, e2) return e1 == e2 end
   common.init.SDL()
   :Do(function()
       common.init.HMI()
       :Do(function()
-          common.init.HMI_onReady()
+          common.init.HMI_onReady(pHMIParams)
           :Do(function()
               common.hmi.getConnection():RaiseEvent(event, "Start event")
             end)
@@ -324,6 +325,32 @@ function common.funcGroupConsentForApp(pPrompts, pAppId)
           consentedFunctions = consentedFunctions
         })
     end)
+end
+
+function common.buildHmiRcCapabilities(pCapabilities)
+  local capMap = {
+    ["RADIO"] = "radioControlCapabilities",
+    ["CLIMATE"] = "climateControlCapabilities",
+    ["SEAT"] = "seatControlCapabilities",
+    ["AUDIO"] = "audioControlCapabilities",
+    ["LIGHT"] = "lightControlCapabilities",
+    ["HMI_SETTINGS"] = "hmiSettingsControlCapabilities",
+    ["BUTTONS"] = "buttonCapabilities"
+  }
+
+  local hmiParams = hmi_values.getDefaultHMITable()
+  hmiParams.RC.IsReady.params.available = true
+  local capParams = hmiParams.RC.GetCapabilities.params.remoteControlCapability
+  for k, v in pairs(capMap) do
+    if pCapabilities[k] then
+      if pCapabilities[k] ~= "Default" then
+        capParams[v] = pCapabilities[k]
+      end
+    else
+      capParams[v] = nil
+    end
+  end
+  return hmiParams
 end
 
 function common.getModuleControlData(module_type)

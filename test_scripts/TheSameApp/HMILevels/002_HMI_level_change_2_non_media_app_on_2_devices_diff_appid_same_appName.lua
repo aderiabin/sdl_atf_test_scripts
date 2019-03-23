@@ -108,12 +108,7 @@ end
 
 local function deactivateApp2()
   common.mobile.getSession(1):ExpectNotification("OnHMIStatus"):Times(0)
-  local app2HMIStatusParams = {
-    hmiLevel = "BACKGROUND",
-    audioStreamingState = "NOT_AUDIBLE",
-    systemContext = "MAIN"
-  }
-  common.deactivateApp(2, app2HMIStatusParams)
+  common.deactivateApp(2, { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
 end
 
 local function exitApp2()
@@ -131,15 +126,15 @@ runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL and HMI", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
-runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1], 1})
-runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2})
+runner.Step("Register App 1 from Device 1", common.registerAppEx, {1, appParams[1], 1})
+runner.Step("Register App 2 from Device 2 (app name the same as from App 1)", common.registerAppEx, {2, appParams[2], 2})
 
 runner.Title("Test")
-runner.Step("Activate App 1", activateApp1)
-runner.Step("Activate App 2", activateApp2)
-runner.Step("Deactivate App 2", deactivateApp2)
-runner.Step("Exit App 2", exitApp2)
-runner.Step("Activate App 2 again", reActivateApp2)
+runner.Step("Activate App 1 from Device 1", activateApp1)
+runner.Step("Activate App 2 from Device 2", activateApp2)
+runner.Step("Deactivate App 2 from Device 2", deactivateApp2)
+runner.Step("Exit App 2 from Device 2", exitApp2)
+runner.Step("Activate App 2 from Device 2 again", reActivateApp2)
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})

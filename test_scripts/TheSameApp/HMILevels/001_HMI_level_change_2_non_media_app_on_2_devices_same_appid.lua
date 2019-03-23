@@ -69,61 +69,34 @@ local appParams = {
       osVersion = "4.4.2",
       maxNumberRFCOMMPorts = 1
     }
-  },
-  [2] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
-    appName = "Test Application1",
-    isMediaApplication = false,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
-    appHMIType = { "DEFAULT" },
-    appID = "0001",
-    fullAppID = "0000001",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
-  },
+  }
 }
 
 --[[ Local Functions ]]
+local function activateApp2()
+  common.mobile.getSession(1):ExpectNotification("OnHMIStatus"):Times(0)
+  common.app.activate(2)
+end
+
 local function activateApp1()
-  common.mobile.getSession(2):ExpectNotification("OnHMIStatus"):Times(0)
+  common.mobile.getSession(2):ExpectNotification("OnHMIStatus",
+    { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
   common.app.activate(1)
 end
 
-local function activateApp2()
-  common.mobile.getSession(1):ExpectNotification("OnHMIStatus",
-    { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-  common.app.activate(2)
+local function deactivateApp1()
+  common.mobile.getSession(2):ExpectNotification("OnHMIStatus"):Times(0)
+  common.deactivateApp(1, { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
 end
 
-local function deactivateApp2()
-  common.mobile.getSession(1):ExpectNotification("OnHMIStatus"):Times(0)
-  local app2HMIStatusParams = {
-    hmiLevel = "BACKGROUND",
-    audioStreamingState = "NOT_AUDIBLE",
-    systemContext = "MAIN"
-  }
-  common.deactivateApp(2, app2HMIStatusParams)
+local function exitApp1()
+  common.mobile.getSession(2):ExpectNotification("OnHMIStatus"):Times(0)
+  common.exitApp(1)
 end
 
-local function exitApp2()
-  common.mobile.getSession(1):ExpectNotification("OnHMIStatus"):Times(0)
-  common.exitApp(2)
-end
-
-local function reActivateApp2()
-  common.mobile.getSession(1):ExpectNotification("OnHMIStatus"):Times(0)
-  common.app.activate(2)
+local function reActivateApp1()
+  common.mobile.getSession(2):ExpectNotification("OnHMIStatus"):Times(0)
+  common.app.activate(1)
 end
 
 --[[ Scenario ]]
@@ -131,15 +104,15 @@ runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL and HMI", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
-runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1], 1})
-runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2})
+runner.Step("Register App 1 from Device 1", common.registerAppEx, {1, appParams[1], 1})
+runner.Step("Register App 1 from device 2", common.registerAppEx, {2, appParams[1], 2})
 
 runner.Title("Test")
-runner.Step("Activate App 1", activateApp1)
-runner.Step("Activate App 2", activateApp2)
-runner.Step("Deactivate App 2", deactivateApp2)
-runner.Step("Exit App 2", exitApp2)
-runner.Step("Activate App 2 again", reActivateApp2)
+runner.Step("Activate App 1 from Device 2", activateApp2)
+runner.Step("Activate App 1 from Device 1", activateApp1)
+runner.Step("Deactivate App 1 from Device 1", deactivateApp1)
+runner.Step("Exit App 1 from Device 1", exitApp1)
+runner.Step("Activate App 1 from Device 1 again", reActivateApp1)
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})

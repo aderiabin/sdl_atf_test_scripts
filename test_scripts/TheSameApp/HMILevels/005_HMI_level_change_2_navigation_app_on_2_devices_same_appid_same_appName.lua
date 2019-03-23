@@ -2,7 +2,7 @@
 --   Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
 --   Description:
--- Register two mobile applications with the same appName and different appID from different mobile devices.
+-- Register two mobile applications with the same appName and same appID from different mobile devices.
 -- The value of "appHMIType" field is set to "SYSTEM" for these applications.
 -- Set different HMI levels for applications, send OnHMIStatus notification to SDL and check that SDL does not send it
 -- to the App if it is in NONE HMI level. And if not, check whether the value of "hmiLevel" parameter of the
@@ -10,8 +10,8 @@
 --   Precondition:
 -- 1) SDL and HMI are started
 -- 2) Mobile №1 and №2 are connected to SDL
--- 3) App 1 (isMediaApplication = false, appID = 0000001,  appName = "Test Application 1") is registered from Mobile №1
--- 4) App 2 (isMediaApplication = false, appID = 00000022, appName = "Test Application 1") is registered from Mobile №2
+-- 3) App 1 (isMediaApplication = false, appID = 0000001, appName = "Test Application1") is registered from Mobile №1
+-- 4) App 2 (isMediaApplication = false, appID = 0000001, appName = "Test Application1") is registered from Mobile №2
 --   Steps:
 -- 1) Activate Application 1
 --   CheckSDL:
@@ -19,27 +19,27 @@
 --     SDL does NOT send OnHMIStatus to Mobile №2
 -- 2) Activate Application 2
 --   CheckSDL:
---     SDL sends OnHMIStatus( hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE") to Mobile №1
+--     SDL sends OnHMIStatus( hmiLevel = BACKGROUND ) to Mobile №1
 --     SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №2
 -- 3) Deactivate Application 2
 --   CheckSDL:
 --     SDL does NOT send OnHMIStatus to Mobile №1
---     SDL sends OnHMIStatus( hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE") to Mobile №2
+--     SDL sends OnHMIStatus( hmiLevel = LIMITED ) to Mobile №2
 -- 4) Activate Application 1 once again
 --   CheckSDL:
 --     SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №1
---     SDL NOT sends OnHMIStatus() to Mobile №2
+--     SDL sends OnHMIStatus( hmiLevel = BACKGROUND ) to Mobile №2
 -- 5) Deactivate Application 1
 --   CheckSDL:
---     SDL sends OnHMIStatus( hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE") to Mobile №1
+--     SDL sends OnHMIStatus( hmiLevel = LIMITED ) to Mobile №1
 --     SDL does NOT send OnHMIStatus to Mobile №2
 -- 6) Exit Application 2
 --   CheckSDL:
 --     SDL does NOT send OnHMIStatus to Mobile №1
 --     SDL sends OnHMIStatus( hmiLevel = NONE ) to Mobile №2
--- 7) Activate Application 2 once again
+-- 7) Activate Application 2
 --   CheckSDL:
---     SDL does NOT send OnHMIStatus to Mobile №1
+--     SDL sends OnHMIStatus( hmiLevel = BACKGROUND ) to Mobile №1
 --     SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №2
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
@@ -62,11 +62,11 @@ local appParams = {
       majorVersion = 5,
       minorVersion = 0
     },
-    appName = "Test Application 1",
+    appName = "Test Application1",
     languageDesired = 'EN-US',
     hmiDisplayLanguageDesired = 'EN-US',
     isMediaApplication = false,
-    appHMIType = { "SYSTEM" },
+    appHMIType = { "NAVIGATION" },
     appID = "0001",
     fullAppID = "0000001",
     deviceInfo =
@@ -77,62 +77,35 @@ local appParams = {
       osVersion = "4.4.2",
       maxNumberRFCOMMPorts = 1
     }
-  },
-  [2] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
-    appName = "Test Application 1",
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
-    isMediaApplication = false,
-    appHMIType = { "NAVIGATION" },
-    appID = "00022",
-    fullAppID = "00000022",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
-  },
+  }
 }
 
 --[[ Local Functions ]]
 local function activateApp1()
-    common.mobile.getSession(2):ExpectNotification("OnHMIStatus"):Times(0)
+  common.mobile.getSession(2):ExpectNotification("OnHMIStatus"):Times(0)
   common.app.activate(1)
 end
 
 local function activateApp2()
-    common.mobile.getSession(1):ExpectNotification("OnHMIStatus",
+  common.mobile.getSession(1):ExpectNotification("OnHMIStatus",
     { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
   common.app.activate(2)
 end
 
 local function deactivateApp2()
   common.mobile.getSession(1):ExpectNotification("OnHMIStatus"):Times(0)
-  local app2HMIStatusParams = {
-    hmiLevel = "LIMITED",
-    audioStreamingState = "AUDIBLE",
-    systemContext = "MAIN"
-  }
-  common.deactivateApp(2, app2HMIStatusParams)
+  common.deactivateApp(2, { hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+end
+
+local function reActivateApp1()
+  common.mobile.getSession(2):ExpectNotification("OnHMIStatus",
+    { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+  common.app.activate(1)
 end
 
 local function deactivateApp1()
-  local app2HMIStatusParams = {
-    hmiLevel = "BACKGROUND",
-    audioStreamingState = "NOT_AUDIBLE",
-    systemContext = "MAIN"
-  }
-
   common.mobile.getSession(2):ExpectNotification("OnHMIStatus"):Times(0)
-  common.deactivateApp(1, app2HMIStatusParams)
+  common.deactivateApp(1, { hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
 end
 
 local function exitApp2()
@@ -141,7 +114,8 @@ local function exitApp2()
 end
 
 local function reActivateApp2()
-  common.mobile.getSession(1):ExpectNotification("OnHMIStatus"):Times(0)
+  common.mobile.getSession(1):ExpectNotification("OnHMIStatus",
+    { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
   common.app.activate(2)
 end
 
@@ -150,17 +124,17 @@ runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL and HMI", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
-runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1], 1})
-runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2})
+runner.Step("Register Navigation App 1 from Device 1", common.registerAppEx, {1, appParams[1], 1})
+runner.Step("Register Navigation App 1 from Device 2", common.registerAppEx, {2, appParams[1], 2})
 
 runner.Title("Test")
-runner.Step("Activate App 1", activateApp1)
-runner.Step("Activate App 2", activateApp2)
-runner.Step("Deactivate App 2", deactivateApp2)
-runner.Step("Activate App 1 once again", activateApp1)
-runner.Step("Deactivate App 1", deactivateApp1)
-runner.Step("Exit App 2", exitApp2)
-runner.Step("Activate App 2 again", reActivateApp2)
+runner.Step("Activate App 1 from Device 1", activateApp1)
+runner.Step("Activate App 1 from Device 2", activateApp2)
+runner.Step("Deactivate App 1 from Device 2", deactivateApp2)
+runner.Step("Activate App 1 from Device 1 once again", reActivateApp1)
+runner.Step("Deactivate App 1 from Device 1", deactivateApp1)
+runner.Step("Exit App 1 from Device 2", exitApp2)
+runner.Step("Activate App 1 from Device 2 again", reActivateApp2)
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})
