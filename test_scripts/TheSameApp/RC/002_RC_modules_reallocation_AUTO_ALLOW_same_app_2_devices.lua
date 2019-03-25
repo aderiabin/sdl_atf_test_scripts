@@ -115,28 +115,34 @@ end
 
 local function allocateModuleApp2Dev2()
   local pHmiExpDataTable = {
-    [common.app.getHMIId(1)] = {allocatedModules = {}, freeModules = {}, allowed = true},
-    [common.app.getHMIId(2)] = {allocatedModules = {"CLIMATE"}, freeModules = {}, allowed = true},
-    [common.app.getHMIId(3)] = {allocatedModules = {"LIGHT", "RADIO"}, freeModules = {}, allowed = true}
+    [common.app.getHMIId(1)] = {allocatedModules = {}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(2)] = {allocatedModules = {"CLIMATE"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(3)] = {allocatedModules = {"LIGHT", "RADIO"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}}
   }
   common.expectOnRCStatusOnHMI(pHmiExpDataTable)
-  common.expectOnRCStatusOnMobile(1, {allocatedModules = {}, freeModules = {}, allowed = true})
-  common.expectOnRCStatusOnMobile(2, {allocatedModules = {"CLIMATE"}, freeModules = {}, allowed = true})
-  common.expectOnRCStatusOnMobile(3, {allocatedModules = {"LIGHT", "RADIO"}, freeModules = {}, allowed = true})
+  common.expectOnRCStatusOnMobile(1, {
+    allocatedModules = {}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(2, {
+    allocatedModules = {"CLIMATE"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(3, {
+    allocatedModules = {"LIGHT", "RADIO"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
   common.rpcAllowed(3, "RADIO")
 end
 
 local function allocateModuleApp1Dev1()
   local pHmiExpDataTable = {
-    [common.app.getHMIId(1)] = {allocatedModules = {"CLIMATE"}, freeModules = {}, allowed = true},
-    [common.app.getHMIId(2)] = {allocatedModules = {}, freeModules = {}, allowed = true},
-    [common.app.getHMIId(3)] = {allocatedModules = {"LIGHT", "RADIO"}, freeModules = {}, allowed = true}
+    [common.app.getHMIId(1)] = {allocatedModules = {"CLIMATE"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(2)] = {allocatedModules = {}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(3)] = {allocatedModules = {"LIGHT", "RADIO"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}}
   }
   common.expectOnRCStatusOnHMI(pHmiExpDataTable)
-  common.expectOnRCStatusOnMobile(1, {allocatedModules = {"CLIMATE"}, freeModules = {}, allowed = true})
-  common.expectOnRCStatusOnMobile(2, {allocatedModules = {}, freeModules = {}, allowed = true})
-  common.expectOnRCStatusOnMobile(3, {allocatedModules = {"LIGHT", "RADIO"}, freeModules = {}, allowed = true})
-  common.rpcAllowed(3, "RADIO")
+  common.expectOnRCStatusOnMobile(1, {
+    allocatedModules = {"CLIMATE"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(2, {
+    allocatedModules = {}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(3, {
+    allocatedModules = {"LIGHT", "RADIO"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.rpcAllowed(1, "CLIMATE")
 end
 
 --[[ Scenario ]]
@@ -155,14 +161,13 @@ runner.Step("App1 on Device 1 successfully allocates module RADIO", common.rpcAl
 runner.Step("Activate App1 from Device 2", common.activateApp, {2})
 runner.Step("App1 on Device 2 successfully allocates module CLIMATE", common.rpcAllowed, {2, "CLIMATE"})
 runner.Step("Activate App2 from Device 2", common.activateApp, {3})
-runner.Step("App2 on Device 2 successfully allocates module RADIO", common.rpcAllowed, {3, "LIGHT"})
+runner.Step("App2 on Device 2 successfully allocates module LIGHT", common.rpcAllowed, {3, "LIGHT"})
 
 runner.Title("Test")
-runner.Step("Activate App2 from Device 2", common.activateApp, {3})
-runner.Step("App2 on Device 2 successfully allocates module RADIO", allocateModuleApp2Dev2)
+runner.Step("App2 on Device 2 successfully reallocates module RADIO from App1 on Device 1", allocateModuleApp2Dev2)
 
 runner.Step("Activate App1 from Device 1", common.activateApp, {1})
-runner.Step("App1 on Device 1 successfully allocates module LIGHT", allocateModuleApp1Dev1)
+runner.Step("App1 on Device 1 successfully reallocates module CLIMATE from App1 on Device 2", allocateModuleApp1Dev1)
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})

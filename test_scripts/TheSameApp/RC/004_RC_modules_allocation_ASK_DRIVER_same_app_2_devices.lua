@@ -99,28 +99,36 @@ local function rejectedModuleApp1Dev2()
   common.hmi.getConnection():ExpectNotification("RC.OnRCStatus"):Times(0)
   common.mobile.getSession(1):ExpectNotification("OnRCStatus"):Times(0)
   common.mobile.getSession(2):ExpectNotification("OnRCStatus"):Times(0)
-  common.rpcRejectWithConsent("RADIO", 2)
+  common.rpcRejectWithConsent(2, "RADIO")
 end
 
 local function allocateModuleApp1Dev1()
   local pHmiExpDataTable = {
-    [common.app.getHMIId(1)] = {allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {"LIGHT"}, allowed = true},
-    [common.app.getHMIId(2)] = {allocatedModules = {}, freeModules = {"LIGHT"}, allowed = true}
+    [common.app.getHMIId(1)] = {
+      allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {"LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(2)] = {
+      allocatedModules = {}, freeModules = {"LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}}
   }
   common.expectOnRCStatusOnHMI(pHmiExpDataTable)
-  common.expectOnRCStatusOnMobile(1, {allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {"LIGHT"}, allowed = true})
-  common.expectOnRCStatusOnMobile(2, {allocatedModules = {}, freeModules = {"LIGHT"}, allowed = true})
+  common.expectOnRCStatusOnMobile(1, {
+    allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {"LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(2, {
+    allocatedModules = {}, freeModules = {"LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
   common.rpcAllowedWithConsent(1, "CLIMATE")
 end
 
 local function allocateModuleApp1Dev2()
   local pHmiExpDataTable = {
-    [common.app.getHMIId(1)] = {allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {}, allowed = true},
-    [common.app.getHMIId(2)] = {allocatedModules = {"LIGHT"}, freeModules = {}, allowed = true}
+    [common.app.getHMIId(1)] = {
+      allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(2)] = {
+      allocatedModules = {"LIGHT"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}}
   }
   common.expectOnRCStatusOnHMI(pHmiExpDataTable)
-  common.expectOnRCStatusOnMobile(1, {allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {}, allowed = true})
-  common.expectOnRCStatusOnMobile(2, {allocatedModules = {"LIGHT"}, freeModules = {}, allowed = true})
+  common.expectOnRCStatusOnMobile(1, {
+    allocatedModules = {"RADIO", "CLIMATE"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(2, {
+    allocatedModules = {"LIGHT"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
   common.rpcAllowed(2, "LIGHT")
 end
 

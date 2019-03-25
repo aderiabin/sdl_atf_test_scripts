@@ -86,17 +86,21 @@ local function inUseModuleApp1Dev2()
   common.hmi.getConnection():ExpectNotification("RC.OnRCStatus"):Times(0)
   common.mobile.getSession(1):ExpectNotification("OnRCStatus"):Times(0)
   common.mobile.getSession(2):ExpectNotification("OnRCStatus"):Times(0)
-  common.rpcDenied("RADIO", 2, "IN_USE")
+  common.rpcDenied(2, "RADIO", "IN_USE")
 end
 
 local function allocateModuleApp1Dev2()
   local pHmiExpDataTable = {
-    [common.app.getHMIId(1)] = {allocatedModules = {"RADIO"}, freeModules = {}, allowed = true},
-    [common.app.getHMIId(2)] = {allocatedModules = {"CLIMATE", "LIGHT"}, freeModules = {}, allowed = true}
+    [common.app.getHMIId(1)] = {
+      allocatedModules = {"RADIO"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(2)] = {
+      allocatedModules = {"CLIMATE", "LIGHT"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}}
   }
   common.expectOnRCStatusOnHMI(pHmiExpDataTable)
-  common.expectOnRCStatusOnMobile(1, {allocatedModules = {"RADIO"}, freeModules = {}, allowed = true})
-  common.expectOnRCStatusOnMobile(2, {allocatedModules = {"CLIMATE", "LIGHT"}, freeModules = {}, allowed = true})
+  common.expectOnRCStatusOnMobile(1, {
+    allocatedModules = {"RADIO"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(2, {
+    allocatedModules = {"CLIMATE", "LIGHT"}, freeModules = {"SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
   common.rpcAllowed(2, "LIGHT")
 end
 

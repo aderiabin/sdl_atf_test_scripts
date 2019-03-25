@@ -414,14 +414,31 @@ local function sortModules(pModulesArray)
   table.sort(pModulesArray, f)
 end
 
+local function enrichExpDataTable(pExpDataTable)
+
+  local function createModulesArray(pIncomeModArray)
+    local modArray = {}
+    for _, moduleType in ipairs(pIncomeModArray) do
+      table.insert(modArray, {moduleType = moduleType})
+    end
+  return modArray
+  end
+
+  local expDataTable = common.cloneTable(pExpDataTable)
+    expDataTable.allocatedModules = createModulesArray(pExpDataTable.allocatedModules)
+    expDataTable.freeModules = createModulesArray(pExpDataTable.freeModules)
+  return expDataTable
+end
+
 function common.expectOnRCStatusOnMobile(pAppId, pExpData)
+  local expData = enrichExpDataTable(pExpData)
   common.mobile.getSession(pAppId):ExpectNotification("OnRCStatus")
   :ValidIf(function(_, d)
-     sortModules(pExpData.freeModules)
-     sortModules(pExpData.allocatedModules)
+     sortModules(expData.freeModules)
+     sortModules(expData.allocatedModules)
      sortModules(d.payload.freeModules)
      sortModules(d.payload.allocatedModules)
-     return compareValues(pExpData, d.payload, "payload")
+     return compareValues(expData, d.payload, "payload")
    end)
  :ValidIf(function(_, d)
    if d.payload.allowed == nil  then
@@ -432,9 +449,13 @@ function common.expectOnRCStatusOnMobile(pAppId, pExpData)
 end
 
 function common.expectOnRCStatusOnHMI(pExpDataTable)
+  local expDataTable = common.cloneTable(pExpDataTable)
+    for i in pairs(pExpDataTable) do
+      expDataTable[i] = enrichExpDataTable(pExpDataTable[i])
+    end
   local usedHmiAppIds = {}
   local appCount = 0;
-  for _,_ in pairs(pExpDataTable) do
+  for _,_ in pairs(expDataTable) do
     appCount = appCount + 1
   end
   common.hmi.getConnection():ExpectNotification("RC.OnRCStatus")
@@ -444,14 +465,13 @@ function common.expectOnRCStatusOnHMI(pExpDataTable)
       end
 
       local hmiAppId = d.params.appID
-      usedHmiAppIds[hmiAppId] = true
-
-      if pExpDataTable[hmiAppId] and not usedHmiAppIds[hmiAppId] then
-        sortModules(pExpDataTable[hmiAppId].freeModules)
-        sortModules(pExpDataTable[hmiAppId].allocatedModules)
+      if expDataTable[hmiAppId] and not usedHmiAppIds[hmiAppId] then
+        usedHmiAppIds[hmiAppId] = true
+        sortModules(expDataTable[hmiAppId].freeModules)
+        sortModules(expDataTable[hmiAppId].allocatedModules)
         sortModules(d.params.freeModules)
         sortModules(d.params.allocatedModules)
-        return compareValues(pExpDataTable[hmiAppId], d.params, "params")
+        return compareValues(expDataTable[hmiAppId], d.params, "params")
       else
         local msg
         if usedHmiAppIds[hmiAppId] then
@@ -493,7 +513,7 @@ function common.rpcAllowed(pAppId, pModuleType)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
-function common.rpcAllowedWithConsent(pModuleType, pAppId)
+function common.rpcAllowedWithConsent(pAppId, pModuleType)
   local moduleControlData = common.getModuleControlData(pModuleType)
   local mobSession = common.mobile.getSession(pAppId)
   local cid = mobSession:SendRPC("SetInteriorVehicleData", {
@@ -510,7 +530,7 @@ function common.rpcAllowedWithConsent(pModuleType, pAppId)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
-function common.rpcDenied(pModuleType, pAppId, pResultCode)
+function common.rpcDenied(pAppId, pModuleType, pResultCode)
   local moduleControlData = common.getModuleControlData(pModuleType)
   local mobSession = common.mobile.getSession(pAppId)
   local cid = mobSession:SendRPC("SetInteriorVehicleData", {
@@ -520,7 +540,7 @@ function common.rpcDenied(pModuleType, pAppId, pResultCode)
   mobSession:ExpectResponse(cid, { success = false, resultCode = pResultCode })
 end
 
-function common.rpcRejectWithConsent(pModuleType, pAppId)
+function common.rpcRejectWithConsent(pAppId, pModuleType)
   local info = "The resource is in use and the driver disallows this remote control RPC"
   local moduleControlData = common.getModuleControlData(pModuleType)
   local mobSession = common.mobile.getSession(pAppId)

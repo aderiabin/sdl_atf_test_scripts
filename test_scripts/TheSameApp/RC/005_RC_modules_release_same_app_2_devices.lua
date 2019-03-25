@@ -83,12 +83,16 @@ end
 
 local function releaseModuleApp1Dev1()
   local pHmiExpDataTable = {
-    [common.app.getHMIId(1)] = {allocatedModules = {}, freeModules = {"RADIO", "LIGHT"}, allowed = true},
-    [common.app.getHMIId(2)] = {allocatedModules = {"CLIMATE"}, freeModules = {"RADIO", "LIGHT"}, allowed = true}
+    [common.app.getHMIId(1)] = {
+      allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(2)] = {
+      allocatedModules = {"CLIMATE"}, freeModules = {"RADIO", "LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}}
   }
   common.expectOnRCStatusOnHMI(pHmiExpDataTable)
-  common.expectOnRCStatusOnMobile(1, {allocatedModules = {}, freeModules = {"RADIO", "LIGHT"}, allowed = true})
-  common.expectOnRCStatusOnMobile(2, {allocatedModules = {"CLIMATE"}, freeModules = {"RADIO", "LIGHT"}, allowed = true})
+  common.expectOnRCStatusOnMobile(1, {
+    allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
+  common.expectOnRCStatusOnMobile(2, {
+    allocatedModules = {"CLIMATE"}, freeModules = {"RADIO", "LIGHT", "SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
 
   common.getHMIConnection():SendNotification("BasicCommunication.OnExitApplication",
     { appID = common.app.getHMIId(1), reason = "USER_EXIT" })
@@ -96,14 +100,16 @@ end
 
 local function releaseModuleApp1Dev2()
   local pHmiExpDataTable = {
-    [common.app.getHMIId(1)] = {allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE"}, allowed = true},
-    [common.app.getHMIId(2)] = {allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE"}, allowed = true}
+    [common.app.getHMIId(1)] = {
+      allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE", "SEAT", "AUDIO", "HMI_SETTINGS"}},
+    [common.app.getHMIId(2)] = {
+      allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE", "SEAT", "AUDIO", "HMI_SETTINGS"}}
   }
   common.expectOnRCStatusOnHMI(pHmiExpDataTable)
   common.expectOnRCStatusOnMobile(1,
-      {allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE"}, allowed = true})
+  {allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE", "SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
   common.expectOnRCStatusOnMobile(2,
-      {allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE"}, allowed = true})
+  {allocatedModules = {}, freeModules = {"RADIO", "LIGHT", "CLIMATE", "SEAT", "AUDIO", "HMI_SETTINGS"}, allowed = true})
 
   common.getHMIConnection():SendNotification("BasicCommunication.OnExitApplication",
     { appID = common.app.getHMIId(2), reason = "USER_EXIT" })
