@@ -151,8 +151,8 @@ function commonCloudAppRPCs.policyTableUpdateWithIconUrl(pPTUpdateFunc, pExpNoti
           if data.payload.requestType == "PROPRIETARY" then
             return true
           end
-          if data.payload.requestType == "ICON_URL" and data.payload.url == url then 
-            return true 
+          if data.payload.requestType == "ICON_URL" and data.payload.url == url then
+            return true
           end
           return false
         end)
@@ -172,13 +172,42 @@ function commonCloudAppRPCs.policyTableUpdateWithIconUrl(pPTUpdateFunc, pExpNoti
                   commonCloudAppRPCs.getHMIConnection():SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = d3.params.fileName })
                 end)
               commonCloudAppRPCs.getMobileSession(id):ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-              :Do(function() 
+              :Do(function()
                 os.remove(ptuFileName) end)
             end
           end)
         :Times(AtMost(2))
       end
     end)
+end
+
+function commonCloudAppRPCs.startWithoutMobile(pHMIParams)
+  local event = commonCloudAppRPCs.run.createEvent()
+  commonCloudAppRPCs.init.SDL()
+  :Do(function()
+      commonCloudAppRPCs.init.HMI()
+      :Do(function()
+          commonCloudAppRPCs.init.HMI_onReady()
+          :Do(function()
+              commonCloudAppRPCs.hmi.getConnection():RaiseEvent(event, "Start event")
+            end)
+        end)
+    end)
+  return commonCloudAppRPCs.hmi.getConnection():ExpectEvent(event, "Start event")
+end
+
+function commonCloudAppRPCs.modifyPreloadedPt(modificationFunc)
+  commonCloudAppRPCs.sdl.backupPreloadedPT()
+  local pt = commonCloudAppRPCs.sdl.getPreloadedPT()
+  modificationFunc(pt)
+  commonCloudAppRPCs.sdl.setPreloadedPT(pt)
+end
+
+commonCloudAppRPCs.cloneTable = utils.cloneTable
+commonCloudAppRPCs.connectedEvent = events.connectedEvent
+
+function commonCloudAppRPCs.getCloudAppHmiId(pCloudAppName)
+  return test.applications[pCloudAppName]
 end
 
 return commonCloudAppRPCs
