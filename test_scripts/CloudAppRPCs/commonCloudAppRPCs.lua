@@ -210,4 +210,37 @@ function commonCloudAppRPCs.getCloudAppHmiId(pCloudAppName)
   return test.applications[pCloudAppName]
 end
 
+function commonCloudAppRPCs.activateCloudApp(pAppId, pMobConnId, pAppParams)
+  local appParams = commonCloudAppRPCs.app.getParams(pAppId)
+  for k, v in pairs(pAppParams) do
+    appParams[k] = v
+  end
+
+  local hmiConnection = commonCloudAppRPCs.hmi.getConnection()
+  local cloudAppHmiId = commonCloudAppRPCs.getCloudAppHmiId(appParams.appName)
+  local requestId = hmiConnection:SendRequest("SDL.ActivateApp", {appID = cloudAppHmiId})
+  local cloudConnection = commonCloudAppRPCs.mobile.getConnection(pMobConnId)
+  local sdlConnectedEvent = cloudConnection:ExpectEvent(events.connectedEvent, "Connected")
+  sdlConnectedEvent:Do(function()
+    local session = commonCloudAppRPCs.mobile.createSession(pAppId, pMobConnId)
+    session:StartService(7)
+    :Do(function()
+        local corId = session:SendRPC("RegisterAppInterface", appParams)
+        hmiConnection:ExpectNotification("BasicCommunication.OnAppRegistered",
+          { application = { appName = appParams.appName } })
+        :Do(function(_, d1)
+            commonCloudAppRPCs.app.setHMIId(d1.params.application.appID, pAppId)
+          end)
+        session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+        :Do(function()
+            session:ExpectNotification("OnHMIStatus",
+              { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
+              { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
+              :Times(2)
+          end)
+      end)
+  end)
+  hmiConnection:ExpectResponse(requestId, {result = {code = 0, method = "SDL.ActivateApp"}})
+end
+
 return commonCloudAppRPCs
