@@ -5,6 +5,7 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local utils = require("user_modules/utils")
 local events = require("events")
+local constants = require('protocol_handler/ford_protocol_constants')
 
 local commonCloudAppRPCs = actions
 
@@ -205,6 +206,7 @@ end
 
 commonCloudAppRPCs.cloneTable = utils.cloneTable
 commonCloudAppRPCs.connectedEvent = events.connectedEvent
+commonCloudAppRPCs.disconnectedEvent = events.disconnectedEvent
 
 function commonCloudAppRPCs.getCloudAppHmiId(pCloudAppName)
   return test.applications[pCloudAppName]
@@ -241,6 +243,39 @@ function commonCloudAppRPCs.activateCloudApp(pAppId, pMobConnId, pAppParams)
       end)
   end)
   hmiConnection:ExpectResponse(requestId, {result = {code = 0, method = "SDL.ActivateApp"}})
+end
+
+function commonCloudAppRPCs.ExpectEndService(pAppId,pService)
+  local mobileSession =commonCloudAppRPCs.mobile.getSession(pAppId)
+  local event = events.Event()
+  event.matches = function(_, data)
+    return data.frameType == constants.FRAME_TYPE.CONTROL_FRAME
+      and data.serviceType == pService
+      and data.sessionId == mobileSession.sessionId
+      and data.frameInfo == constants.FRAME_INFO.END_SERVICE
+  end
+
+  return mobileSession:ExpectEvent(event, "EndService")
+end
+
+function commonCloudAppRPCs.setP5Configuration()
+  if not utils.isFileExist("modules/libbson4lua.so") then
+    print("'bson4lua' library is not available in ATF")
+    return false
+  end
+  commonCloudAppRPCs.bson = require('bson4lua')
+  config.defaultProtocolVersion = 5
+  constants.FRAME_SIZE.P5 = 131084
+  commonCloudAppRPCs.bson.bsonType = {
+    DOUBLE   = 0x01,
+    STRING   = 0x02,
+    DOCUMENT = 0x03,
+    ARRAY    = 0x04,
+    BOOLEAN  = 0x08,
+    INT32    = 0x10,
+    INT64    = 0x12
+  }
+  return true
 end
 
 return commonCloudAppRPCs

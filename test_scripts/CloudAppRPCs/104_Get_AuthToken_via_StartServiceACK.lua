@@ -14,19 +14,10 @@
 --    - HMI sends request SDL.ActivateApp (appID: hmiAppId_1) to SDL
 --    SDL does:
 --    - Connect to Cloud application server using endpoint of cloudApp_1 from policy table
---    - Send UpdateAppList(appID: hmiAppId_1, CloudConnectionStatus: CONNECTED) to HMI
 -- 2) In case:
 --    - Cloud application server starts mobile session with RPC service
 --    SDL does:
---    - Respond to Cloud application server with StartServiceAck
--- 3) In case:
---    - Cloud application server sends RegisterAppInterface request
---    SDL does:
---    - Send response on RegisterAppInterface(SUCCESS) to Cloud application server
---    - Send notification OnHMIStatus(hmiLevel : NONE) to Cloud application server
---    - Send notification BasicCommunication.OnAppRegistered to HMI
---    - Send response on SDL.ActivateApp with SUCCESS resultcode to HMI
---    - Send notification OnHMIStatus(hmiLevel : FULL) to Cloud application server
+--    - Respond to Cloud application server with StartServiceACK with authToken in BSON payload
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -35,7 +26,9 @@ local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
-
+if not common.setP5Configuration() then
+  runner.skipTest("'bson4lua' library is not available in ATF")
+end
 --[[ Local Variables ]]
 local appParams = {
   [1] = {
@@ -62,6 +55,8 @@ local cloudServerParams = {
   getUrl = function(self) return self.protocol .. "://" .. self.host .. ":" .. tostring(self.port) end
 }
 
+local authToken = "Auth3142Token"
+
 --[[ Local Functions ]]
 local function addCloudAppIntoPT(pPolicyTable)
   local pt = pPolicyTable.policy_table
@@ -73,7 +68,7 @@ local function addCloudAppIntoPT(pPolicyTable)
   policyAppParams.nicknames = {appParams[1].appName}
   policyAppParams.enabled = true
   policyAppParams.endpoint = cloudServerParams:getUrl()
-  policyAppParams.auth_token = "Auth3124Token"
+  policyAppParams.auth_token = authToken
   policyAppParams.icon_url  = "https://noiconurl.org"
   policyAppParams.cloud_transport_type = "WS"
   policyAppParams.hybrid_app_preference = "CLOUD"
@@ -82,54 +77,29 @@ local function addCloudAppIntoPT(pPolicyTable)
 end
 
 local function activateCloudApp(pAppParams)
+  local function getAuthToken(pData)
+    local payload = common.bson.to_table(pData.binaryData)
+    return payload.authToken.value
+  end
+
   local appParams = common.app.getParams(1)
   for k, v in pairs(pAppParams) do
     appParams[k] = v
   end
 
-  local cloudAppHmiId = common.getCloudAppHmiId(appParams.appName)
-  local requestId = common.hmi.getConnection():SendRequest("SDL.ActivateApp", {appID = cloudAppHmiId})
-  local cloudConnection = common.mobile.getConnection(1)
-  local sdlConnectedEvent = cloudConnection:ExpectEvent(common.connectedEvent, "Connected")
-  sdlConnectedEvent:Do(function()
-    local session = common.mobile.createSession(1, 1)
-    session:StartService(7)
-    :Do(function()
-        local corId = session:SendRPC("RegisterAppInterface", appParams)
-        common.hmi.getConnection():ExpectNotification("BasicCommunication.OnAppRegistered",
-          { application = { appName = appParams.appName } })
-        :Do(function(_, d1)
-            common.app.setHMIId(d1.params.application.appID, 1)
-          end)
-        session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-        :Do(function()
-            session:ExpectNotification("OnHMIStatus",
-              { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
-              { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-              :Times(2)
-          end)
+  common.hmi.getConnection():SendRequest("SDL.ActivateApp", {appID = common.getCloudAppHmiId(appParams.appName)})
+  common.mobile.getConnection(1):ExpectEvent(common.connectedEvent, "Connected")
+  :Do(function()
+    common.mobile.createSession(1, 1):StartService(7)
+    :ValidIf(function(_, data)
+      local actualAuthToken = getAuthToken(data)
+      if actualAuthToken ~= authToken then
+        return false, " Auth token: " .. tostring(actualAuthToken) .. "is invalid. Expected: "
+            .. authToken .. ", Actual: " .. actualAuthToken
+      end
+      return true
       end)
   end)
-
-  common.hmi.getConnection():ExpectRequest("BasicCommunication.UpdateAppList")
-  :Times(AnyNumber())
-  :Do(function(_, data)
-      common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  :ValidIf(function(_, data)
-      for _, app in ipairs(data.params.applications) do
-        if app.appID == cloudAppHmiId then
-          if app.cloudConnectionStatus == "CONNECTED" then
-            return true
-          end
-          return false, "cloudConnectionStatus of app: " .. app.appID
-              .. " Expected: CONNECTED, Actual: " .. app.cloudConnectionStatus
-        end
-      end
-      return false, "App: " .. cloudAppHmiId .. " is not contained in BC.UpdateAppList request"
-    end)
-
-  common.hmi.getConnection():ExpectResponse(requestId, {result = {code = 0, method = "SDL.ActivateApp"}})
 end
 
 --[[ Scenario ]]
@@ -141,7 +111,7 @@ runner.Step("Add CloudApp into SDL policy table", common.modifyPreloadedPt, {add
 runner.Step("Start SDL, HMI", common.startWithoutMobile)
 
 runner.Title("Test")
-runner.Step("Activate CloudApp from HMI", activateCloudApp, {appParams[1]})
+runner.Step("Retrieving of authToken during Activate CloudApp from HMI", activateCloudApp, {appParams[1]})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
