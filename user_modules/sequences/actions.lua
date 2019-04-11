@@ -238,13 +238,14 @@ local function registerConnectionExpectations(pMobConnId)
   return ret
 end
 
-function m.mobile.createConnection(pMobConnId, pMobConnHost, pMobConnPort, pMobConnType)
+function m.mobile.createConnection(pMobConnId, pMobConnHost, pMobConnPort, pMobConnType, pWSSOptions)
   if pMobConnId == nil then pMobConnId = 1 end
   -- ToDo: Create Mobile connection type enum in ATF (EMULATED, REAL, CLOUD)
   if pMobConnType == nil then pMobConnType = "EMULATED" end
   local baseConnection
   if pMobConnType == "CLOUD" then
-    baseConnection = cloud.Connection(pMobConnPort)
+    if not pWSSOptions then pWSSOptions = { isSecured = false } end
+    baseConnection = cloud.Connection(pMobConnPort, pWSSOptions.isSecured, pWSSOptions.certPath, pWSSOptions.keyPath)
     baseConnection:Listen()
   else
     baseConnection = tcp.Connection(pMobConnHost, pMobConnPort)
