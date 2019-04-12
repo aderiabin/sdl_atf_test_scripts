@@ -59,8 +59,8 @@ local cloudServerParams = {
   host = "127.0.0.1",
   port = 5432,
   protocol = "wss",
-  certPath = "./files/cloud_app_wss/server.crt",
-  keyPath = "./files/cloud_app_wss/server.key",
+  certPath = "./files/cloud_app_wss/cert.pem",
+  keyPath = "./files/cloud_app_wss/privatekey.key",
   getUrl = function(self) return self.protocol .. "://" .. self.host .. ":" .. tostring(self.port) end
 }
 
@@ -74,12 +74,36 @@ local function addCloudAppIntoPT(pPolicyTable)
   policyAppParams.groups = { "Base-4", "CloudApp" }
   policyAppParams.nicknames = {appParams[1].appName}
   policyAppParams.enabled = true
-  policyAppParams.endpoint = "wss://127.0.0.1:5432" --cloudServerParams:getUrl()
+  policyAppParams.endpoint = cloudServerParams:getUrl()
   policyAppParams.auth_token = "Auth3124Token"
   policyAppParams.icon_url  = "https://noiconurl.org"
   policyAppParams.cloud_transport_type = "WSS"
   policyAppParams.hybrid_app_preference = "CLOUD"
-  policyAppParams.certificate = "-----BEGIN CERTIFICATE-----\nMIIDqDCCApACCQDMUyq9kRJOKjANBgkqhkiG9w0BAQsFADCBmTELMAkGA1UEBhMC\nVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFzAVBgNVBAcMDlNpbGljb24gVmFsbGV5\nMRMwEQYDVQQKDApDQWNlcnQub3JnMQ8wDQYDVQQLDAZDQWNlcnQxFDASBgNVBAMM\nC3NlcnZlcl9yb290MSAwHgYJKoZIhvcNAQkBFhFzYW1wbGVAY2FjZXJ0Lm9yZzAe\nFw0xOTA0MTExMjM4MThaFw00NjA4MjcxMjM4MThaMIGRMQswCQYDVQQGEwJVUzER\nMA8GA1UECAwITWljaGlnYW4xEDAOBgNVBAcMB0RldHJvaXQxFDASBgNVBAoMC0ZP\nUkRfU0VSVkVSMRgwFgYDVQQLDA9GT1JEX1NETF9TRVJWRVIxDTALBgNVBAMMBEZP\nUkQxHjAcBgkqhkiG9w0BCQEWD3NhbXBsZUBmb3JkLmNvbTCCASIwDQYJKoZIhvcN\nAQEBBQADggEPADCCAQoCggEBALy4KHu9cRaqCJPAbWtapY/cQqNEwvpYnR0ZN5WP\n7GlGRHIyskYHwR0HVaR3vePx0SsmtXpCtf8xWm+hBwSxqJuXbr1XOqn+M8rTU84e\n0Q5M3G3A27/AiVxEAujdDa1drsZRKLIOR+NAHvWbeO8Fyrbz8J46b2pzj0yk69L6\nKLqiZGFoypr3B7OC/puxabI2ETY3ds6Lbc8UMa6tAfRARTOFv+uB8QOMCMBHlSKu\n7IXQVyYoVV9+1yYtIZBSkjWGnqLmSGlNN8rVlhDA9ViyqkWEQBvRo2LdOxY/imbO\n4PHX3oelgtNVCxhyyPKbeZmi+dC/EBEQu8AqeNJu8RmN50kCAwEAATANBgkqhkiG\n9w0BAQsFAAOCAQEA2Qvskzfxd1o1G1MasdC6kDtlTHbfi7GSsCHaGHcRgqRhAYky\nHsCW90hqGAWk/KronSd4e+vK3Qe3yV7FCGO1g0s/Hi4+lnKPeZu2TQCH8y+mlcjS\nGpAUSBZwtA+b177aJuHR5ZoEaP5wElGXzlcbaHcD/7Ulq8DjUedH1ZW9HLoFjG+M\nU+GgRlh6VJuh4ekrfSg72341o8eaicIctBBTYma22dEijBuYfO+2Et6rB1rpAdZv\nz/YttUyfPkWXoWT3S6Axe1hfV3kvk9NCrfNYG9ImuzrdEhoCFzvxxLoAGkyGZbBi\nA3OX3rHxuba27hRfV7yJ5gotromT9itx9ZqUqw==\n-----END CERTIFICATE-----"
+  -- This is certificate which SDL use to validate cloud application certificate
+  policyAppParams.certificate = [[-----BEGIN CERTIFICATE-----
+MIID2TCCAsGgAwIBAgIJAONGdmNf2pYrMA0GCSqGSIb3DQEBCwUAMIGCMQswCQYD
+VQQGEwJVQTEPMA0GA1UECAwGT2Rlc3NhMQ8wDQYDVQQHDAZPZGVzc2ExDzANBgNV
+BAoMBkx1eG9mdDERMA8GA1UECwwIRm9yZCBUQ04xDTALBgNVBAMMBEZUQ04xHjAc
+BgkqhkiG9w0BCQEWD2Z0Y25AbHV4b2Z0LmNvbTAeFw0xOTA0MTExOTI0NTJaFw0y
+MjA0MTAxOTI0NTJaMIGCMQswCQYDVQQGEwJVQTEPMA0GA1UECAwGT2Rlc3NhMQ8w
+DQYDVQQHDAZPZGVzc2ExDzANBgNVBAoMBkx1eG9mdDERMA8GA1UECwwIRm9yZCBU
+Q04xDTALBgNVBAMMBEZUQ04xHjAcBgkqhkiG9w0BCQEWD2Z0Y25AbHV4b2Z0LmNv
+bTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOiyiXJo+qC1YbcLkaT4
+B2IZb8GlpyfSiX1KPoMHcB0YiPRr4snjbiaJVs1lRJb8+N96uE4hn1NYuUqngeRP
+1U9Me1lSqt0l0byASjppykRIz7CHElKx9tfHmL5syi58KbNNjARGMh0aKx7jzFaw
+k4Q3RjTedXqVTLwJDgTDbgyVedM2Wj+PluCo9LHbITC7kPw4U73wi18GOj63thk3
+rBAfmASriYlNsD+5ucbGEWUdVz7iBymq6fEwaP3wm0dQOfbXfno4zDtw37OYxbBz
+RprwvxiXBDXapu45o/OBk3REQJDvA+Kt94SP7pc/ToS2tHAJPIjanEoCgVLv58pj
+tzUCAwEAAaNQME4wHQYDVR0OBBYEFLwY3+JDOAB2ZhEwoS91aFdHeWGcMB8GA1Ud
+IwQYMBaAFLwY3+JDOAB2ZhEwoS91aFdHeWGcMAwGA1UdEwQFMAMBAf8wDQYJKoZI
+hvcNAQELBQADggEBAJzCTsRtiFCD8Gh+IA6unogHccqQohIQwlpsZdfC0/4raJuC
+/w2KwxplTlkilLqYU/oSzQUJ0bjVnc5o/21adVwQbAAWq05XdyBp9Gn04vgsGhuz
+qP4sBYPh2Neb3I1qDreBwxdVCP90AnO9la63NscswPvzqtqfkWEHL2mvcDVj9uwR
+6Hph/HRSu0dFVth5yPzZTxr6WOfOFO8I0ZKb8z2qHb99Oai2AbtKDW8e2aiN7Xq3
+CyYDqNBTdqj1vbeijlIAbVSEdyJ1ze7TeHr5AEdHsEyyc7FULPmoiDlqd6x3jV7S
+adPbB8t/CF9qKNB9vAHwC8DOaJmHUzW1/MsT+cQ=
+-----END CERTIFICATE-----
+]]
 
   pt.app_policies[appParams[1].fullAppID] = policyAppParams
 end
@@ -145,7 +169,6 @@ runner.Step("Add CloudApp into SDL policy table", common.modifyPreloadedPt, {add
 runner.Step("Start SDL, HMI", common.startWithoutMobile)
 
 runner.Title("Test")
--- runner.Step("Delay", common.run.wait, {13000})
 runner.Step("Activate CloudApp from HMI", activateCloudApp, {appParams[1]})
 
 
