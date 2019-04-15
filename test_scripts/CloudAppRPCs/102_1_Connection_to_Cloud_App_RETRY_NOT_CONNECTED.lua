@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0158-cloud-app-transport-adapter.md
--- Description: Activation of Cloud App sequence. Retry sequence.
+-- Description: Activation of Cloud App sequence. Retry sequence not success.
 --
 --  Precondition:
 --  1) SDL is started with enabled cloud application cloudApp_1 in local policy table
@@ -61,6 +61,13 @@ local cloudServerParams = {
   getUrl = function(self) return self.protocol .. "://" .. self.host .. ":" .. tostring(self.port) end
 }
 
+local iniParameters = {
+  CloudAppRetryTimeout = 1700,
+  CloudAppMaxRetryAttempts = 3
+}
+
+local tollerance = 500
+
 --[[ Local Functions ]]
 local function addCloudAppIntoPT(pPolicyTable)
   local pt = pPolicyTable.policy_table
@@ -80,67 +87,56 @@ local function addCloudAppIntoPT(pPolicyTable)
   pt.app_policies[appParams[1].fullAppID] = policyAppParams
 end
 
-local function activateCloudApp(pAppParams)
-  local appParams = common.app.getParams(1)
-  for k, v in pairs(pAppParams) do
-    appParams[k] = v
+local function modifySDLIni(pIniParameters)
+  for paramName, paramValue in pairs(pIniParameters) do
+    common.sdl.setSDLIniParameter(paramName, paramValue)
   end
+end
 
-  local cloudAppHmiId = common.getCloudAppHmiId(appParams.appName)
-  local requestId = common.hmi.getConnection():SendRequest("SDL.ActivateApp", {appID = cloudAppHmiId})
-  local cloudConnection = common.mobile.getConnection(1)
-  local sdlConnectedEvent = cloudConnection:ExpectEvent(common.connectedEvent, "Connected")
-  sdlConnectedEvent:Do(function()
-    local session = common.mobile.createSession(1, 1)
-    session:StartService(7)
-    :Do(function()
-        local corId = session:SendRPC("RegisterAppInterface", appParams)
-        common.hmi.getConnection():ExpectNotification("BasicCommunication.OnAppRegistered",
-          { application = { appName = appParams.appName } })
-        :Do(function(_, d1)
-            common.app.setHMIId(d1.params.application.appID, 1)
-          end)
-        session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-        :Do(function()
-            session:ExpectNotification("OnHMIStatus",
-              { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
-              { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-              :Times(2)
-          end)
-      end)
-  end)
+local function retryToConnectTimer(pAppParams, pRetryTimeout, pRetryAttempts)
+  local timeout = pRetryAttempts * pRetryTimeout
+  local retryStartedTime = 0
 
-  common.hmi.getConnection():ExpectRequest("BasicCommunication.UpdateAppList")
-  :Times(AnyNumber())
+  local cloudAppHmiId = common.getCloudAppHmiId(pAppParams.appName)
+  common.hmi.getConnection():ExpectRequest("BasicCommunication.UpdateAppList",
+      {applications = {{appID = cloudAppHmiId, cloudConnectionStatus = "RETRY"}}},
+      {applications = {{appID = cloudAppHmiId, cloudConnectionStatus = "NOT_CONNECTED"}}}):Times(2)
   :Do(function(_, data)
       common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  :ValidIf(function(_, data)
-      for _, app in ipairs(data.params.applications) do
-        if app.appID == cloudAppHmiId then
-          if app.cloudConnectionStatus == "CONNECTED" then
-            return true
-          end
-          return false, "cloudConnectionStatus of app: " .. app.appID
-              .. " Expected: CONNECTED, Actual: " .. app.cloudConnectionStatus
+  :ValidIf(function(exp, _)
+      if exp.occurences == 2 then
+        local retryFinishedTime = timestamp()
+
+        local delay = math.abs(retryFinishedTime - retryStartedTime)
+        if math.abs(delay - timeout) > tollerance then
+          return false, "Wrong length of retry sequence for connect to cloud app server. Expected: " .. timeout
+              .. ", Actual: " .. delay
         end
       end
-      return false, "App: " .. cloudAppHmiId .. " is not contained in BC.UpdateAppList request"
+      return true
     end)
+  common.hmi.getConnection():SendRequest("SDL.ActivateApp", {appID = cloudAppHmiId})
+  retryStartedTime = timestamp()
+end
 
-  common.hmi.getConnection():ExpectResponse(requestId, {result = {code = 0, method = "SDL.ActivateApp"}})
+local function retryToConnectFinished()
+  local cloudConnection, cloudTransport = common.createCloudConnection(1, cloudServerParams.host, cloudServerParams.port)
+  cloudConnection:ExpectEvent(common.connectedEvent, "Connected"):Times(0)
+  cloudTransport:Listen()
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Start cloud application server", common.mobile.createConnection,
-    {1, cloudServerParams.host, cloudServerParams.port, "CLOUD"})
+runner.Step("Set cloud app retry parameters in INI", modifySDLIni, {iniParameters})
 runner.Step("Add CloudApp into SDL policy table", common.modifyPreloadedPt, {addCloudAppIntoPT})
 runner.Step("Start SDL, HMI", common.startWithoutMobile)
 
 runner.Title("Test")
-runner.Step("Activate CloudApp from HMI", activateCloudApp, {appParams[1]})
+runner.Step("Check retry sequence for cloud app connection", retryToConnectTimer,
+    {appParams[1], iniParameters.CloudAppRetryTimeout, iniParameters.CloudAppMaxRetryAttempts})
+runner.Step("Check absence connect tries to cloud app connection after timeout", retryToConnectFinished)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

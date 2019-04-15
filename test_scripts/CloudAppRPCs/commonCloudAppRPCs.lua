@@ -1,10 +1,14 @@
 local actions = require("user_modules/sequences/actions")
 local json = require("modules/json")
 local test = require("user_modules/dummy_connecttest")
+local cloud = require("cloud_connection")
+local file_connection = require("file_connection")
+local mobile = require("mobile_connection")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local utils = require("user_modules/utils")
 local events = require("events")
+local expectations = require('expectations')
 local constants = require('protocol_handler/ford_protocol_constants')
 
 local commonCloudAppRPCs = actions
@@ -276,6 +280,37 @@ function commonCloudAppRPCs.setP5Configuration()
     INT64    = 0x12
   }
   return true
+end
+
+function commonCloudAppRPCs.createCloudConnection(pMobConnId, pMobConnHost, pMobConnPort)
+  local function MobRaiseEvent(self, pEvent, pEventName)
+    if pEventName == nil then pEventName = "noname" end
+      reporter.AddMessage(debug.getinfo(1, "n").name, pEventName)
+      event_dispatcher:RaiseEvent(self, pEvent)
+  end
+
+  local function MobExpectEvent(self, pEvent, pEventName)
+    if pEventName == nil then pEventName = "noname" end
+    local ret = expectations.Expectation(pEventName, self)
+    ret.event = pEvent
+    event_dispatcher:AddEvent(self, pEvent, ret)
+    test:AddExpectation(ret)
+    return ret
+  end
+
+  if pMobConnId == nil then pMobConnId = 1 end
+  local baseConnection = cloud.Connection(pMobConnPort, false)
+  local filename = "mobile" .. pMobConnId .. ".out"
+  local fileConnection = file_connection.FileConnection(filename, baseConnection)
+  local connection = mobile.MobileConnection(fileConnection)
+  connection.RaiseEvent = MobRaiseEvent
+  connection.ExpectEvent = MobExpectEvent
+  connection.host = pMobConnHost
+  connection.port = pMobConnPort
+  connection.type = "CLOUD"
+  event_dispatcher:AddConnection(connection)
+  test.mobileConnections[pMobConnId] = connection
+  return connection, baseConnection
 end
 
 return commonCloudAppRPCs
