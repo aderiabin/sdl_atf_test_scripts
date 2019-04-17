@@ -1,24 +1,26 @@
 ---------------------------------------------------------------------------------------------------
---   Proposal:
+-- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
---   Description:
+-- Description:
 -- Two mobile applications with the same appNames, same appIDs and same vrSysnonyms are registering from different
 -- mobile devices. Check if there was sent an OnAppRegistered notification containing the same vrSysnonyms field for
 -- both applications
---   Precondition:
--- 1) SDL and HMI are started
--- 2) Mobile №1 and №2 are connected to SDL
---   In case:
--- 1) Mobile №1 sends RegisterAppInterface request (with all mandatories) with appID = 1, appName = "Test Application"
+--
+-- Precondition:
+-- 1)SDL and HMI are started
+-- 2)Mobile №1 and №2 are connected to SDL
+--
+-- Steps:
+-- 1)Mobile №1 sends RegisterAppInterface request (with all mandatories) with appID = 1, appName = "Test Application"
 --    and vrSynonyms = "vrApp" to SDL
--- 2) SDL sends RegisterAppInterface(resultCode = SUCCESS) response to Mobile №1
--- 3) SDL sends OnAppRegistered(application.appName = "Test Application", vrSysnonyms = "vrApp") notification to HMI
--- 4) Mobile №2 sends RegisterAppInterface request (with all mandatories) with appID = 1, appName = "Test Application"
+--   Check:
+--    SDL sends RegisterAppInterface(resultCode = SUCCESS) response to Mobile №1
+--    SDL sends OnAppRegistered(application.appName = "Test Application", vrSysnonyms = "vrApp") notification to HMI
+-- 2)Mobile №2 sends RegisterAppInterface request (with all mandatories) with appID = 1, appName = "Test Application"
 --    and vrSynonyms = "vrApp" to SDL
---   SDL does:
--- 1) Send RegisterAppInterface(resultCode = SUCCESS) response to Mobile №2
--- 2) SDL sends OnAppRegistered(application.appName = "Test Application", vrSysnonyms = "vrApp") notification to HMI
---    from Mobile №2
+--   Check:
+--    SDL sends RegisterAppInterface(resultCode = SUCCESS) response to Mobile №2
+--    SDL sends OnAppRegistered(application.appName = "Test Application", vrSysnonyms = "vrApp") notification to HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')

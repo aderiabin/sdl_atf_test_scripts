@@ -1,19 +1,21 @@
 ---------------------------------------------------------------------------------------------------
---   Proposal:
+-- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
---   Description:
+-- Description:
 -- Two applications was registered with different appIDs and different appNames on a same mobile device.
 -- After that second application calls for ChangeRegistration using same appName as first application has.
---   Precondition:
--- 1) SDL and HMI are started
--- 2) Mobile №1 and №2 are connected to SDL
---   In case:
--- 1) First app registered from Mobile
--- 2) Second app registered from same Mobile with different appID and appName
--- 3) Mobile sends ChangeRegistration request (with all mandatories) with same appName as first app has to SDL
---   SDL does:
--- 1) Send ChangeRegistration(resultCode = "DUPLICATE_NAME") response to Mobile
--- 2) Not send OnAppRegistered notification to HMI
+--
+-- Precondition:
+-- 1)SDL and HMI are started
+-- 2)Mobile is connected to SDL
+-- 3)First app registered from Mobile
+-- 4)Second app registered from same Mobile with different appID and appName
+--
+-- Steps:
+-- 1)Mobile sends ChangeRegistration request (with all mandatories) with same appName as first app has to SDL
+--   Check:
+--    SDL send ChangeRegistration(resultCode = "DUPLICATE_NAME") response to Mobile
+--    SDL does not send OnAppRegistered notification to HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')

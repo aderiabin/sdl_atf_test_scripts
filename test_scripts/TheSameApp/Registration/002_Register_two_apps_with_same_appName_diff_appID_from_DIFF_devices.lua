@@ -2,18 +2,21 @@
 -- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
 -- Description: Registration of two mobile applications with the same appName and different appIDs from different mobile
--- devices
---   Precondition:
--- 1) SDL and HMI are started
--- 2) Mobile №1 and №2 are connected to SDL
---   In case:
--- 1) Mobile №1 sends RegisterAppInterface request (with all mandatories) to SDL
--- 2) Mobile №2 sends RegisterAppInterface request (with all mandatories) with same appName and different appID to SDL
---   SDL does:
--- 1) Send RegisterAppInterface(resultCode = SUCCESS) response to Mobile №1
--- 2) Send RegisterAppInterface(resultCode = SUCCESS) response to Mobile №2
--- 3) Send first OnAppRegistered notification to HMI
--- 4) Send second OnAppRegistered notification to HMI
+--  devices
+--
+-- Precondition:
+-- 1)SDL and HMI are started
+-- 2)Mobile №1 and №2 are connected to SDL
+--
+-- Steps:
+-- 1)Mobile №1 sends RegisterAppInterface request (with all mandatories) to SDL
+--   Check:
+--    SDL sends RegisterAppInterface(resultCode = SUCCESS) response to Mobile №1
+--    SDL sends OnAppRegistered notification to HMI
+-- 2)Mobile №2 sends RegisterAppInterface request (with all mandatories) with same appName and different appID to SDL
+--   Check:
+--    SDL sends RegisterAppInterface(resultCode = SUCCESS) response to Mobile №2
+--    SDL sends OnAppRegistered notification to HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
