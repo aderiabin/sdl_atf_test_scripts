@@ -1,38 +1,40 @@
 ---------------------------------------------------------------------------------------------------
---   Proposal:
+-- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
---   Description:
--- Register two mobile applications with the same appNames and different appIDs from different mobile devices.
--- The value of "appHMIType" field is set to "DEFAULT" for these applications.
--- Set different HMI levels for applications, send OnHMIStatus notification to SDL and check that SDL does not send it
--- to the App if it is in NONE HMI level. And if not, check whether the value of "hmiLevel" parameter of the
--- notification corresponds to the current HMI level of the application.
---   Precondition:
--- 1) SDL and HMI are started
--- 2) Mobile №1 and №2 are connected to SDL
--- 3) App 1 (isMediaApplication = false, appID = 0000001,  appName = "Test Application1") is registered from Mobile №1
--- 4) App 2 (isMediaApplication = false, appID = 00000022, appName = "Test Application1") is registered from Mobile №2
---   Steps:
--- 1) Activate Application 1
---   CheckSDL:
---     SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №1
---     SDL does NOT send OnHMIStatus to Mobile №2
--- 2) Activate Application 2
---   CheckSDL:
---     SDL sends OnHMIStatus( hmiLevel = BACKGROUND ) to Mobile №1
---     SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №2
--- 3) Deactivate Application 2
---   CheckSDL:
---     SDL does NOT send OnHMIStatus to Mobile №1
---     SDL sends OnHMIStatus( hmiLevel = BACKGROUND ) to Mobile №2
--- 4) Activate Application 1 once again
---   CheckSDL:
---     SDL does NOT send OnHMIStatus to Mobile №1
---     SDL sends OnHMIStatus( hmiLevel = NONE ) to Mobile №2
--- 5) Deactivate Application 1
---   CheckSDL:
---     SDL does NOT send OnHMIStatus to Mobile №1
---     SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №2
+-- Description:
+--  Register two mobile applications with the same appNames and different appIDs from different mobile devices.
+--  The value of "appHMIType" field is set to "DEFAULT" for these applications.
+--  Set different HMI levels for applications, send OnHMIStatus notification to SDL and check that SDL does not send it
+--  to the App if it is in NONE HMI level. And if not, check whether the value of "hmiLevel" parameter of the
+--  notification corresponds to the current HMI level of the application.
+--
+-- Precondition:
+-- 1)SDL and HMI are started
+-- 2)Mobile №1 and №2 are connected to SDL
+-- 3)App 1 (isMediaApplication = false, appID = 0000001,  appName = "Test Application1") is registered from Mobile №1
+-- 4)App 2 (isMediaApplication = false, appID = 00000022, appName = "Test Application1") is registered from Mobile №2
+--
+-- Steps:
+-- 1)Activate Application 1
+--   Check:
+--    SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №1
+--    SDL does NOT send OnHMIStatus to Mobile №2
+-- 2)Activate Application 2
+--   Check:
+--    SDL sends OnHMIStatus( hmiLevel = BACKGROUND ) to Mobile №1
+--    SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №2
+-- 3)Deactivate Application 2
+--   Check:
+--    SDL does NOT send OnHMIStatus to Mobile №1
+--    SDL sends OnHMIStatus( hmiLevel = BACKGROUND ) to Mobile №2
+-- 4)Activate Application 1 once again
+--   Check:
+--    SDL does NOT send OnHMIStatus to Mobile №1
+--    SDL sends OnHMIStatus( hmiLevel = NONE ) to Mobile №2
+-- 5)Deactivate Application 1
+--   Check:
+--    SDL does NOT send OnHMIStatus to Mobile №1
+--    SDL sends OnHMIStatus( hmiLevel = FULL ) to Mobile №2
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -49,48 +51,18 @@ local devices = {
 
 local appParams = {
   [1] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
     appName = "Test Application1",
     isMediaApplication = false,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "DEFAULT" },
     appID = "0001",
     fullAppID = "0000001",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
   },
   [2] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
     appName = "Test Application1",
     isMediaApplication = false,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "DEFAULT" },
     appID = "00022",
     fullAppID = "00000022",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
   },
 }
 

@@ -27,7 +27,7 @@ local common = require('test_scripts/TheSameApp/commonTheSameApp')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
-config.defaultProtocolVersion = 3
+config.defaultProtocolVersion = 2
 
 --[[ Local Data ]]
 local devices = {

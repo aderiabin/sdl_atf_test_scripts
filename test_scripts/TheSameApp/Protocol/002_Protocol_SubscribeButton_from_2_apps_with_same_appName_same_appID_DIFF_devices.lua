@@ -28,7 +28,7 @@ local common = require('test_scripts/TheSameApp/commonTheSameApp')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
-config.defaultProtocolVersion = 3
+config.defaultProtocolVersion = 4
 
 --[[ Local Data ]]
 local devices = {
@@ -55,6 +55,7 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL and HMI", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
 runner.Step("Register App1 from device 1", common.registerAppEx, { 1, appParams[1], 1 })
+runner.Step("Set protocol version to 5", common.setProtocolVersion, { 5 })
 runner.Step("Register App2 from device 2", common.registerAppEx, { 2, appParams[2], 2 })
 
 runner.Title("Test")

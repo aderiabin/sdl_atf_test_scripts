@@ -3,7 +3,7 @@
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
 -- Description: SDL resumes applications state after unexpected disconnect for the same applications that are registered
 --  on two mobile devices
-
+--
 -- Precondition:
 -- 1)SDL and HMI are started
 -- 2)Mobile №1 and №2 are connected to SDL and are consented
@@ -11,18 +11,19 @@
 --   App1 from Mobile №1 and App1 from Mobile №2 are activated sequentially
 --   App1 from Mobile №1 has FULL HMI Level, App1 from Mobile №2 has BACKGROUND HMI Level
 --
--- In case:
+-- Steps:
 -- 1)User disconnects Mobile №1 and Mobile №2 from SDL without correct exit aplications.
---   User re-register App1 from Mobile №1
+--    User re-register App1 from Mobile №1
+--   Check:
+--    App1 from Mobile №1 is registered, SDL sends OnAppRegistered with the same HMI appID
+--     as before unexpected disconnect, then resend AddCommand and AddSubmenu RPCs to HMI,
+--     sends BasicCommunication.ActivateApp to HMI and after success response from HMI,
+--     SDL sends to App OnHMIStatus(FULL)
 -- 2)User re-register App1 from Mobile №2
--- SDL does:
--- 1)App1 from Mobile №1 is registered, SDL sends OnAppRegistered with the same HMI appID
---   as before unexpected disconnect, then resend AddCommand and AddSubmenu RPCs to HMI,
---   sends BasicCommunication.ActivateApp to HMI and after success response from HMI,
---   SDL sends to App OnHMIStatus(FULL)
--- 2)App1 from Mobile №2 is registered, SDL sends OnAppRegistered with the same HMI appID
---   as before unexpected disconnect, resend AddCommand and AddSubmenu RPCs to HMI
---   and does not set App1 from Mobile №2 to BACKGROUND HMI level
+--   Check:
+--    App1 from Mobile №2 is registered, SDL sends OnAppRegistered with the same HMI appID
+--     as before unexpected disconnect, resend AddCommand and AddSubmenu RPCs to HMI
+--     and does not set App1 from Mobile №2 to BACKGROUND HMI level
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -39,26 +40,11 @@ local devices = {
 
 local appParams = {
   [1] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
     appName = "Test Application 3",
     isMediaApplication = true,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "DEFAULT" },
     appID = "0003",
     fullAppID = "0000035",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
   }
 }
 

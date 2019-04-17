@@ -16,26 +16,28 @@
 -- 5)RC module RADIO allocated to App1 on Mobile №1
 --   RC module CLIMATE allocated to App1 on Mobile №2
 --   RC module LIGHT allocated to App2 on Mobile №2
--- In case:
+--
+-- Steps:
 -- 1)Application App2 from Mobile №2 activates and sends to SDL valid SetInteriorVehicleData (module: RADIO)
---   RPC request to allocate RADIO module
+--    RPC request to allocate RADIO module
+--   Check:
+--    SDL sends SetInteriorVehicleData(resultCode = SUCCESS) response to App2 on Mobile №2
+--    SDL sends OnRCStatus(allocatedModules:(), freeModules: ()) notification to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(CLIMATE), freeModules: ()) notification to App1 on Mobile №2
+--    SDL sends OnRCStatus(allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to App2 on Mobile №2
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(), freeModules: ()) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(CLIMATE), freeModules: ()) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_3, allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to HMI
 -- 2)Application App1 from Mobile №1 activates and sends to SDL valid SetInteriorVehicleData (module: CLIMATE)
---   RPC request to allocate CLIMATE module
--- SDL does:
--- 1)Send SetInteriorVehicleData(resultCode = SUCCESS) response to App2 on Mobile №2
---   Send OnRCStatus(allocatedModules:(), freeModules: ()) notification to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(CLIMATE), freeModules: ()) notification to App1 on Mobile №2
---   Send OnRCStatus(allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to App2 on Mobile №2
---   Send RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(), freeModules: ()) notification to HMI
---   Send RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(CLIMATE), freeModules: ()) notification to HMI
---   Send RC.OnRCStatus(appId: hmiAppId_3, allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to HMI
--- 2)Send SetInteriorVehicleData(resultCode = SUCCESS) response to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(CLIMATE), freeModules: ()) notification to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(), freeModules: ()) notification to App1 on Mobile №2
---   Send OnRCStatus(allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to App2 on Mobile №2
---   Send RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(CLIMATE), freeModules: ()) notification to HMI
---   Send RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(), freeModules: ()) notification to HMI
---   Send RC.OnRCStatus(appId: hmiAppId_3, allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to HMI
+--    RPC request to allocate CLIMATE module
+--   Check:
+--    SDL sends SetInteriorVehicleData(resultCode = SUCCESS) response to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(CLIMATE), freeModules: ()) notification to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(), freeModules: ()) notification to App1 on Mobile №2
+--    SDL sends OnRCStatus(allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to App2 on Mobile №2
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(CLIMATE), freeModules: ()) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(), freeModules: ()) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_3, allocatedModules:(LIGHT, RADIO), freeModules: ()) notification to HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -52,48 +54,18 @@ local devices = {
 
 local appParams = {
   [1] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
     appName = "Test Application",
     isMediaApplication = false,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "REMOTE_CONTROL" },
     appID = "0001",
     fullAppID = "0000001",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
   },
   [2] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
     appName = "Test Application2",
     isMediaApplication = false,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "REMOTE_CONTROL" },
     appID = "0021",
     fullAppID = "0000021",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
   },
 }
 

@@ -14,35 +14,38 @@
 -- 5)RC module RADIO allocated to App1 on Mobile №1
 --   RC module CLIMATE allocated to App1 on Mobile №2
 --   RC module LIGHT is free
--- In case:
+--
+-- Steps:
 -- 1)Application App1 from Mobile №2 activates and sends to SDL valid SetInteriorVehicleData (module: RADIO)
---     RPC request to reallocate RADIO module
---   Driver rejects consent.
---     HMI sends response RC.GetInteriorVehicleDataConsent (false)
+--    RPC request to reallocate RADIO module
+--    Driver rejects consent.
+--    HMI sends response RC.GetInteriorVehicleDataConsent (false)
+--   Check:
+--    SDL sends RC.GetInteriorVehicleData (RADIO, hmiAppId_2) to HMI
+--    SDL sends SetInteriorVehicleData(resultCode = REJECTED) response to App1 on Mobile №2
+--    SDL does not send OnRCStatus notification to App1 on Mobile №1
+--    SDL does not send OnRCStatus notification to App1 on Mobile №2
+--    SDL does not send RC.OnRCStatus notification to HMI
+--    SDL does not send RC.OnRCStatus notification to HMI
 -- 2)Application App1 from Mobile №1 activates and sends to SDL valid SetInteriorVehicleData (module: CLIMATE)
---   RPC request to reallocate CLIMATE module
---   Driver accepts consent.
---     HMI sends response RC.GetInteriorVehicleDataConsent (true)
+--    RPC request to reallocate CLIMATE module
+--    Driver accepts consent.
+--    HMI sends response RC.GetInteriorVehicleDataConsent (true)
+--   Check:
+--    SDL sends RC.GetInteriorVehicleData (CLIMATE, hmiAppId_1) to HMI
+--    SDL sends SetInteriorVehicleData(resultCode = SUCCESS) response to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(RADIO, CLIMATE), freeModules: (LIGHT)) notification to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(), freeModules: (LIGHT)) notification to App1 on Mobile №2
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(RADIO, CLIMATE), freeModules: (LIGHT)) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(), freeModules: (LIGHT)) notification to HMI
 -- 3)Application App1 from Mobile №2 activates and sends to SDL valid SetInteriorVehicleData (module: LIGHT)
---   RPC request to allocate LIGHT module
--- SDL does:
--- 1)Send RC.GetInteriorVehicleData (RADIO, hmiAppId_2) to HMI
---   Send SetInteriorVehicleData(resultCode = REJECTED) response to App1 on Mobile №2
---   Not send OnRCStatus notification to App1 on Mobile №1
---   Not send OnRCStatus notification to App1 on Mobile №2
---   Not send RC.OnRCStatus notification to HMI
---   Not send RC.OnRCStatus notification to HMI
--- 2)Send RC.GetInteriorVehicleData (CLIMATE, hmiAppId_1) to HMI
---   Send SetInteriorVehicleData(resultCode = SUCCESS) response to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(RADIO, CLIMATE), freeModules: (LIGHT)) notification to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(), freeModules: (LIGHT)) notification to App1 on Mobile №2
---   Send RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(RADIO, CLIMATE), freeModules: (LIGHT)) notification to HMI
---   Send RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(), freeModules: (LIGHT)) notification to HMI
--- 3)Send SetInteriorVehicleData(resultCode = SUCCESS) response to App1 on Mobile №2
---   Send OnRCStatus(allocatedModules:(RADIO, CLIMATE), freeModules: ()) notification to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(LIGHT), freeModules: ()) notification to App1 on Mobile №2
---   Send RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(RADIO, CLIMATE), freeModules: ()) notification to HMI
---   Send RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(LIGHT), freeModules: ()) notification to HMI
+--    RPC request to allocate LIGHT module
+--   Check:
+--    SDL sends SetInteriorVehicleData(resultCode = SUCCESS) response to App1 on Mobile №2
+--    SDL sends OnRCStatus(allocatedModules:(RADIO, CLIMATE), freeModules: ()) notification to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(LIGHT), freeModules: ()) notification to App1 on Mobile №2
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(RADIO, CLIMATE), freeModules: ()) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(LIGHT), freeModules: ()) notification to HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -59,26 +62,11 @@ local devices = {
 
 local appParams = {
   [1] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
     appName = "Test Application",
     isMediaApplication = false,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "REMOTE_CONTROL" },
     appID = "0001",
     fullAppID = "0000001",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
   }
 }
 

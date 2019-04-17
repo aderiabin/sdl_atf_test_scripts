@@ -17,6 +17,9 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 
 constants.FRAME_SIZE["P9"] = 131084 -- add unsupported SDL protocol version
 config.SecurityProtocol = "DTLS"
+config.serverCertificatePath = "./files/Security/spt_credential.pem"
+config.serverPrivateKeyPath = "./files/Security/spt_credential.pem"
+config.serverCAChainCertPath = "./files/Security/spt_credential.pem"
 
 --[[ Module ]]
 local m = actions

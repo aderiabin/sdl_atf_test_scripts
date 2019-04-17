@@ -53,7 +53,6 @@ end
 function common.connectMobDevice(pMobConnId, deviceInfo, isSDLAllowed)
   if isSDLAllowed == nil then isSDLAllowed = true end
   utils.addNetworkInterface(pMobConnId, deviceInfo.host)
-  print ("deviceInfo.host: " .. deviceInfo.host, " deviceInfo.port: " .. deviceInfo.port)
   common.mobile.createConnection(pMobConnId, deviceInfo.host, deviceInfo.port)
   local mobConnectExp = common.mobile.connect(pMobConnId)
   if isSDLAllowed then
@@ -64,8 +63,6 @@ function common.connectMobDevice(pMobConnId, deviceInfo, isSDLAllowed)
 end
 
 function common.deleteMobDevice(pMobConnId)
-  -- common.mobile.disconnect(pMobConnId)
-  -- common.mobile.deleteConnection(pMobConnId)
   utils.deleteNetworkInterface(pMobConnId)
 end
 

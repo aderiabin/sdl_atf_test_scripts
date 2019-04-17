@@ -3,7 +3,7 @@
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
 -- Description: RC modules release in AUTO_ALLOW mode for the same applications that are registered
 --  on two mobile devices
-
+--
 -- Precondition:
 -- 1)SDL and HMI are started
 -- 2)Mobile №1 and №2 are connected to SDL and are consented
@@ -15,20 +15,22 @@
 -- 5)RC module RADIO allocated to App1 on Mobile №1
 --   RC module CLIMATE allocated to App1 on Mobile №2
 --   RC module LIGHT is free
--- In case:
+--
+-- Steps:
 -- 1)User exit Application App1 on Mobile №1
---   HMI sends BC.OnExitApplication(hmiAppId_1, reason = USER_EXIT) notification to SDL
+--    HMI sends BC.OnExitApplication(hmiAppId_1, reason = USER_EXIT) notification to SDL
+--   Check:
+--    SDL sends OnRCStatus(allocatedModules:(), freeModules: (RADIO, LIGHT)) notification to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(CLIMATE), freeModules: (RADIO, LIGHT)) notification to App1 on Mobile №2
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(), freeModules: (RADIO, LIGHT)) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(CLIMATE), freeModules: (RADIO, LIGHT)) notification to HMI
 -- 2)User exit Application App1 on Mobile №2
---   HMI sends BC.OnExitApplication(hmiAppId_2, reason = USER_EXIT) notification to SDL
--- SDL does:
--- 1)Send OnRCStatus(allocatedModules:(), freeModules: (RADIO, LIGHT)) notification to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(CLIMATE), freeModules: (RADIO, LIGHT)) notification to App1 on Mobile №2
---   Send RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(), freeModules: (RADIO, LIGHT)) notification to HMI
---   Send RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(CLIMATE), freeModules: (RADIO, LIGHT)) notification to HMI
--- 2)Send OnRCStatus(allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to App1 on Mobile №1
---   Send OnRCStatus(allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to App1 on Mobile №2
---  Send RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to HMI
---  Send RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to HMI
+--    HMI sends BC.OnExitApplication(hmiAppId_2, reason = USER_EXIT) notification to SDL
+--   Check:
+--    SDL sends OnRCStatus(allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to App1 on Mobile №1
+--    SDL sends OnRCStatus(allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to App1 on Mobile №2
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_1, allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to HMI
+--    SDL sends RC.OnRCStatus(appId: hmiAppId_2, allocatedModules:(), freeModules: (RADIO, CLIMATE, LIGHT)) notification to HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -45,26 +47,11 @@ local devices = {
 
 local appParams = {
   [1] = {
-    syncMsgVersion =
-    {
-      majorVersion = 5,
-      minorVersion = 0
-    },
     appName = "Test Application",
     isMediaApplication = false,
-    languageDesired = 'EN-US',
-    hmiDisplayLanguageDesired = 'EN-US',
     appHMIType = { "REMOTE_CONTROL" },
     appID = "0001",
     fullAppID = "0000001",
-    deviceInfo =
-    {
-      os = "Android",
-      carrier = "Megafon",
-      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-      osVersion = "4.4.2",
-      maxNumberRFCOMMPorts = 1
-    }
   }
 }
 
