@@ -1,39 +1,39 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
--- Description: Send encrypted or unencrypted RPCs in protected and unprotected mode from apps registered on different
+-- Description:
+-- Send encrypted or unencrypted RPCs in protected and unprotected mode from apps registered on different
 -- mobile devices and having different appNames and same appIds
---   Precondition:
+--
+-- Preconditions:
 -- 1) SDL has up-to-date certificates in Policy Table
 -- 2) App_1 is registered from Mobile №1 and RPC service is started in unprotected mode
 -- 3) App_2 is registered from Mobile №2 and RPC service is started in unprotected mode
---   Steps:
--- 1) Mobile №1 sends RegisterAppInterface request (appID = 1, appName = "Test Application") to SDL
---   CheckSDL:
---     SDL sends RegisterAppInterface response( resultCode = SUCCESS  ) to Mobile №1
--- 2) App_1 switch RPC service to protected mode:
---   CheckSDL:
---    started protected mode successfully for App1.
--- 3) Mobile №1 sends AddCommand RPC in protected mode to SDL
---   CheckSDL:
+--
+-- Steps:
+-- 1) App_1 switches RPC service to protected mode:
+--   Check:
+--    SDL started protected mode successfully for App1.
+-- 2) Mobile №1 sends AddCommand RPC in protected mode to SDL
+--   Check:
 --    SDL responds with  AddCommand secure response (protected) to Mobile №1
--- 4) Mobile №1 sends AddCommand RPC in unprotected mode to SDL
---   CheckSDL:
+-- 3) Mobile №1 sends AddCommand RPC in unprotected mode to SDL
+--   Check:
 --    SDL responds with  AddCommand secure response (protected) to Mobile №1
--- 5) Mobile №2 sends AddCommand RPC in unprotected mode to SDL
---   CheckSDL:
+-- 4) Mobile №2 sends AddCommand RPC in unprotected mode to SDL
+--   Check:
 --    SDL responds with AddCommand response (unprotected) to Mobile №2
--- 6) App_2 switch RPC service to protected mode:
---   CheckSDL:
---    started protected mode successfully for App2.
--- 7) Mobile №2 sends AddCommand RPC in protected mode to SDL
---   CheckSDL:
+-- 5) App_2 switches RPC service to protected mode:
+--   Check:
+--    SDL started protected mode successfully for App2.
+-- 6) Mobile №2 sends AddCommand RPC in protected mode to SDL
+--   Check:
 --    SDL responds with  AddCommand secure response (protected) to Mobile №2
--- 8) Mobile №2 sends AddCommand RPC in unprotected mode to SDL
---   CheckSDL:
+-- 7) Mobile №2 sends AddCommand RPC in unprotected mode to SDL
+--   Check:
 --    SDL responds with  AddCommand secure response (protected) to Mobile №2
--- 9) Mobile №1 sends AddCommand RPC in protected mode to SDL
---   CheckSDL:
+-- 8) Mobile №1 sends AddCommand RPC in protected mode to SDL
+--   Check:
 --    SDL responds with  AddCommand secure response (protected) to Mobile №1
 ---------------------------------------------------------------------------------------------------
 
@@ -74,11 +74,12 @@ runner.Step("Activate App 1", common.activateApp, { 1 })
 
 runner.Title("Test")
 runner.Step ("Start RPC Service protected for App 1", common.startServiceProtected, { 7, 1 })
-runner.Step ("Mobile 1 sends secure   RPC in protected mode", common.protectedModeRPC, { 1, addCommandParams[1] })
+runner.Step ("Mobile 1 sends secure RPC in protected mode",   common.protectedModeRPC, { 1, addCommandParams[1] })
 runner.Step ("Mobile 1 sends insecure RPC in protected mode", common.nonProtectedRPC,  { 1, addCommandParams[2], true })
 
 runner.Step ("Activate App 2", common.activateApp, { 2 })
 runner.Step ("Mobile 2 sends insecure RPC in NON protected mode", common.nonProtectedRPC,{2, addCommandParams[1],false})
+
 runner.Step ("Start RPC Service protected for App 2", common.startServiceProtected, { 7, 2 })
 runner.Step ("Mobile 2 sends secure RPC in protected mode",  common.protectedModeRPC, { 2, addCommandParams[2] })
 runner.Step ("Mobile 2 sends insecure RPC in protected mode", common.nonProtectedRPC, { 2, addCommandParams[3], true })

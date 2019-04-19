@@ -1,35 +1,38 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
--- Description: Two mobile applications with the same appNames and different appIds from different mobiles send
+-- Description:
+-- Two mobile applications with the same appNames and different appIds from different mobiles send
 -- SubscribeWayPoints requests and receive OnWayPointChange notifications.
---   Precondition:
+--
+-- Preconditions:
 -- 1) SDL and HMI are started
 -- 2) Mobiles №1 and №2 are connected to SDL
 -- 3) Mobiles №1 and №2 are subscribed on WayPoints
---   Steps:
+--
+-- Steps:
 -- 1) HMI sent OnWayPointChange notification
---   Check SDL:
---     sends OnWayPointChange notification to Mobiles №1 and №2
+--   Check:
+--    SDL sends OnWayPointChange notification to Mobiles №1 and №2
 -- 2) Mobile №1 App1 requested Unsubscribe from WayPoints
---   Check SDL:
---     sends Navigation.UnsubscribeWayPoints(appId_1) request to HMI
---     receives Navigation.SubscribeWayPoints("SUCCESS") response from HMI
---     sends UnsubscribeWayPoints(SUCCESS) response to Mobile №1
---     sends OnHashChange with updated hashId to Mobile №1
+--   Check:
+--    SDL sends Navigation.UnsubscribeWayPoints(appId_1) request to HMI
+--    SDL receives Navigation.SubscribeWayPoints("SUCCESS") response from HMI
+--    SDL sends UnsubscribeWayPoints(SUCCESS) response to Mobile №1
+--    SDL sends OnHashChange with updated hashId to Mobile №1
 -- 3) HMI sent OnWayPointChange notification
---   Check SDL:
---     sends OnWayPointChange notification to Mobile №2
---     does NOT send OnWayPointChange to Mobile №1
+--   Check:
+--    SDL sends OnWayPointChange notification to Mobile №2
+--    SDL does NOT send OnWayPointChange to Mobile №1
 -- 4) Mobile №2 App2 requested Unsubscribe from WayPoints
---   Check SDL:
---     sends Navigation.UnsubscribeWayPoints(appId_2) request to HMI
---     receives Navigation.SubscribeWayPoints("SUCCESS") response from HMI
---     sends UnsubscribeWayPoints(SUCCESS) response to Mobile №2
---     sends OnHashChange with updated hashId to Mobile №2
+--   Check:
+--    SDL sends Navigation.UnsubscribeWayPoints(appId_2) request to HMI
+--    SDL receives Navigation.SubscribeWayPoints("SUCCESS") response from HMI
+--    SDL sends UnsubscribeWayPoints(SUCCESS) response to Mobile №2
+--    SDL sends OnHashChange with updated hashId to Mobile №2
 -- 5) HMI sent OnWayPointChange notification
---   Check SDL:
---     does NOT send OnWayPointChange to Mobiles №1 and №2
+--   Check:
+--    SDL does NOT send OnWayPointChange to Mobiles №1 and №2
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -74,12 +77,14 @@ end
 local function sendSubscribeWayPoints(pAppId, pIsAFirstApp)
   local mobSession = common.mobile.getSession(pAppId)
   local cid = mobSession:SendRPC("SubscribeWayPoints", {})
-  if pIsAFirstApp then                                                          -- SDL -> HMI - should send this request
-    common.hmi.getConnection():ExpectRequest("Navigation.SubscribeWayPoints")   -- only when 1st app get subscribed
+  local pTime = 0
+  if pIsAFirstApp then pTime = 1 end
+
+  -- SDL -> HMI should send this request only when 1st app is subscribing
+    common.hmi.getConnection():ExpectRequest("Navigation.SubscribeWayPoints"):Times(pTime)
     :Do(function(_,data)
          common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS", {})
       end)
-  end
     mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
     mobSession:ExpectNotification("OnHashChange")
 end
@@ -99,14 +104,18 @@ local function sendOnWayPointChange(pAppId1, pAppId2, pNumberOfAppsSubscribed)
   mobSession2:ExpectNotification("OnWayPointChange",{ wayPoints = {pWayPoints} }):Times(pTime2)
 end
 
-local function sendUnsubscribeWayPoints(pAppId)
+local function sendUnsubscribeWayPoints(pAppId, pIsLastApp)
   local mobSession = common.mobile.getSession(pAppId)
   local cid = mobSession:SendRPC("UnsubscribeWayPoints", {})
-    common.hmi.getConnection():ExpectRequest("Navigation.UnsubscribeWayPoints")
+  local pTime = 0
+  if pIsLastApp then pTime = 1 end
+
+  -- SDL -> HMI should send this request only when last app is unsubscribing
+    common.hmi.getConnection():ExpectRequest("Navigation.UnsubscribeWayPoints"):Times(pTime)
     :Do(function(_,data)
          common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS",{})
       end)
-    mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+  mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
     mobSession:ExpectNotification("OnHashChange")
 end
 
@@ -131,7 +140,7 @@ runner.Step("App 1 from Mobile 1 unsubscribes from WayPoints", sendUnsubscribeWa
 runner.Step("HMI sends OnWayPointChange - App 1 does NOT receive", sendOnWayPointChange, { 2, 1, 1 })
 
 runner.Step("Activate App 2", common.app.activate, { 2 })
-runner.Step("App 2 from Mobile 2 unsubscribes from WayPoints",     sendUnsubscribeWayPoints, { 2 })
+runner.Step("App 2 from Mobile 2 unsubscribes from WayPoints",     sendUnsubscribeWayPoints, { 2, true })
 runner.Step("HMI sends OnWayPointChange - App 1 and 2 do NOT receive", sendOnWayPointChange, { 2, 1, 0 })
 
 runner.Title("Postconditions")
