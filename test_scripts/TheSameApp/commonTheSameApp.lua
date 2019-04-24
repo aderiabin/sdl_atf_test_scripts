@@ -582,14 +582,23 @@ function common.ignitionOff(pDevices, pExpFunc)
 end
 
 function common.addCommand(pAppId, pData)
-  local session = common.mobile.getSession(pAppId)
-  local hmi = common.hmi.getConnection()
-  local cid = session:SendRPC("AddCommand", pData.mob)
-  hmi:ExpectRequest("VR.AddCommand", pData.hmi)
-  :Do(function(_, data)
-      hmi:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  return session:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+  local resultCode = pData.resultCode
+  if not resultCode then resultCode = "SUCCESS" end
+  local isSuccess = false
+  if resultCode == "SUCCESS" then
+    isSuccess = true
+  end
+
+  local mobileSession = common.mobile.getSession(pAppId)
+  local corId = mobileSession:SendRPC("AddCommand", pData.mob)
+  if resultCode == "SUCCESS" then
+    local hmi = common.hmi.getConnection()
+    hmi:ExpectRequest("VR.AddCommand", pData.hmi)
+    :Do(function(_,data)
+        hmi:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+  end
+  mobileSession:ExpectResponse(corId, {success = isSuccess , resultCode = resultCode})
 end
 
 function common.addSubMenu(pAppId, pData)
@@ -642,6 +651,51 @@ function common.unexpectedDisconnect(pAppId)
   common.hmi.getConnection():ExpectNotification("BasicCommunication.OnAppUnregistered",
     { unexpectedDisconnect = true, appID = common.app.getHMIId(pAppId) })
   common.mobile.deleteSession(pAppId)
+end
+
+function common.checkCounter(pPolicyAppID, pCounterName, pExpectedCounterValue)
+  local triggerAppParams = common.cloneTable(common.app.getParams(1))
+  triggerAppParams.appName = "AppToTriggerPTU"
+  triggerAppParams.appID = "trigger"
+  triggerAppParams.fullAppID = "fullTrigger"
+
+  local hmi = common.hmi.getConnection()
+  local session = common.mobile.createSession(10, 1)
+  session:StartService(7)
+  :Do(function()
+      local corId = session:SendRPC("RegisterAppInterface", triggerAppParams)
+      hmi:ExpectNotification("BasicCommunication.OnAppRegistered")
+      :Do(function(_, _)
+          hmi:ExpectRequest("BasicCommunication.PolicyUpdate")
+          :Do(function(_, d)
+              hmi:SendResponse(d.id, d.method, "SUCCESS", {})
+              common.run.wait(1000) -- time for SDL to create PTS file
+              :ValidIf(function(_, _)
+                  local ptsFileName = common.sdl.getSDLIniParameter("SystemFilesPath") .. "/"
+                    .. common.sdl.getSDLIniParameter("PathToSnapshot")
+                  if utils.isFileExist(ptsFileName) then
+                    local pTbl = utils.jsonFileToTable(ptsFileName)
+                    if pTbl
+                        and pTbl.policy_table
+                        and pTbl.policy_table.usage_and_error_counts
+                        and pTbl.policy_table.usage_and_error_counts.app_level
+                        and pTbl.policy_table.usage_and_error_counts.app_level[pPolicyAppID] then
+                      local countersTbl = pTbl.policy_table.usage_and_error_counts.app_level[pPolicyAppID]
+                      local actualCounterValue = countersTbl[pCounterName]
+                      if actualCounterValue == pExpectedCounterValue then
+                        return true
+                      end
+                      return false, "Incorrect " .. pCounterName .. " counter value. Expected: "
+                          .. tostring(pExpectedCounterValue) .. ", actual: " .. tostring(actualCounterValue)
+                    end
+                    return false, "PTS is incorrect"
+                  end
+                  return false, "PTS file was not found"
+                end)
+            end)
+        end)
+      session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+    end)
 end
 
 return common
