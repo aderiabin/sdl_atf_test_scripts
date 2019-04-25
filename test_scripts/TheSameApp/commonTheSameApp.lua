@@ -276,6 +276,46 @@ function common.show(pAppId, pResultCode)
   mobileSession:ExpectResponse(corId, { success = isSuccess, resultCode = pResultCode})
 end
 
+function common.addCommand(pAppId, pData, pResultCode)
+  print ("addCommand: pAppId: " .. utils.toString(pAppId) .. ", pData: " .. utils.toString(pData))
+  if not pResultCode then pResultCode = "SUCCESS" end
+  local isSuccess = false
+  if pResultCode == "SUCCESS" then
+    isSuccess = true
+  end
+
+  local mobileSession = common.mobile.getSession(pAppId)
+  local corId = mobileSession:SendRPC("AddCommand", pData.mob)
+  if pResultCode == "SUCCESS" then
+    local hmi = common.hmi.getConnection()
+    hmi:ExpectRequest("VR.AddCommand", pData.hmi)
+    :Do(function(_,data)
+        hmi:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+  end
+  mobileSession:ExpectResponse(corId, {success = isSuccess , resultCode = pResultCode})
+end
+
+function common.addSubMenu(pAppId, pData, pResultCode)
+  print ("addSubMenu: pAppId: " .. utils.toString(pAppId) .. ", pData: " .. utils.toString(pData))
+  if not pResultCode then pResultCode = "SUCCESS" end
+  local isSuccess = false
+  if pResultCode == "SUCCESS" then
+    isSuccess = true
+  end
+
+  local mobileSession = common.mobile.getSession(pAppId)
+  local corId = mobileSession:SendRPC("AddSubMenu", pData.mob)
+  if pResultCode == "SUCCESS" then
+    local hmi = common.hmi.getConnection()
+    hmi:ExpectRequest("UI.AddSubMenu", pData.hmi)
+    :Do(function(_,data)
+        hmi:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+  end
+  mobileSession:ExpectResponse(corId, {success = isSuccess , resultCode = pResultCode})
+end
+
 function common.funcGroupConsentForApp(pPrompts, pAppId)
 
   local function findFunctionalGroupIds(pAllowedFunctions, pGroupName)
@@ -581,37 +621,6 @@ function common.ignitionOff(pDevices, pExpFunc)
     end)
 end
 
-function common.addCommand(pAppId, pData)
-  local resultCode = pData.resultCode
-  if not resultCode then resultCode = "SUCCESS" end
-  local isSuccess = false
-  if resultCode == "SUCCESS" then
-    isSuccess = true
-  end
-
-  local mobileSession = common.mobile.getSession(pAppId)
-  local corId = mobileSession:SendRPC("AddCommand", pData.mob)
-  if resultCode == "SUCCESS" then
-    local hmi = common.hmi.getConnection()
-    hmi:ExpectRequest("VR.AddCommand", pData.hmi)
-    :Do(function(_,data)
-        hmi:SendResponse(data.id, data.method, "SUCCESS", {})
-      end)
-  end
-  mobileSession:ExpectResponse(corId, {success = isSuccess , resultCode = resultCode})
-end
-
-function common.addSubMenu(pAppId, pData)
-  local session = common.mobile.getSession(pAppId)
-  local hmi = common.hmi.getConnection()
-  local cid = session:SendRPC("AddSubMenu", pData.mob)
-  hmi:ExpectRequest("UI.AddSubMenu", pData.hmi)
-  :Do(function(_, data)
-      hmi:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  return session:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-end
-
 function common.reRegisterAppEx(pAppId, pMobConnId, pAppsData, pExpResDataFunc)
   local appData = pAppsData[pAppId]
   local params = common.cloneTable(common.app.getParams(pAppId))
@@ -653,7 +662,7 @@ function common.unexpectedDisconnect(pAppId)
   common.mobile.deleteSession(pAppId)
 end
 
-function common.checkCounter(pPolicyAppID, pCounterName, pExpectedCounterValue)
+function common.triggerPTUtoGetPTS()
   local triggerAppParams = common.cloneTable(common.app.getParams(1))
   triggerAppParams.appName = "AppToTriggerPTU"
   triggerAppParams.appID = "trigger"
@@ -669,33 +678,37 @@ function common.checkCounter(pPolicyAppID, pCounterName, pExpectedCounterValue)
           hmi:ExpectRequest("BasicCommunication.PolicyUpdate")
           :Do(function(_, d)
               hmi:SendResponse(d.id, d.method, "SUCCESS", {})
-              common.run.wait(1000) -- time for SDL to create PTS file
-              :ValidIf(function(_, _)
-                  local ptsFileName = common.sdl.getSDLIniParameter("SystemFilesPath") .. "/"
-                    .. common.sdl.getSDLIniParameter("PathToSnapshot")
-                  if utils.isFileExist(ptsFileName) then
-                    local pTbl = utils.jsonFileToTable(ptsFileName)
-                    if pTbl
-                        and pTbl.policy_table
-                        and pTbl.policy_table.usage_and_error_counts
-                        and pTbl.policy_table.usage_and_error_counts.app_level
-                        and pTbl.policy_table.usage_and_error_counts.app_level[pPolicyAppID] then
-                      local countersTbl = pTbl.policy_table.usage_and_error_counts.app_level[pPolicyAppID]
-                      local actualCounterValue = countersTbl[pCounterName]
-                      if actualCounterValue == pExpectedCounterValue then
-                        return true
-                      end
-                      return false, "Incorrect " .. pCounterName .. " counter value. Expected: "
-                          .. tostring(pExpectedCounterValue) .. ", actual: " .. tostring(actualCounterValue)
-                    end
-                    return false, "PTS is incorrect"
-                  end
-                  return false, "PTS file was not found"
-                end)
             end)
         end)
       session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
     end)
+end
+
+function common.checkCounter(pPolicyAppID, pCounterName, pExpectedCounterValue)
+  local ptsFileName = common.sdl.getSDLIniParameter("SystemFilesPath") .. "/"
+    .. common.sdl.getSDLIniParameter("PathToSnapshot")
+  if utils.isFileExist(ptsFileName) then
+    local pTbl = utils.jsonFileToTable(ptsFileName)
+    if pTbl
+        and pTbl.policy_table
+        and pTbl.policy_table.usage_and_error_counts
+        and pTbl.policy_table.usage_and_error_counts.app_level
+        and pTbl.policy_table.usage_and_error_counts.app_level[pPolicyAppID] then
+      local countersTbl = pTbl.policy_table.usage_and_error_counts.app_level[pPolicyAppID]
+      local actualCounterValue = countersTbl[pCounterName]
+      print("Expected: " .. tostring(pExpectedCounterValue) .. ", actual: " .. tostring(actualCounterValue))
+      if actualCounterValue == pExpectedCounterValue then
+        return
+      end
+      local msg = "Incorrect " .. pCounterName .. " counter value. Expected: "
+          .. tostring(pExpectedCounterValue) .. ", actual: " .. tostring(actualCounterValue)
+      common.run.fail(msg)
+      return
+    end
+    common.run.fail("PTS is incorrect")
+    return
+  end
+  common.run.fail("PTS file was not found")
 end
 
 return common
