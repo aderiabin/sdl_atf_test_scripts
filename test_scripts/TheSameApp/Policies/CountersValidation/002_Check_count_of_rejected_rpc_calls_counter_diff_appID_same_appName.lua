@@ -52,11 +52,18 @@ local devices = {
 
 local appParams = {
   [1] = {
-    appName = "Test App",
+    appName = "Test Appl",
     isMediaApplication = true,
-    appHMIType = { "NAVIGATION" },
-    appID = "0008",
-    fullAppID = "0000008"
+    appHMIType = { "DEFAULT" },
+    appID = "0009",
+    fullAppID = "0000009"
+  },
+  [2] = {
+    appName = "Test Appl",
+    isMediaApplication = true,
+    appHMIType = { "DEFAULT" },
+    appID = "0010",
+    fullAppID = "0000010"
   }
 }
 
@@ -64,23 +71,38 @@ local ptFuncGroup = {
   AddCommandGroup = {
     rpcs = {
       AddCommand = {
-        hmi_levels = {"FULL", "LIMITED"}
+        hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
       }
     }
-  }
+  },
+  AddSubMenuGroup = {
+    rpcs = {
+      AddSubMenu = {
+        hmi_levels = {"FULL", "LIMITED", "BACKGROUND"}
+      }
+    }
+  },
 }
 
 local contentData = {
   [1] = {
     addCommand = {
-      mob = { cmdID = 1, vrCommands = { "OnlyVR" }},
-      hmi = { cmdID = 1, type = "Command", vrCommands = { "OnlyVR" }}
+      mob = { cmdID = 1, vrCommands = { "VROnly" }},
+      hmi = { cmdID = 1, type = "Command", vrCommands = { "VROnly" }}
+    },
+    addSubMenu = {
+      mob = { menuID = 1, position = 300, menuName = "NewestSubMenu" },
+      hmi = { menuID = 1, menuParams = { position = 300, menuName = "NewestSubMenu" }}
     }
   },
   [2] = {
     addCommand = {
-      mob = { cmdID = 1, vrCommands = { "vrCommand" }},
-      hmi = { cmdID = 1, type = "Command", vrCommands = { "vrCommand" }}
+      mob = { cmdID = 1, vrCommands = { "vrComm" }},
+      hmi = { cmdID = 1, type = "Command", vrCommands = { "vrComm" }}
+    },
+    addSubMenu = {
+      mob = { menuID = 1, position = 200, menuName = "ReactSubMenu" },
+      hmi = { menuID = 1, menuParams = { position = 200, menuName = "ReactSubMenu" }}
     }
   }
 }
@@ -92,40 +114,53 @@ local function modificationOfPreloadedPT(pPolicyTable)
   for funcGroupName in pairs(pt.functional_groupings) do
     if type(pt.functional_groupings[funcGroupName].rpcs) == "table" then
       pt.functional_groupings[funcGroupName].rpcs["AddCommand"] = nil
+      pt.functional_groupings[funcGroupName].rpcs["AddSubMenu"] = nil
     end
   end
 
   pt.functional_groupings["DataConsent-2"].rpcs = common.json.null
 
   pt.functional_groupings["AddCommandGroup"] = ptFuncGroup.AddCommandGroup
+  pt.functional_groupings["AddSubMenuGroup"] = ptFuncGroup.AddSubMenuGroup
 
   pt.app_policies[appParams[1].fullAppID] =
       common.cloneTable(pt.app_policies["default"])
-  pt.app_policies[appParams[1].fullAppID].groups = {"Base-4"}
-end
+  pt.app_policies[appParams[1].fullAppID].groups = {"Base-4", "AddSubMenuGroup"}
 
-local function processAddCommand(pAppId, pResultCode)
-  local data = common.cloneTable(contentData[pAppId].addCommand)
-  data.resultCode = pResultCode
-  common.addCommand(pAppId, data)
+  pt.app_policies[appParams[2].fullAppID] =
+      common.cloneTable(pt.app_policies["default"])
+  pt.app_policies[appParams[2].fullAppID].groups = {"Base-4", "AddCommandGroup"}
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Prepare preloaded PT", common.modifyPreloadedPt, {modificationOfPreloadedPT})
 runner.Step("Start SDL and HMI", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
-runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1], 1})
-runner.Step("Register App1 from device 2", common.registerAppEx, {2, appParams[1], 2})
+runner.Step("Allow SDL for Device 1", common.mobile.allowSDL, {1})
+runner.Step("Allow SDL for Device 2", common.mobile.allowSDL, {2})
+runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1], 1, true})
+runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2, true})
+runner.Step("PTU", common.ptu.policyTableUpdate, {modificationOfPreloadedPT})
 
 runner.Title("Test")
 runner.Step("Activate App1 from device 1", common.app.activate, {1})
-runner.Step("Disallowed AddCommand from App1 from device 1", processAddCommand, {1, "DISALLOWED"})
+runner.Step("Disallowed AddCommand from App1 from device 1", common.addCommand,
+    {1, contentData[1].addCommand, "DISALLOWED"})
+runner.Step("Succeed AddSubMenu from App1 from device 1", common.addSubMenu,
+    {1, contentData[1].addSubMenu, "SUCCESS"})
 runner.Step("Activate App2 from device 2", common.app.activate, {2})
-runner.Step("Disallowed AddCommand from App1 from device 2", processAddCommand, {2, "DISALLOWED"})
-runner.Step("Check count_of_rejected_rpc_calls in PTS", common.checkCounter,
-    {appParams[1].fullAppID, "count_of_rejected_rpc_calls", 2})
+runner.Step("Disallowed AddSubMenu from App2 from device 2", common.addSubMenu,
+    {2, contentData[2].addSubMenu, "DISALLOWED"})
+runner.Step("Succeed AddCommand from App2 from device 2", common.addCommand,
+    {2, contentData[2].addCommand, "SUCCESS"})
+runner.Step("Disallowed AddSubMenu from App2 from device 2", common.addSubMenu,
+    {2, contentData[2].addSubMenu, "DISALLOWED"})
+runner.Step("Trigger PTU to get PTS", common.triggerPTUtoGetPTS)
+runner.Step("Check count_of_rejected_rpc_calls in PTS for App1", common.checkCounter,
+    {appParams[1].fullAppID, "count_of_rejected_rpc_calls", 1})
+runner.Step("Check count_of_rejected_rpc_calls in PTS for App2", common.checkCounter,
+    {appParams[2].fullAppID, "count_of_rejected_rpc_calls", 2})
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})
