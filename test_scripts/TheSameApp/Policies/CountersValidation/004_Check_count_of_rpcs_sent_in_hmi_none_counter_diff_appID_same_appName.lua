@@ -1,41 +1,44 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
--- Description:
--- User consent for functional groups of two consented mobile devices
--- with the same mobile applications registered
+-- Description: Check "count_of_rpcs_sent_in_hmi_none" counter in case two consented mobile devices
+-- with the same mobile applications registered (the same appName but different appID)
 --
 -- Preconditions:
 -- 1) SDL and HMI are started
 -- 2) Mobile №1 and №2 are connected to SDL and are consented
--- 3) RPC SendLocation exists only in Group001 according policies and requires user consent ConsentGroup001
--- 4) Application App1 is registered on Mobile №1 and Mobile №2 (two copies of one application)
+-- 3) RPC AddCommand exists only in AddCommandGroup according PT
+--    RPC AddSubMenu does not exists in any functional group according PT
+-- 4) Application App1 (appID: "0019", appName: "Tester") is registered on Mobile №1 and has not functional group
+--     AddCommandGroup assigned in PT
+--    Application App2 (appID: "0015", appName: "Tester") is registered on Mobile №2 and has functional group
+--     AddCommandGroup assigned in PT
+-- 5) Value of counter "count_of_rpcs_sent_in_hmi_none" for appID: "0019" is 0 in PT
+--    Value of counter "count_of_rpcs_sent_in_hmi_none" for appID: "0015" is 0 in PT
 --
 -- Steps:
--- 1) Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+-- 1) Application App1 from Mobile №1 is in NONE HMI level and sends valid AddCommand RPC request to SDL
 --   Check:
---   SDL sends SendLocation(resultCode = DISALLOWED) response to Mobile №1
---   SDL sends SendLocation(resultCode = DISALLOWED) response to Mobile №2
--- 2) User allows ConsentGroup001 for App1 on Mobile №2
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+--   SDL sends AddCommand (resultCode = DISALLOWED) response to Mobile №1
+--   SDL increments counter "count_of_rpcs_sent_in_hmi_none" for applicaion App1
+--    (value of the counter become 1 for appID: "0019" in PT)
+-- 2) Application App2 from Mobile №2 is in NONE HMI level and sends valid AddCommand RPC request to SDL
 --   Check:
---    SDL sends SendLocation(resultCode = DISALLOWED) response to Mobile №1
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №2
--- 3) User allows ConsentGroup001 for App1 on Mobile №1
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+--   SDL sends AddCommand (resultCode = SUCCESS) response to Mobile №2
+--   SDL does not increments counter "count_of_rpcs_sent_in_hmi_none" for applicaion App2
+--    (value of the counter remains 0 for appID: "0015" in PT)
+-- 3) Application App1 from Mobile №1 is in NONE HMI level and sends valid AddSubMenu RPC request to SDL
 --   Check:
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №1
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №2
--- 4) User disallows ConsentGroup001 for App1 on Mobile №1
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+--   SDL sends AddSubMenu (resultCode = DISALLOWED) response to Mobile №1
+--   SDL increments counter "count_of_rpcs_sent_in_hmi_none" for applicaion App1
+--    (value of the counter become 2 for appID: "0019" in PT)
+-- 4) Application App2 from Mobile №2 is in NONE HMI level and sends valid AddSubMenu RPC request to SDL
 --   Check:
---    SDL sends SendLocation(resultCode = USER_DISALLOWED) response to Mobile №1
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №2
--- 5) User disallows ConsentGroup001 for App1 on Mobile №2
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
---   Check:
---    SDL sends SendLocation(resultCode = USER_DISALLOWED) response to Mobile №1
---    SDL sends SendLocation(resultCode = USER_DISALLOWED) response to Mobile №2
+--   SDL sends AddSubMenu (resultCode = DISALLOWED) response to Mobile №2
+--   SDL increments counter "count_of_rpcs_sent_in_hmi_none" for applicaion App2
+--    (value of the counter become 1 for appID: "0019" in PT)
+--
+-- The script checks values of "count_of_rpcs_sent_in_hmi_none" counters for both applications via PTS
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -145,10 +148,10 @@ runner.Step("Disallowed AddSubMenu in NONE from App1 from device 1", common.addS
 runner.Step("Disallowed AddSubMenu in NONE from App2 from device 2", common.addSubMenu,
     {2, contentData[2].addSubMenu, "DISALLOWED"})
 runner.Step("Trigger PTU to get PTS", common.triggerPTUtoGetPTS)
-runner.Step("Check count_of_rejected_rpc_calls in PTS for App1", common.checkCounter,
-    {appParams[1].fullAppID, "count_of_rejected_rpc_calls", 1})
-runner.Step("Check count_of_rejected_rpc_calls in PTS for App2", common.checkCounter,
-    {appParams[2].fullAppID, "count_of_rejected_rpc_calls", 2})
+runner.Step("Check count_of_rpcs_sent_in_hmi_none in PTS for App1", common.checkCounter,
+    {appParams[1].fullAppID, "count_of_rpcs_sent_in_hmi_none", 2})
+runner.Step("Check count_of_rpcs_sent_in_hmi_none in PTS for App2", common.checkCounter,
+    {appParams[2].fullAppID, "count_of_rpcs_sent_in_hmi_none", 1})
 
 runner.Title("Postconditions")
 runner.Step("Remove mobile devices", common.clearMobDevices, {devices})

@@ -1,41 +1,49 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal:
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0204-same-app-from-multiple-devices.md
--- Description:
--- User consent for functional groups of two consented mobile devices
--- with the same mobile applications registered
+-- Description: Check "count_of_rejected_rpc_calls" counter in case two consented mobile devices
+-- with the same mobile applications registered (the same appName but different appID)
 --
 -- Preconditions:
 -- 1) SDL and HMI are started
 -- 2) Mobile №1 and №2 are connected to SDL and are consented
--- 3) RPC SendLocation exists only in Group001 according policies and requires user consent ConsentGroup001
--- 4) Application App1 is registered on Mobile №1 and Mobile №2 (two copies of one application)
+-- 3) RPC AddCommand exists only in AddCommandGroup according PT
+--    RPC AddSubMenu exists only in AddSubMenuGroup according PT
+-- 4) Application App1 (appID: "0009", appName: "Test Appl") is registered on Mobile №1 and has functional group
+--     AddSubMenuGroup assigned in PT
+--    Application App2 (appID: "0010", appName: "Test Appl") is registered on Mobile №2 and has functional group
+--     AddCommandGroup assigned in PT
+-- 5) Value of counter "count_of_rejected_rpc_calls" for appID: "0009" is 0 in PT
+--    Value of counter "count_of_rejected_rpc_calls" for appID: "0010" is 0 in PT
 --
 -- Steps:
--- 1) Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+-- 1) Application App1 from Mobile №1 is activated and sends valid AddCommand RPC request to SDL
 --   Check:
---   SDL sends SendLocation(resultCode = DISALLOWED) response to Mobile №1
---   SDL sends SendLocation(resultCode = DISALLOWED) response to Mobile №2
--- 2) User allows ConsentGroup001 for App1 on Mobile №2
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+--   SDL sends AddCommand (resultCode = DISALLOWED) response to Mobile №1
+--   SDL increments counter "count_of_rejected_rpc_calls" for applicaion App1
+--    (value of the counter become 1 for appID: "0009" in PT)
+-- 2) Application App1 from Mobile №1 sends valid AddSubMenu RPC request to SDL
 --   Check:
---    SDL sends SendLocation(resultCode = DISALLOWED) response to Mobile №1
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №2
--- 3) User allows ConsentGroup001 for App1 on Mobile №1
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+--   SDL sends AddSubMenu (resultCode = SUCCESS) response to Mobile №1
+--   SDL does not increments counter "count_of_rejected_rpc_calls" for applicaion App1
+--    (value of the counter remains 1 for appID: "0009" in PT)
+-- 3) Application App2 from Mobile №2 is activated and sends valid AddSubMenu RPC request to SDL
 --   Check:
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №1
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №2
--- 4) User disallows ConsentGroup001 for App1 on Mobile №1
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+--   SDL sends AddSubMenu (resultCode = DISALLOWED) response to Mobile №2
+--   SDL increments counter "count_of_rejected_rpc_calls" for applicaion App2
+--    (value of the counter become 1 for appID: "0010" in PT)
+-- 4) Application App2 from Mobile №2 sends valid AddCommand RPC request to SDL
 --   Check:
---    SDL sends SendLocation(resultCode = USER_DISALLOWED) response to Mobile №1
---    SDL sends SendLocation(resultCode = SUCCESS) response to Mobile №2
--- 5) User disallows ConsentGroup001 for App1 on Mobile №2
--- Applications App1 from both devices (Mobile №1 and Mobile №2) send to SDL valid SendLocation RPC request
+--   SDL sends AddCommand (resultCode = SUCCESS) response to Mobile №2
+--   SDL does not increments counter "count_of_rejected_rpc_calls" for applicaion App2
+--    (value of the counter remains 1 for appID: "0010" in PT)
+-- 5) Application App2 from Mobile №2 sends valid AddSubMenu RPC request to SDL
 --   Check:
---    SDL sends SendLocation(resultCode = USER_DISALLOWED) response to Mobile №1
---    SDL sends SendLocation(resultCode = USER_DISALLOWED) response to Mobile №2
+--   SDL sends AddSubMenu (resultCode = DISALLOWED) response to Mobile №2
+--   SDL increments counter "count_of_rejected_rpc_calls" for applicaion App2
+--    (value of the counter become 2 for appID: "0010" in PT)
+--
+-- The script checks values of "count_of_rejected_rpc_calls" counters for both applications via PTS
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
