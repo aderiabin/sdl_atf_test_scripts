@@ -267,7 +267,11 @@ end
 
 --[[ Functions of mobile submodule ]]
 
-m.mobile.CONNECTION_TYPE = mobile_adapter_controller.ADAPTER_TYPE
+m.mobile.CONNECTION_TYPE = {
+  TCP = "TCP",
+  WS = "WS",
+  WSS = "WSS"
+}
 
 --- Register connection/disconnection event handlers for connection
 local function registerConnectionExpectations(pMobConnId)
@@ -294,15 +298,22 @@ end
 --! pMobConnPort - mobile connection port
 --! @return: none
 --]]
-function m.mobile.createConnection(pMobConnId, pMobConnHost, pMobConnPort, pMobConnType)
+function m.mobile.createConnection(pMobConnId, pMobConnHost, pMobConnPort, pMobConnType, pSslParameters)
   if pMobConnId == nil then pMobConnId = 1 end
   if pMobConnType == nil then pMobConnType = config.defaultMobileAdapterType end
   local adapterParams = {}
   adapterParams.port = pMobConnPort
-  if pMobConnType == m.mobile.CONNECTION_TYPE.WEB_ENGINE then
-    adapterParams.url = pMobConnHost
-  else
+  if pMobConnType == m.mobile.CONNECTION_TYPE.TCP then
     adapterParams.host = pMobConnHost
+  else -- WS or WSS
+    adapterParams.url = pMobConnHost
+    if pMobConnType == m.mobile.CONNECTION_TYPE.WSS then
+      adapterParams.sslProtocol = pSslParameters.protocol or config.wssSecurityProtocol
+      adapterParams.sslCypherListString = pSslParameters.cypherListString or config.wssCypherListString
+      adapterParams.sslCaCertPath = pSslParameters.caCertPath or config.wssCertificateCAPath
+      adapterParams.sslCertPath = pSslParameters.certPath or config.wssCertificateClientPath
+      adapterParams.sslKeyPath = pSslParameters.keyPath or config.wssPrivateKeyPath
+    end
   end
 
   local baseConnection = mobile_adapter_controller.getAdapter(pMobConnType, adapterParams)
