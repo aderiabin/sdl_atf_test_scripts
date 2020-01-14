@@ -301,17 +301,19 @@ end
 function m.mobile.createConnection(pMobConnId, pMobConnHost, pMobConnPort, pMobConnType, pSslParameters)
   if pMobConnId == nil then pMobConnId = 1 end
   if pMobConnType == nil then pMobConnType = config.defaultMobileAdapterType end
+  if pSslParameters == nil then pSslParameters = {} end
   local adapterParams = {}
   adapterParams.port = pMobConnPort
   if pMobConnType == m.mobile.CONNECTION_TYPE.TCP then
     adapterParams.host = pMobConnHost
   else -- WS or WSS
     adapterParams.url = pMobConnHost
-    if pMobConnType == m.mobile.CONNECTION_TYPE.WSS then
+    if pMobConnType == m.mobile.CONNECTION_TYPE.WSS and type(pSslParameters) == "table" then
       adapterParams.sslProtocol = pSslParameters.protocol or config.wssSecurityProtocol
       adapterParams.sslCypherListString = pSslParameters.cypherListString or config.wssCypherListString
       adapterParams.sslCaCertPath = pSslParameters.caCertPath or config.wssCertificateCAPath
       adapterParams.sslCertPath = pSslParameters.certPath or config.wssCertificateClientPath
+      adapterParams.sslcertChainPath = pSslParameters.sslcertChainPath or config.wssCertificateChainClientPath
       adapterParams.sslKeyPath = pSslParameters.keyPath or config.wssPrivateKeyPath
     end
   end
