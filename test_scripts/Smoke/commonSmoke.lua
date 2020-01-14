@@ -42,16 +42,19 @@ local device ={
   [1] = { id = nil, name = nil}
 }
 --[[Module functions]]
-function commonSmoke.allowSDL(self)
-  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList")
+function commonSmoke.connectMobile(self)
+  local ret = EXPECT_HMICALL("BasicCommunication.UpdateDeviceList")
   :Do(function(_, data)
       device[1].id = data.params.deviceList[1].id
       device[1].name = data.params.deviceList[1].name
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-        { allowed = true, source = "GUI", device = { id = device[1].id, name = device[1].name }})
     end)
+  self:connectMobile()
+  return ret
+end
 
+function commonSmoke.allowSDL(self)
+  self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+    { allowed = true, source = "GUI", device = { id = device[1].id, name = device[1].name }})
   return utils.wait(commonSmoke.minTimeout)
 end
 
@@ -201,7 +204,7 @@ function commonSmoke.start(pHMIParams, self)
       self:initHMI_onReady(pHMIParams)
       :Do(function()
         commonFunctions:userPrint(consts.color.magenta, "HMI is ready")
-        self:connectMobile()
+        commonSmoke.connectMobile(self)
         :Do(function()
           commonFunctions:userPrint(consts.color.magenta, "Mobile connected")
           commonSmoke.allowSDL(self)
