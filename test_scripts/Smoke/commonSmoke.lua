@@ -67,11 +67,21 @@ function commonSmoke.preconditions()
 end
 
 function commonSmoke.getDeviceName()
-  return config.mobileHost .. ":" .. config.mobilePort
+  return device[1].name
 end
 
 function commonSmoke.getDeviceMAC()
   return device[1].id
+end
+
+function commonSmoke.getDeviceTransportType()
+  if config.defaultMobileAdapterType == "TCP" then
+    return "WIFI"
+  elseif config.defaultMobileAdapterType == "WS" then
+    return "WEBENGINE_WEBSOCKET"
+  elseif config.defaultMobileAdapterType == "WSS" then
+    return "WEBENGINE_WEBSOCKET"
+  end
 end
 
 function commonSmoke.getPathToSDL()
