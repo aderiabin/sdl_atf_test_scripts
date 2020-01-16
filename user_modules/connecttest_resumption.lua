@@ -666,8 +666,9 @@ function module:connectMobile()
   :Do(function()
       print("Disconnected!!!")
     end)
+  local ret = EXPECT_EVENT(events.connectedEvent, "Connected")
   self.mobileConnection:Connect()
-  return EXPECT_EVENT(events.connectedEvent, "Connected")
+  return ret
 end
 
 function module:startSession()
