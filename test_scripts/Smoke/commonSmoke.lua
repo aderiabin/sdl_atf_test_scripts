@@ -38,23 +38,12 @@ commonSmoke.jsonFileToTable = utils.jsonFileToTable
 commonSmoke.wait = utils.wait
 
 local preloadedPT = commonSmoke:read_parameter_from_smart_device_link_ini("PreloadedPT")
-local device ={
-  [1] = { id = nil, name = nil}
-}
+
 --[[Module functions]]
-function commonSmoke.connectMobile(self)
-  local ret = EXPECT_HMICALL("BasicCommunication.UpdateDeviceList")
-  :Do(function(_, data)
-      device[1].id = data.params.deviceList[1].id
-      device[1].name = data.params.deviceList[1].name
-    end)
-  self:connectMobile()
-  return ret
-end
 
 function commonSmoke.allowSDL(self)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-    { allowed = true, source = "GUI", device = { id = device[1].id, name = device[1].name }})
+    { allowed = true, source = "GUI", device = { id = commonSmoke.getDeviceMAC(), name = commonSmoke.getDeviceName() }})
   return utils.wait(commonSmoke.minTimeout)
 end
 
@@ -67,11 +56,11 @@ function commonSmoke.preconditions()
 end
 
 function commonSmoke.getDeviceName()
-  return device[1].name
+  return utils.getDeviceName()
 end
 
 function commonSmoke.getDeviceMAC()
-  return device[1].id
+  return utils.getDeviceMAC()
 end
 
 function commonSmoke.getDeviceTransportType()
@@ -214,7 +203,7 @@ function commonSmoke.start(pHMIParams, self)
       self:initHMI_onReady(pHMIParams)
       :Do(function()
         commonFunctions:userPrint(consts.color.magenta, "HMI is ready")
-        commonSmoke.connectMobile(self)
+        self:connectMobile()
         :Do(function()
           commonFunctions:userPrint(consts.color.magenta, "Mobile connected")
           commonSmoke.allowSDL(self)

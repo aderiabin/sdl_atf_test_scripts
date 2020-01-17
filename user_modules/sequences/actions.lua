@@ -388,7 +388,7 @@ end
 --]]
 function m.mobile.allowSDL(pMobConnId)
   if pMobConnId == nil then pMobConnId = 1 end
-  local connection = m.mobile.getConnection(pMobConnId)
+  local connection = m.mobile.getConnection(pMobConnId).connection.connection
   local event = m.run.createEvent()
   m.hmi.getConnection():SendNotification("SDL.OnAllowSDLFunctionality", {
     allowed = true,

@@ -183,7 +183,7 @@ function m.getDeviceName(pHost, pPort)
     }
     return m.buildDeviceName("TCP", parameters)
   else
-    return m.buildDeviceName("WEB_ENGINE")
+    return m.buildDeviceName("WS")
   end
 end
 
@@ -193,28 +193,25 @@ end
 --! @return: MAC address of the device
 --]]
 function m.getDeviceMAC(pHost, pPort)
+  if not pHost then pHost = config.mobileHost end
+  if not pPort then pPort = config.mobilePort end
+  local parameters
   if config.defaultMobileAdapterType == "TCP" then
-    local parameters = {
-      host = pHost,
-      port = pPort
-    }
-    return m.buildDeviceMAC("TCP", parameters)
-  else
-    local parameters = {
-      vin = "52-452-52-752"
-    }
-    return m.buildDeviceMAC("WEB_ENGINE", parameters)
+    parameters = { host = pHost, port = pPort }
+  elseif config.defaultMobileAdapterType == "WS" then
+    parameters = { vin = "52-452-52-752" }
   end
+  return m.buildDeviceMAC(config.defaultMobileAdapterType, parameters)
 end
 
 --[[ @buildDeviceName: provide device name
 --! @parameters:
---! pDeviceType - device type (TCP, WEB_ENGINE)
+--! pDeviceType - device type (TCP, WS)
 --! pParams - device specific parameters
 --! TCP:
 --!   host - host of connection
 --!   port - port of connection
---! WEB_ENGINE: none
+--! WS: none
 --! @return: name of the device
 --]]
 function m.buildDeviceName(pDeviceType, pParams)
@@ -226,23 +223,23 @@ function m.buildDeviceName(pDeviceType, pParams)
       port = pParams.port or port
     end
     return host .. ":" .. port
-  elseif pDeviceType == "WEB_ENGINE" then
+  elseif pDeviceType == "WS" then
     return "WebEngine"
   else
     m.cprint(35, "Unknown device type " .. tostring(pDeviceType)
-      .. "\n Possible values: TCP, WEB_ENGINE ")
+      .. "\n Possible values: TCP, WS ")
   end
   return nil
 end
 
 --[[ @buildDeviceMAC: provide device MAC address
 --! @parameters:
---! pDeviceType - device type (TCP, WEB_ENGINE)
+--! pDeviceType - device type (TCP, WS)
 --! pParams - device specific parameters
 --! TCP:
 --!   host - host of connection
 --!   port - port of connection
---! WEB_ENGINE:
+--! WS:
 --!   vin - vin of vehicle
 --! @return: MAC address of the device
 --]]
@@ -256,17 +253,12 @@ function m.buildDeviceMAC(pDeviceType, pParams)
   end
 
   if pDeviceType == "TCP" then
-    return makeHash(m.getDeviceName(pDeviceType, pParams))
-  elseif pDeviceType == "WEB_ENGINE" then
-    if type(pParams) == "table" and pParams.vin then
-      return makeHash(pParams.vin)
-    else
-      m.cprint(35, "ERROR: Vin parameter is not specified")
-      return makeHash(nil)
-    end
+    return makeHash(pParams.host .. ":" .. pParams.port)
+  elseif pDeviceType == "WS" then
+    return makeHash(pParams.vin)
   else
     m.cprint(35, "ERROR: Unknown device type " .. tostring(pDeviceType)
-      .. "\n Possible values: TCP, WEB_ENGINE ")
+      .. "\n Possible values: TCP, WS ")
     return makeHash(nil)
   end
 end
