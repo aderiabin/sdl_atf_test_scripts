@@ -313,7 +313,6 @@ function m.mobile.createConnection(pMobConnId, pMobConnHost, pMobConnPort, pMobC
       adapterParams.sslCypherListString = pSslParameters.cypherListString or config.wssCypherListString
       adapterParams.sslCaCertPath = pSslParameters.caCertPath or config.wssCertificateCAPath
       adapterParams.sslCertPath = pSslParameters.certPath or config.wssCertificateClientPath
-      adapterParams.sslcertChainPath = pSslParameters.sslcertChainPath or config.wssCertificateChainClientPath
       adapterParams.sslKeyPath = pSslParameters.keyPath or config.wssPrivateKeyPath
     end
   end
