@@ -6,7 +6,6 @@ config.mobileHost = "127.0.0.1"
 
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
-local hmi_values = require("user_modules/hmi_values")
 local events = require('events')
 
 --[[ Module ]]
@@ -201,18 +200,11 @@ function m.getDeviceMAC(pHost, pPort)
     }
     return m.buildDeviceMAC("TCP", parameters)
   else
-    local hmiTable = hmi_values.getDefaultHMITable()
     local parameters = {
-      vin = hmi_table.VehicleInfo.GetVehicleData.params.vin
+      vin = "52-452-52-752"
     }
     return m.buildDeviceMAC("WEB_ENGINE", parameters)
   end
-
-  local cmd = "echo -n " .. m.getDeviceName(pHost, pPort) .. " | sha256sum | awk '{printf $1}'"
-  local handle = io.popen(cmd)
-  local result = handle:read("*a")
-  handle:close()
-  return result
 end
 
 --[[ @buildDeviceName: provide device name
@@ -226,7 +218,7 @@ end
 --! @return: name of the device
 --]]
 function m.buildDeviceName(pDeviceType, pParams)
-  if pDeviceType = "TCP" then
+  if pDeviceType == "TCP" then
     local host = config.mobileHost
     local port = config.mobilePort
     if type(pParams) == "table" then
@@ -263,7 +255,7 @@ function m.buildDeviceMAC(pDeviceType, pParams)
     return result
   end
 
-  if pDeviceType = "TCP" then
+  if pDeviceType == "TCP" then
     return makeHash(m.getDeviceName(pDeviceType, pParams))
   elseif pDeviceType == "WEB_ENGINE" then
     if type(pParams) == "table" and pParams.vin then
@@ -271,6 +263,7 @@ function m.buildDeviceMAC(pDeviceType, pParams)
     else
       m.cprint(35, "ERROR: Vin parameter is not specified")
       return makeHash(nil)
+    end
   else
     m.cprint(35, "ERROR: Unknown device type " .. tostring(pDeviceType)
       .. "\n Possible values: TCP, WEB_ENGINE ")
