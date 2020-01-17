@@ -6,6 +6,7 @@ config.mobileHost = "127.0.0.1"
 
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
+local hmi_values = require("user_modules/hmi_values")
 local events = require('events')
 
 --[[ Module ]]
@@ -168,6 +169,7 @@ function m.wait(pTimeOut)
   return ret
 end
 
+--- [DEPRECATED]
 --[[ @getDeviceName: provide device name
 --! @parameters: none
 --! @return: name of the device
@@ -175,19 +177,105 @@ end
 function m.getDeviceName(pHost, pPort)
   if not pHost then pHost = config.mobileHost end
   if not pPort then pPort = config.mobilePort end
-  return pHost .. ":" .. pPort
+  if config.defaultMobileAdapterType == "TCP" then
+    local parameters = {
+      host = pHost,
+      port = pPort
+    }
+    return m.buildDeviceName("TCP", parameters)
+  else
+    return m.buildDeviceName("WEB_ENGINE")
+  end
 end
 
+--- [DEPRECATED]
 --[[ @getDeviceMAC: provide device MAC address
 --! @parameters: none
 --! @return: MAC address of the device
 --]]
 function m.getDeviceMAC(pHost, pPort)
+  if config.defaultMobileAdapterType == "TCP" then
+    local parameters = {
+      host = pHost,
+      port = pPort
+    }
+    return m.buildDeviceMAC("TCP", parameters)
+  else
+    local hmiTable = hmi_values.getDefaultHMITable()
+    local parameters = {
+      vin = hmi_table.VehicleInfo.GetVehicleData.params.vin
+    }
+    return m.buildDeviceMAC("WEB_ENGINE", parameters)
+  end
+
   local cmd = "echo -n " .. m.getDeviceName(pHost, pPort) .. " | sha256sum | awk '{printf $1}'"
   local handle = io.popen(cmd)
   local result = handle:read("*a")
   handle:close()
   return result
+end
+
+--[[ @buildDeviceName: provide device name
+--! @parameters:
+--! pDeviceType - device type (TCP, WEB_ENGINE)
+--! pParams - device specific parameters
+--! TCP:
+--!   host - host of connection
+--!   port - port of connection
+--! WEB_ENGINE: none
+--! @return: name of the device
+--]]
+function m.buildDeviceName(pDeviceType, pParams)
+  if pDeviceType = "TCP" then
+    local host = config.mobileHost
+    local port = config.mobilePort
+    if type(pParams) == "table" then
+      host = pParams.host or host
+      port = pParams.port or port
+    end
+    return host .. ":" .. port
+  elseif pDeviceType == "WEB_ENGINE" then
+    return "WebEngine"
+  else
+    m.cprint(35, "Unknown device type " .. tostring(pDeviceType)
+      .. "\n Possible values: TCP, WEB_ENGINE ")
+  end
+  return nil
+end
+
+--[[ @buildDeviceMAC: provide device MAC address
+--! @parameters:
+--! pDeviceType - device type (TCP, WEB_ENGINE)
+--! pParams - device specific parameters
+--! TCP:
+--!   host - host of connection
+--!   port - port of connection
+--! WEB_ENGINE:
+--!   vin - vin of vehicle
+--! @return: MAC address of the device
+--]]
+function m.buildDeviceMAC(pDeviceType, pParams)
+  local function makeHash(pValue)
+    local cmd = "echo -n " .. tostring(pValue) .. " | sha256sum | awk '{printf $1}'"
+    local handle = io.popen(cmd)
+    local result = handle:read("*a")
+    handle:close()
+    return result
+  end
+
+  if pDeviceType = "TCP" then
+    return makeHash(m.getDeviceName(pDeviceType, pParams))
+  elseif pDeviceType == "WEB_ENGINE" then
+    if type(pParams) == "table" and pParams.vin then
+      return makeHash(pParams.vin)
+    else
+      m.cprint(35, "ERROR: Vin parameter is not specified")
+      return makeHash(nil)
+  else
+    m.cprint(35, "ERROR: Unknown device type " .. tostring(pDeviceType)
+      .. "\n Possible values: TCP, WEB_ENGINE ")
+    return makeHash(nil)
+  end
 end
 
 --[[ @protect: make table immutable
