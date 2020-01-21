@@ -92,8 +92,12 @@ local function prepareMobileConnectionsTable()
   if test.mobileConnection then
     if test.mobileConnection.connection then
       local defaultMobileConnection = test.mobileConnection
+      local transportConnection = test.mobileConnection.connection.connection
       defaultMobileConnection.RaiseEvent = MobRaiseEvent
       defaultMobileConnection.ExpectEvent = MobExpectEvent
+      defaultMobileConnection.host = transportConnection.host or transportConnection.url
+      defaultMobileConnection.port = transportConnection.port
+      defaultMobileConnection.type = config.defaultMobileAdapterType
       test.mobileConnections[1] = defaultMobileConnection
     end
   end
@@ -388,7 +392,7 @@ end
 --]]
 function m.mobile.allowSDL(pMobConnId)
   if pMobConnId == nil then pMobConnId = 1 end
-  local connection = m.mobile.getConnection(pMobConnId).connection.connection
+  local connection = m.mobile.getConnection(pMobConnId)
   local event = m.run.createEvent()
   m.hmi.getConnection():SendNotification("SDL.OnAllowSDLFunctionality", {
     allowed = true,
