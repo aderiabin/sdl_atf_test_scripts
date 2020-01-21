@@ -470,6 +470,10 @@ function module:initHMI_onReady(hmi_table)
     end)
   end
 
+  local exp = EXPECT_HMICALL("BasicCommunication.UpdateDeviceList"):Times(AtLeast(1))
+  :Do(function(_, data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
+  exp_waiter:AddExpectation(exp)
+
   self.hmiConnection:SendNotification("BasicCommunication.OnReady")
   return exp_waiter.expectation
 end

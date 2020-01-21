@@ -652,6 +652,9 @@ function module:initHMI_onReady()
       end
     end)
 
+  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList"):Times(AtLeast(1))
+  :Do(function(_, data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
+
   self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end
 
