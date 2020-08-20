@@ -6,7 +6,7 @@
 -- In case:
 -- 1. Subscriptions for all interior vehicle data types are added
 -- 2. Unexpected disconnect and Reconnect are performed
--- 3. App reregisters with actual HashId
+-- 3. App re-registers with actual HashId
 -- 4. HMI does not respond to RC.GetInteriorVehicleData for one interior vehicle data type
 -- SDL does:
 -- 1. remove already restored data after default timeout
